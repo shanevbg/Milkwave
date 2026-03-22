@@ -498,10 +498,13 @@ public:
   PShaderSet m_Milk2OldShaders;	// preset 1's shaders during .milk2 load
   bool    m_bLoadingMilk2 = false;	// true when loading a .milk2 double-preset
   int     m_nMilk2MixType = -1;	// blend pattern from .milk2 metadata (-1 = random)
-  int     m_nMilk2BlendDirection = 0;	// blend direction from .milk2 metadata (0 = random, -1 or 1 = forced)
+  float   m_fMilk2BlendDirection = 0.0f;	// blend direction from .milk2 metadata (0 = random; other values tune angle)
   bool    m_bMilk2VerticalWipe = false;	// true = "horizontal" pattern (horizontal split => vertical wipe axis)
   bool    m_bMilk2PermanentBlend = false;	// true = blend never completes (both presets render forever)
   float   m_fMilk2BlendProgress = 0.5f;	// fixed blend position from .milk2 header (0..1)
+  float   m_fMilk2FrozenProgress = 0.5f;	// derived blend position used while the .milk2 blend is pinned
+  float   m_fMilk2Random1 = 0.0f;	// .milk2 random_1 metadata
+  float   m_fMilk2Random2 = 0.0f;	// .milk2 random_2 metadata
   unsigned int m_nMilk2PatternSeed = 0;	// deterministic seed from .milk2 random_1..5 values
   wchar_t m_szMilk2Temp1[MAX_PATH] = {};	// temp file for .milk2 preset 1
   wchar_t m_szMilk2Temp2[MAX_PATH] = {};	// temp file for .milk2 preset 2
@@ -761,7 +764,7 @@ public:
   void        LoadRandomPreset(float fBlendTime);
   void        LoadPreset(const wchar_t* szPresetFilename, float fBlendTime);
   void        LoadPresetTick();
-  bool        ParseMilk2File(const wchar_t* szPath, wchar_t* outTemp1, wchar_t* outTemp2, int& outMixType, float& outProgress, int& outDirection, unsigned int& outSeed);
+  bool        ParseMilk2File(const wchar_t* szPath, wchar_t* outTemp1, wchar_t* outTemp2, int& outMixType, float& outProgress, float& outDirection, unsigned int& outSeed);
   void        FindValidPresetDir();
   wchar_t* GetMsgIniFile() { return m_szMsgIniFile; };
   wchar_t* GetPresetDir() { return m_szPresetDir; };

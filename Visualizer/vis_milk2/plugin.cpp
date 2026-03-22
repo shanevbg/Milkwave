@@ -2809,7 +2809,7 @@ int CPlugin::AllocateMyDX9Stuff() {
     // so we must re-arm the blend and reload the old preset's shaders.
     if (m_bMilk2PermanentBlend) {
       m_pState->m_bBlending = true;
-      m_pState->m_fBlendProgress = m_fMilk2BlendProgress;
+      m_pState->m_fBlendProgress = m_fMilk2FrozenProgress;
       LoadShaders(&m_OldShaders, m_pOldState, false, false);
     }
   }
@@ -8510,20 +8510,13 @@ void CPlugin::RandomizeBlendPattern() {
   else if (mixtype == 1) {
     // directional wipe
     float ang = FRAND * 6.28f;
+    float band = 0.1f + 0.2f * FRAND; // 0.2 is good
+    if (m_bLoadingMilk2 && m_nMilk2MixType == 1) {
+      ang = m_fMilk2Random1 * 6.2831853f;
+      band = 0.1f + 0.2f * m_fMilk2Random2;
+    }
     float vx = cosf(ang);
     float vy = sinf(ang);
-    float band = 0.1f + 0.2f * FRAND; // 0.2 is good
-    if (m_nMilk2BlendDirection != 0) {
-      if (m_bMilk2VerticalWipe) {
-        // .milk2 "horizontal" pattern: horizontal split line => vertical wipe direction
-        ang = (m_nMilk2BlendDirection > 0) ? 1.5707963f : -1.5707963f;  // PI/2 or -PI/2
-      } else {
-        // .milk2 "side"/"vertical" pattern: vertical split line => horizontal wipe direction
-        ang = (m_nMilk2BlendDirection > 0) ? 0.0f : 3.14159265f;
-      }
-      vx = cosf(ang);
-      vy = sinf(ang);
-    }
     float inv_band = 1.0f / band;
 
     int nVert = 0;
@@ -8597,8 +8590,8 @@ void CPlugin::RandomizeBlendPattern() {
     float band = 0.02f + 0.14f * FRAND + 0.34f * FRAND;
     float inv_band = 1.0f / band;
     float dir = (float)((rand() % 2) * 2 - 1);      // 1=outside-in, -1=inside-out
-    if (m_nMilk2BlendDirection != 0) {
-      dir = (float)m_nMilk2BlendDirection;
+    if (m_fMilk2BlendDirection != 0.0f) {
+      dir = m_fMilk2BlendDirection;
       band = 0.25f;  // fixed band width for .milk2 deterministic circle size
       inv_band = 1.0f / band;
     }
@@ -9548,6 +9541,36 @@ void CPlugin::RandomizeBlendPattern() {
       }
     }
   }
+  else if (mixtype == 19) {
+    // Fixed vertical wipe (left-to-right) for .milk2 "vertical"
+    float band = 0.15f;
+    float inv_band = 1.0f / band;
+    int nVert = 0;
+    for (int y = 0; y <= m_nGridY; y++) {
+      for (int x = 0; x <= m_nGridX; x++) {
+        float fx = (x / (float)m_nGridX);
+        float t = fx;
+        m_vertinfo[nVert].a = inv_band * (1 + band);
+        m_vertinfo[nVert].c = -inv_band + inv_band * t;
+        nVert++;
+      }
+    }
+  }
+  else if (mixtype == 20) {
+    // Fixed horizontal wipe (top-to-bottom) for .milk2 "horizontal"
+    float band = 0.15f;
+    float inv_band = 1.0f / band;
+    int nVert = 0;
+    for (int y = 0; y <= m_nGridY; y++) {
+      float fy = (y / (float)m_nGridY);
+      for (int x = 0; x <= m_nGridX; x++) {
+        float t = fy;
+        m_vertinfo[nVert].a = inv_band * (1 + band);
+        m_vertinfo[nVert].c = -inv_band + inv_band * t;
+        nVert++;
+      }
+    }
+  }
 }
 
 void CPlugin::GenPlasma(int x0, int x1, int y0, int y1, float dt) {
@@ -9674,6 +9697,8 @@ static int Milk2PatternNameToMixtype(const char* name) {
     {"patches",        9},  // checkerboard / patches
     {"arrow",          1},  // directional arrow wipe
     {"corner",         8},  // corner / square variant
+    {"vertical",      19},  // fixed left-to-right wipe
+    {"horizontal",    20},  // fixed top-to-bottom wipe
   };
   for (auto& e : kMap)
     if (_stricmp(name, e.name) == 0) return e.type;
@@ -9689,11 +9714,11 @@ extern void GetFast_CLEAR();
 // Returns false on parse failure (malformed .milk2); temp files are not written.
 bool CPlugin::ParseMilk2File(const wchar_t* szPath,
                               wchar_t* outTemp1, wchar_t* outTemp2,
-                              int& outMixType, float& outProgress, int& outDirection,
+                              int& outMixType, float& outProgress, float& outDirection,
                               unsigned int& outSeed) {
   outMixType  = -1;
   outProgress = 0.5f;
-  outDirection = 1;
+  outDirection = 0.0f;
   outSeed = 0;
 
   // Read entire file into a string buffer.
@@ -9726,7 +9751,7 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     std::string prog = getVal("blending_progress");
     if (!prog.empty()) outProgress = (float)atof(prog.c_str());
     std::string dir = getVal("blending_direction");
-    if (!dir.empty()) outDirection = atoi(dir.c_str());
+    if (!dir.empty()) outDirection = (float)atof(dir.c_str());
 
     // Parse random_1..5 and compute a deterministic seed for blend pattern generation
     float randoms[5] = { 0.0f };
@@ -9736,6 +9761,8 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
       std::string val = getVal(key);
       if (!val.empty()) randoms[i] = (float)atof(val.c_str());
     }
+    m_fMilk2Random1 = randoms[0];
+    m_fMilk2Random2 = randoms[1];
     // Hash-combine the 5 float values into a single seed (boost::hash_combine style)
     unsigned int seed = 0;
     for (int i = 0; i < 5; i++) {
@@ -9798,7 +9825,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
 
   // Reset permanent .milk2 blend when loading any new preset
   m_bMilk2PermanentBlend = false;
-  m_nMilk2BlendDirection = 0;
+  m_fMilk2BlendDirection = 0.0f;
   m_bMilk2VerticalWipe = false;
 
   // make sure preset still exists.  (might not if they are using the "back"/fwd buttons
@@ -9849,7 +9876,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
 
     int mixType = -1;
     float progress = 0.5f;
-    int direction = 1;
+    float direction = 0.0f;
     unsigned int seed = 0;
     if (!ParseMilk2File(szPresetFilename, m_szMilk2Temp1, m_szMilk2Temp2,
                         mixType, progress, direction, seed)) {
@@ -9860,8 +9887,9 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
       return;
     }
     m_nMilk2MixType = mixType;
-    m_nMilk2BlendDirection = direction;
+    m_fMilk2BlendDirection = direction;
     m_fMilk2BlendProgress = progress;
+    m_fMilk2FrozenProgress = (direction < 0.0f) ? (1.0f - progress) : progress;
     m_nMilk2PatternSeed = seed;
 
     // Import preset 1 (blend-from) into m_pMilk2OldState
@@ -10050,11 +10078,11 @@ void CPlugin::LoadPresetTick() {
       m_nMixType = m_nMilk2MixType;
       // Seed RNG for deterministic pattern generation (from .milk2 random_1..5 values)
       srand(m_nMilk2PatternSeed);
-      // m_nMilk2BlendDirection is already set; RandomizeBlendPattern reads it for cercle/side
+      // m_fMilk2BlendDirection is already set; RandomizeBlendPattern reads it for cercle/side
       RandomizeBlendPattern();
       srand((unsigned int)GetTickCount());  // restore randomness for normal operation
       m_nMixType = savedMixType;
-      // Note: m_nMilk2BlendDirection stays set so resize can regenerate the same pattern
+      // Note: m_fMilk2BlendDirection stays set so resize can regenerate the same pattern
     } else {
       RandomizeBlendPattern();
     }
@@ -10072,7 +10100,7 @@ void CPlugin::LoadPresetTick() {
 
       m_bMilk2PermanentBlend = true;
       m_pState->m_bBlending = true;
-      m_pState->m_fBlendProgress = m_fMilk2BlendProgress;  // pin immediately, no transition
+      m_pState->m_fBlendProgress = m_fMilk2FrozenProgress;  // pin immediately, no transition
     }
 
     m_fPresetStartTime = GetTime();

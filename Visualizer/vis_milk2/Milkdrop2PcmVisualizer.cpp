@@ -2019,19 +2019,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
   _set_se_translator(SeTranslatorFunction);
 
 #ifdef _DEBUG
-  // Set the current directory to the Release folder for debugging,
-  // which is expected to be at the project root level.
-  SetCurrentDirectoryW(L"../../Release");
-  GetCurrentDirectoryW(MAX_PATH, g_plugin.m_szBaseDir);
-  // swprintf(cwd, sizeof(cwd) / sizeof(cwd[0]), L"WinMain: WorkingDir=%s\n", cwd);
-  // Append backslash if not present
-  size_t len = wcslen(g_plugin.m_szBaseDir);
-  if (len > 0 && g_plugin.m_szBaseDir[len - 1] != L'\\') {
-    if (len < MAX_PATH - 1) { // Ensure space for backslash and null terminator
-      g_plugin.m_szBaseDir[len] = L'\\';
-      g_plugin.m_szBaseDir[len + 1] = L'\0';
-    }
+  // Resolve the Release folder relative to the executable location.
+  // This avoids depending on whatever cwd the debugger starts with.
+  wchar_t exePath[MAX_PATH];
+  GetModuleFileNameW(NULL, exePath, MAX_PATH);
+
+  fs::path fullPath(exePath);
+  fs::path releaseDir = fullPath.parent_path().parent_path().parent_path().parent_path() / L"Release";
+
+  std::wstring baseDir = releaseDir.wstring();
+  if (!baseDir.empty() && baseDir.back() != L'\\') {
+    baseDir.push_back(L'\\');
   }
+
+  SetCurrentDirectoryW(baseDir.c_str());
+  wcscpy_s(g_plugin.m_szBaseDir, baseDir.c_str());
+  // swprintf(cwd, sizeof(cwd) / sizeof(cwd[0]), L"WinMain: WorkingDir=%s\n", cwd);
   OutputDebugStringW(g_plugin.m_szBaseDir);
   OutputDebugStringW(L"\n");
 #else
