@@ -2696,7 +2696,10 @@ int CPlugin::AllocateMyDX9Stuff() {
     int savedMixType = m_nMixType;
     m_nMixType = m_nMilk2MixType;
     srand(m_nMilk2PatternSeed);
+    bool bSavedLoading = m_bLoadingMilk2;
+    m_bLoadingMilk2 = true; // Temporary flag so RandomizeBlendPattern reads the MILK2 variables correctly
     RandomizeBlendPattern();
+    m_bLoadingMilk2 = bSavedLoading;
     srand((unsigned int)GetTickCount());
     m_nMixType = savedMixType;
   }
@@ -8511,9 +8514,19 @@ void CPlugin::RandomizeBlendPattern() {
     // directional wipe
     float ang = FRAND * 6.28f;
     float band = 0.1f + 0.2f * FRAND; // 0.2 is good
-    if (m_bLoadingMilk2 && m_nMilk2MixType == 1) {
+    bool use_arrow_curve = false;
+    if (m_bLoadingMilk2 && m_nMilk2MixType == 1 && !m_bMilk2ArrowWipe) {
       ang = m_fMilk2Random1 * 6.2831853f;
       band = 0.1f + 0.2f * m_fMilk2Random2;
+    }
+    if (m_bLoadingMilk2 && m_nMilk2MixType == 1 && m_bMilk2ArrowWipe) {
+      // Arrow wipe: horizontal wipe (left-to-right) with arrowhead shape.
+      // Direction is encoded in fBlend (flipped for direction=-1), not in the angle.
+      // random_3 controls the arrowhead curvature (0=straight, 1=sharp >).
+      // random_4 controls curvature direction (< 0.5 = standard >, >= 0.5 = reverse <).
+      ang = 0.0f;  // always horizontal left-to-right
+      band = 0.1f + 0.2f * m_fMilk2Random2;
+      use_arrow_curve = true;
     }
     float vx = cosf(ang);
     float vy = sinf(ang);
@@ -8537,8 +8550,39 @@ void CPlugin::RandomizeBlendPattern() {
         // at t==0, mix rangse from -10..0
         // at t==1, mix ranges from   1..11
 
-        float t = (fx - 0.5f) * vx + (fy - 0.5f) * vy + 0.5f;
-        t = (t - 0.5f) / sqrtf(2.0f) + 0.5f;
+        float t;
+        if (use_arrow_curve) {
+          // Arrow / C-shape wipe:
+          // The wipe sweeps across gracefully with a curved front.
+          float ux = x / (float)m_nGridX;
+          float dy = (y / (float)m_nGridY) - 0.50f;
+          float B = 2.0f; // Increased from 1.6f for a steeper curve / sharper arrow
+          
+          float base_t;
+          if (m_fMilk2BlendDirection == -1.0f) {
+            // Sweep Right-To-Left (right side transitions to new preset first)
+            // Creates a '<' shaped boundary
+            base_t = ux;
+          } else {
+            // Sweep Left-To-Right (left side transitions to new preset first)
+            // Creates a '>' shaped boundary
+            base_t = 1.0f - ux;
+          }
+
+          // Middle transitions earlier than edges
+          t = base_t - B * dy * dy;
+
+          // Final locked offset between original 53 (0.25) and 54 (0.35)
+          float offset = 0.30f;
+
+          // Reposition back nicely into the expected [0, 1] evaluation range
+          t = t / (1.0f + B * 0.2f) + offset;
+        }
+        else {
+          t = (fx - 0.5f) * vx + (fy - 0.5f) * vy + 0.5f;
+        }
+        if (!use_arrow_curve)
+          t = (t - 0.5f) / sqrtf(2.0f) + 0.5f;
 
         m_vertinfo[nVert].a = inv_band * (1 + band);
         m_vertinfo[nVert].c = -inv_band + inv_band * t;//(x/(float)m_nGridX - 0.5f)/band;
@@ -9678,8 +9722,6 @@ static int Milk2PatternNameToMixtype(const char* name) {
   struct { const char* name; int type; } kMap[] = {
     {"zoom",           0},  // uniform fade
     {"side",           1},  // directional wipe
-    {"horizontal",     1},  // directional wipe (horizontal)
-    {"vertical",       1},  // directional wipe (vertical)
     {"plasma",         2},  // fractal plasma
     {"plasma2",        2},
     {"plasma3",        2},
@@ -9696,7 +9738,7 @@ static int Milk2PatternNameToMixtype(const char* name) {
     {"stars",         14},  // star wipe
     {"patches",        9},  // checkerboard / patches
     {"arrow",          1},  // directional arrow wipe
-    {"corner",         8},  // corner / square variant
+    {"corner",          8},  // corner / square variant
     {"vertical",      19},  // fixed left-to-right wipe
     {"horizontal",    20},  // fixed top-to-bottom wipe
   };
@@ -9741,13 +9783,15 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
       size_t pos = hdr.find(k);
       if (pos == std::string::npos) return "";
       size_t start = pos + k.size();
-      size_t end = hdr.find_first_of("\r\n", start);
+      size_t end = hdr.find_first_of("\r\n ", start);
+      if (end == std::string::npos) end = hdr.length();
       return hdr.substr(start, end - start);
     };
     std::string pat = getVal("blending_pattern");
     if (!pat.empty()) outMixType = Milk2PatternNameToMixtype(pat.c_str());
     // "horizontal" pattern = horizontal split line => vertical wipe axis
     m_bMilk2VerticalWipe = (!pat.empty() && _stricmp(pat.c_str(), "horizontal") == 0);
+    m_bMilk2ArrowWipe = (!pat.empty() && _stricmp(pat.c_str(), "arrow") == 0);
     std::string prog = getVal("blending_progress");
     if (!prog.empty()) outProgress = (float)atof(prog.c_str());
     std::string dir = getVal("blending_direction");
@@ -9763,6 +9807,8 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     }
     m_fMilk2Random1 = randoms[0];
     m_fMilk2Random2 = randoms[1];
+    m_fMilk2Random3 = randoms[2];
+    m_fMilk2Random4 = randoms[3];
     // Hash-combine the 5 float values into a single seed (boost::hash_combine style)
     unsigned int seed = 0;
     for (int i = 0; i < 5; i++) {
@@ -9888,8 +9934,10 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
     }
     m_nMilk2MixType = mixType;
     m_fMilk2BlendDirection = direction;
-    m_fMilk2BlendProgress = progress;
-    m_fMilk2FrozenProgress = (direction < 0.0f) ? (1.0f - progress) : progress;
+    // MilkDrop 3.33 progress scale: 0.0 = blend start, 0.5 = blend complete.
+    // fBlend = min(1, progress * 2).  direction controls wipe direction, not fBlend.
+    m_fMilk2BlendProgress = min(1.0f, progress * 2.0f);
+    m_fMilk2FrozenProgress = m_fMilk2BlendProgress;
     m_nMilk2PatternSeed = seed;
 
     // Import preset 1 (blend-from) into m_pMilk2OldState
