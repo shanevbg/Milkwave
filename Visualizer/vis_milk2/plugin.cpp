@@ -8596,7 +8596,7 @@ void CPlugin::RandomizeBlendPattern() {
     float inv_band = 1.0f / band;
 
     // first generate plasma array of height values
-    m_vertinfo[0].c = FRAND;
+    float rotation = 0.0f;               // keep the star upright for milk2 parity
     m_vertinfo[m_nGridX].c = FRAND;
     m_vertinfo[m_nGridY * (m_nGridX + 1)].c = FRAND;
     m_vertinfo[m_nGridY * (m_nGridX + 1) + m_nGridX].c = FRAND;
@@ -8762,8 +8762,8 @@ void CPlugin::RandomizeBlendPattern() {
     // DeepSeek - Rhombus/Diamond transition
     float band = 0.07f + 0.12f * FRAND;  // slightly narrower band for sharper edges
     float inv_band = 1.0f / band;
-    float angle = FRAND * 6.2831853f;     // random rotation angle (0-2π)
-    float aspect = 0.8f + FRAND * 2.4f;   // aspect ratio (0.8-3.2)
+    float angle = 0.0f;                   // keep the diamond upright for milk2 parity
+    float aspect = 1.0f;                  // keep the diamond symmetric
     bool reverse = (rand() % 2) == 0;     // random direction
 
     // Precompute rotation matrix and normalization factor
@@ -9261,7 +9261,7 @@ void CPlugin::RandomizeBlendPattern() {
     float inv_band = 1.0f / band;
     int points = 5 + (rand() % 2);      // 5-6 points on the star
     float inner_radius = 0.3f + FRAND * 0.4f; // 0.3-0.7 inner radius
-    float rotation = FRAND * 6.2831853f; // random initial rotation
+    float rotation = 0.0f;              // keep the star upright to match MilkDrop's reference screenshots
     bool reverse = (rand() % 2) == 0;    // reverse direction
 
     int nVert = 0;
@@ -9809,8 +9809,10 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     m_fMilk2Random2 = randoms[1];
     m_fMilk2Random3 = randoms[2];
     m_fMilk2Random4 = randoms[3];
-    // Hash-combine the 5 float values into a single seed (boost::hash_combine style)
+    m_fMilk2Random5 = randoms[4];
+
     unsigned int seed = 0;
+    // Hash-combine the 5 float values into a single seed.
     for (int i = 0; i < 5; i++) {
       unsigned int bits;
       memcpy(&bits, &randoms[i], sizeof(bits));
@@ -9934,9 +9936,24 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
     }
     m_nMilk2MixType = mixType;
     m_fMilk2BlendDirection = direction;
-    // MilkDrop 3.33 progress scale: 0.0 = blend start, 0.5 = blend complete.
-    // fBlend = min(1, progress * 2).  direction controls wipe direction, not fBlend.
-    m_fMilk2BlendProgress = min(1.0f, progress * 2.0f);
+    // Plasma transitions in MilkDrop 3.33 lag early, then catch up quickly.
+    // Keep the low-progress calibration that matched 0.50, but ramp harder
+    // after halfway so 0.75 and 0.90 are not too green.
+    if (mixType == 2) {
+      float clampedProgress = min(1.0f, max(0.0f, progress));
+      if (clampedProgress <= 0.5f)
+        m_fMilk2BlendProgress = clampedProgress * 0.56f;
+      else
+        m_fMilk2BlendProgress = 0.28f + (clampedProgress - 0.5f) * 1.44f;
+    }
+    else if (mixType == 6) {
+      // Triangle transitions lag behind the MilkDrop reference, so we push the
+      // reported progress forward with a stronger ease-out curve.
+      float clampedProgress = min(1.0f, max(0.0f, progress));
+      m_fMilk2BlendProgress = 0.10f + 0.90f * powf(clampedProgress, 0.55f);
+    }
+    else
+      m_fMilk2BlendProgress = min(1.0f, max(0.0f, progress));
     m_fMilk2FrozenProgress = m_fMilk2BlendProgress;
     m_nMilk2PatternSeed = seed;
 
