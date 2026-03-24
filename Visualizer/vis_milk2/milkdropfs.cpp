@@ -1669,21 +1669,21 @@ void CPlugin::GetSafeBlurMinMax(CState* pState, float* blur_min, float* blur_max
   if (blur_max[0] - blur_min[0] < fMinDist) {
     float avg = (blur_min[0] + blur_max[0]) * 0.5f;
     blur_min[0] = avg - fMinDist * 0.5f;
-    blur_max[0] = avg - fMinDist * 0.5f;
+    blur_max[0] = avg + fMinDist * 0.5f;
   }
   blur_max[1] = min(blur_max[0], blur_max[1]);
   blur_min[1] = max(blur_min[0], blur_min[1]);
   if (blur_max[1] - blur_min[1] < fMinDist) {
     float avg = (blur_min[1] + blur_max[1]) * 0.5f;
     blur_min[1] = avg - fMinDist * 0.5f;
-    blur_max[1] = avg - fMinDist * 0.5f;
+    blur_max[1] = avg + fMinDist * 0.5f;
   }
   blur_max[2] = min(blur_max[1], blur_max[2]);
   blur_min[2] = max(blur_min[1], blur_min[2]);
   if (blur_max[2] - blur_min[2] < fMinDist) {
     float avg = (blur_min[2] + blur_max[2]) * 0.5f;
     blur_min[2] = avg - fMinDist * 0.5f;
-    blur_max[2] = avg - fMinDist * 0.5f;
+    blur_max[2] = avg + fMinDist * 0.5f;
   }
 }
 
@@ -2043,6 +2043,8 @@ void CPlugin::ComputeGridAlphaValues() {
           // blend to UV's for m_pOldState
           float mix2 = m_vertinfo[n].a * fBlend + m_vertinfo[n].c;//fCosineBlend2;
           mix2 = max(0, min(1, mix2));
+          if (m_bMilk2PermanentBlend && m_nMilk2MixType == 5)
+            mix2 = mix2 * mix2 * (3.0f - 2.0f * mix2);
           //     if fBlend un-flipped, then mix2 is 0 at the beginning of a blend, 1 at the end...
           //                           and alphas are 0 at the beginning, 1 at the end.
           m_verts[n].tu = m_verts[n].tu * (mix2)+u * (1 - mix2);

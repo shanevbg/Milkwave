@@ -8715,11 +8715,12 @@ void CPlugin::RandomizeBlendPattern() {
   }
   else if (mixtype == 5) {
     // DeepSeek - Spiral/Snail transition
-    float band = 0.07f + 0.1f * FRAND;  // optimal band width for spiral
+    const bool bMilk2Snail = m_bLoadingMilk2 && m_nMilk2MixType == 5;
+    float band = bMilk2Snail ? (0.07f + 0.10f * m_fMilk2Random2) : (0.09f + 0.11f * FRAND);
     float inv_band = 1.0f / band;
-    int loops = 2 + (rand() % 7);       // random loops between 2-8
-    float rotation_speed = FRAND * 0.5f; // optional slow rotation (0-0.5)
-    bool inward_spiral = (rand() % 2) == 0; // random inward/outward direction
+    float loops = bMilk2Snail ? (1.2f + 1.8f * m_fMilk2Random3) : (2.0f + (float)(rand() % 7));
+    float rotation_phase = bMilk2Snail ? (m_fMilk2Random1 * 6.2831853f) : (FRAND * 0.5f * 6.2831853f);
+    bool inward_spiral = bMilk2Snail ? (m_fMilk2BlendDirection < 0.0f) : ((rand() % 2) == 0);
 
     int nVert = 0;
     for (int y = 0; y <= m_nGridY; y++) {
@@ -8743,20 +8744,29 @@ void CPlugin::RandomizeBlendPattern() {
         // Convert angle to 0-2PI range
         if (angle < 0) angle += 6.2831853f;
 
-        // Calculate spiral progression (0-1)
-        float spiral_progress = fmodf(angle / (6.2831853f) + loops * radius + rotation_speed, 1.0f);
-
-        // Reverse direction if inward spiral
-        if (inward_spiral) {
-          spiral_progress = 1.0f - spiral_progress;
+        float spiral_value;
+        if (bMilk2Snail) {
+          spiral_value = fmodf(angle / 6.2831853f + loops * radius + rotation_phase / 6.2831853f, 1.0f);
+          if (spiral_value < 0.0f)
+            spiral_value += 1.0f;
+          if (inward_spiral)
+            spiral_value = 1.0f - spiral_value;
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * spiral_value;
         }
-
-        // Apply band blending
-        m_vertinfo[nVert].a = inv_band * (1.0f + band);
-        m_vertinfo[nVert].c = -inv_band + inv_band * spiral_progress;
+        else {
+          spiral_value = angle / 6.2831853f + loops * radius + rotation_phase / 6.2831853f;
+          spiral_value -= floorf(spiral_value);
+          spiral_value = spiral_value * spiral_value * (3.0f - 2.0f * spiral_value);
+          if (inward_spiral)
+            spiral_value = 1.0f - spiral_value;
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * spiral_value;
+        }
         nVert++;
       }
     }
+
   }
   else if (mixtype == 6) {
     // DeepSeek - Rhombus/Diamond transition
@@ -9951,6 +9961,10 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
       // reported progress forward with a stronger ease-out curve.
       float clampedProgress = min(1.0f, max(0.0f, progress));
       m_fMilk2BlendProgress = 0.10f + 0.90f * powf(clampedProgress, 0.55f);
+    }
+    else if (mixType == 5) {
+      // Snail works best close to the authored progress from the .milk2 header.
+      m_fMilk2BlendProgress = min(1.0f, max(0.0f, progress));
     }
     else
       m_fMilk2BlendProgress = min(1.0f, max(0.0f, progress));
