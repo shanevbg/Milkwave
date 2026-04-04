@@ -2814,6 +2814,11 @@ int CPlugin::AllocateMyDX9Stuff() {
       m_pState->m_bBlending = true;
       m_pState->m_fBlendProgress = m_fMilk2FrozenProgress;
       LoadShaders(&m_OldShaders, m_pOldState, false, false);
+
+      // Re-launch milk2 sprites: CleanUpMyDX9Stuff() calls m_texmgr.Finish()
+      // which destroys all sprite textures. Re-create them now.
+      if (m_nMilk2SpriteCount > 0)
+        LaunchMilk2Sprites();
     }
   }
 
@@ -9735,7 +9740,8 @@ static int Milk2PatternNameToMixtype(const char* name) {
     {"plasma",         2},  // fractal plasma
     {"plasma2",        2},
     {"plasma3",        2},
-    {"cercle",         3},  // radial / circle
+    {"circle",         3},  // radial / circle
+    {"cercle",         3},  // radial / circle (MilkDrop3 spelling)
     {"clock",          4},  // angular clock sweep
     {"snail",          5},  // spiral
     {"snail2",         5},
@@ -9850,6 +9856,125 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
   std::string p2 = extractPreset("[PRESET2_BEGIN]", "[PRESET2_END]");
   if (p1.empty() || p2.empty()) return false;
 
+  // ── Parse embedded sprites ([SPRITE1_BEGIN]..[SPRITE1_END], etc.) ──
+  m_nMilk2SpriteCount = 0;
+  {
+    // Read the 'sprite' count from the header portion of the buffer.
+    int sprCount = 0;
+    {
+      size_t hdrEnd = buf.find("[PRESET1_BEGIN]");
+      if (hdrEnd != std::string::npos) {
+        std::string hdr = buf.substr(0, hdrEnd);
+        std::string key = "sprite=";
+        size_t pos = hdr.find(key);
+        if (pos != std::string::npos) {
+          size_t start = pos + key.size();
+          size_t end = hdr.find_first_of("\r\n ", start);
+          if (end == std::string::npos) end = hdr.length();
+          sprCount = atoi(hdr.substr(start, end - start).c_str());
+        }
+      }
+    }
+    if (sprCount > MAX_MILK2_SPRITES) sprCount = MAX_MILK2_SPRITES;
+
+    for (int si = 0; si < sprCount; si++) {
+      char beginTag[32], endTag[32];
+      snprintf(beginTag, sizeof(beginTag), "[SPRITE%d_BEGIN]", si + 1);
+      snprintf(endTag, sizeof(endTag), "[SPRITE%d_END]", si + 1);
+
+      size_t bPos = buf.find(beginTag);
+      size_t ePos = (bPos != std::string::npos) ? buf.find(endTag, bPos) : std::string::npos;
+      if (bPos == std::string::npos || ePos == std::string::npos)
+        continue;
+
+      std::string sprBlock = buf.substr(bPos, ePos - bPos);
+
+      // Helper to get a value from the sprite block.
+      auto sprGetVal = [&](const char* key) -> std::string {
+        std::string k = std::string(key) + "=";
+        size_t pos = sprBlock.find(k);
+        if (pos == std::string::npos) return "";
+        size_t start = pos + k.size();
+        size_t end = sprBlock.find_first_of("\r\n", start);
+        if (end == std::string::npos) end = sprBlock.length();
+        return sprBlock.substr(start, end - start);
+      };
+
+      Milk2Sprite& spr = m_milk2Sprites[m_nMilk2SpriteCount];
+      spr = Milk2Sprite{}; // reset
+
+      std::string imgName = sprGetVal("SpriteName");
+      if (imgName.empty()) continue;
+
+      // Resolve image path: if not absolute, prepend m_szMilkdrop2Path (resources dir).
+      if (imgName.size() >= 2 && imgName[1] == ':') {
+        // Absolute path
+        std::wstring wImg(imgName.begin(), imgName.end());
+        wcsncpy_s(spr.szImgPath, wImg.c_str(), _TRUNCATE);
+      } else {
+        // Relative: replace forward slashes with backslashes
+        for (auto& ch : imgName) if (ch == '/') ch = '\\';
+        std::wstring wImg(imgName.begin(), imgName.end());
+        swprintf(spr.szImgPath, L"%s%s", m_szMilkdrop2Path, wImg.c_str());
+      }
+
+      std::string ck = sprGetVal("SpriteColorKey");
+      spr.nColorKey = ck.empty() ? 0x000000 : (unsigned int)strtoul(ck.c_str(), nullptr, 16);
+      std::string layer = sprGetVal("SpriteLayer");
+      spr.nLayer = layer.empty() ? 0 : atoi(layer.c_str());
+      std::string blend = sprGetVal("SpriteBlend");
+      spr.nBlend = blend.empty() ? 0 : atoi(blend.c_str());
+      std::string alpha = sprGetVal("SpriteAlpha");
+      spr.fAlpha = alpha.empty() ? 1.0f : (float)atof(alpha.c_str());
+      std::string burn = sprGetVal("SpriteBurn");
+      spr.bBurn = burn.empty() ? true : (atoi(burn.c_str()) != 0);
+      std::string sx = sprGetVal("SpriteSX");
+      spr.fSX = sx.empty() ? 1.0f : (float)atof(sx.c_str());
+      std::string sy = sprGetVal("SpriteSY");
+      spr.fSY = sy.empty() ? 1.0f : (float)atof(sy.c_str());
+      std::string px = sprGetVal("SpriteX");
+      spr.fX = px.empty() ? 0.5f : (float)atof(px.c_str());
+      std::string py = sprGetVal("SpriteY");
+      spr.fY = py.empty() ? 0.5f : (float)atof(py.c_str());
+      std::string rot = sprGetVal("SpriteRot");
+      spr.fRot = rot.empty() ? 0.0f : (float)atof(rot.c_str());
+      std::string speed = sprGetVal("SpriteSpeed");
+      spr.fSpeed = speed.empty() ? 0.0f : (float)atof(speed.c_str());
+      std::string repX = sprGetVal("SpriteRepeatX");
+      spr.fRepeatX = repX.empty() ? 1.0f : (float)atof(repX.c_str());
+      std::string repY = sprGetVal("SpriteRepeatY");
+      spr.fRepeatY = repY.empty() ? 1.0f : (float)atof(repY.c_str());
+
+      // Extract init_N= and code_N= lines from the sprite block.
+      spr.szInitCode[0] = 0;
+      spr.szCode[0] = 0;
+      for (int pass = 0; pass < 2; pass++) {
+        char* pDest = (pass == 0) ? spr.szInitCode : spr.szCode;
+        const char* prefix = (pass == 0) ? "init_" : "code_";
+        int charPos = 0;
+        for (int lineNum = 1; lineNum < 256; lineNum++) {
+          char lineKey[32];
+          snprintf(lineKey, sizeof(lineKey), "%s%d=", prefix, lineNum);
+          size_t lpos = sprBlock.find(lineKey);
+          if (lpos == std::string::npos) break;
+          size_t lstart = lpos + strlen(lineKey);
+          size_t lend = sprBlock.find_first_of("\r\n", lstart);
+          if (lend == std::string::npos) lend = sprBlock.length();
+          std::string lineVal = sprBlock.substr(lstart, lend - lstart);
+          if (charPos + (int)lineVal.size() + 2 < 8192) {
+            memcpy(&pDest[charPos], lineVal.c_str(), lineVal.size());
+            charPos += (int)lineVal.size();
+            pDest[charPos++] = LINEFEED_CONTROL_CHAR;
+          }
+        }
+        pDest[charPos] = 0;
+      }
+
+      spr.valid = true;
+      m_nMilk2SpriteCount++;
+    }
+  }
+
   // Write to Windows temp files.
   wchar_t tempDir[MAX_PATH];
   GetTempPathW(MAX_PATH, tempDir);
@@ -9885,6 +10010,9 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   m_bMilk2PermanentBlend = false;
   m_fMilk2BlendDirection = 0.0f;
   m_bMilk2VerticalWipe = false;
+
+  // Kill any active milk2 sprites from the previous preset
+  KillMilk2Sprites();
 
   // make sure preset still exists.  (might not if they are using the "back"/fwd buttons
   //  in RANDOM preset order and a file was renamed or deleted!)
@@ -10200,6 +10328,11 @@ void CPlugin::LoadPresetTick() {
 
     // end slow-preset-load mode
     m_nLoadingPreset = 0;
+
+    // Launch embedded milk2 sprites before clearing the loading flag
+    if (m_bLoadingMilk2 && m_nMilk2SpriteCount > 0)
+      LaunchMilk2Sprites();
+
     m_bLoadingMilk2 = false;
 
     OnFinishedLoadingPreset();
@@ -12277,6 +12410,150 @@ bool CPlugin::LaunchSprite(int nSpriteNum, int nSlot) {
 
 void CPlugin::KillSprite(int iSlot) {
   m_texmgr.KillTex(iSlot);
+}
+
+void CPlugin::KillMilk2Sprites() {
+  for (int i = 0; i < MAX_MILK2_SPRITES; i++) {
+    if (m_nMilk2SpriteSlots[i] >= 0) {
+      m_texmgr.KillTex(m_nMilk2SpriteSlots[i]);
+      m_nMilk2SpriteSlots[i] = -1;
+    }
+  }
+}
+
+void CPlugin::LaunchMilk2Sprites() {
+  KillMilk2Sprites();
+
+  for (int si = 0; si < m_nMilk2SpriteCount; si++) {
+    Milk2Sprite& spr = m_milk2Sprites[si];
+    if (!spr.valid) continue;
+
+    // Find a free texmgr slot (or evict the oldest).
+    int nSlot = -1;
+    int oldest_index = 0;
+    int oldest_frame = m_texmgr.m_tex[0].nStartFrame;
+    for (int x = 0; x < NUM_TEX; x++) {
+      if (!m_texmgr.m_tex[x].pSurface) {
+        nSlot = x;
+        break;
+      }
+      else if (m_texmgr.m_tex[x].nStartFrame < oldest_frame) {
+        oldest_index = x;
+        oldest_frame = m_texmgr.m_tex[x].nStartFrame;
+      }
+    }
+    if (nSlot == -1) {
+      nSlot = oldest_index;
+      m_texmgr.KillTex(nSlot);
+    }
+
+    // Build init code: set initial property values from the milk2 sprite header.
+    // Map MilkDrop 3 blendmode values to the 0-4 range supported by the texmgr renderer:
+    //   MD3 0-4 = same as MD2
+    //   MD3 5   = additive with alpha (map to 2 additive)
+    //   MD3 7   = decal with texture alpha (map to 4 colorkey)
+    //   MD3 9   = srccolor additive (map to 3 srccolor)
+    //   MD3 10  = multiply (map to 3 srccolor, closest match)
+    //   others  = map to 4 colorkey (safe default with alpha)
+    int mappedBlend = spr.nBlend;
+    if (mappedBlend > 4) {
+      switch (spr.nBlend) {
+      case 5:  mappedBlend = 2; break; // additive
+      case 7:  mappedBlend = 4; break; // colorkey
+      case 9:  mappedBlend = 3; break; // srccolor
+      case 10: mappedBlend = 3; break; // srccolor
+      default: mappedBlend = 4; break; // colorkey as safe default
+      }
+    }
+
+    // Convert SpriteX/SpriteY to texmgr's 0..1 coordinate space:
+    // MilkDrop 3 uses 0,0 = center; map to texmgr's x=0.5,y=0.5
+    float texX = spr.fX + 0.5f;
+    float texY = spr.fY + 0.5f;
+
+    // In MilkDrop 3, SpriteSX/SpriteSY act as persistent scale multipliers
+    // applied AFTER per-frame code, not as initial sx/sy values (which per-frame
+    // code would overwrite). Store them as _bsx/_bsy and append multiplication
+    // at the end of the per-frame code.
+    //
+    // Pre-divide by screen aspect so SpriteSX/SY are height-relative (MD3 semantics):
+    // the 2nd AR correction (y *= aspect) in DrawUserSprites then restores visual
+    // circularity, and the sprite stays within screen bounds on any aspect ratio.
+    float screenAspect = (GetHeight() > 0) ? (GetWidth() / (float)GetHeight()) : 1.0f; // default to 0.8 if height is zero for some reason
+    float adjustedSX = spr.fSX / screenAspect * 1.2f;
+    float adjustedSY = spr.fSY / screenAspect * 1.2f;
+
+    char initcode[8192];
+    snprintf(initcode, sizeof(initcode),
+      "x=%f;%c"
+      "y=%f;%c"
+      "sx=1;%c"
+      "sy=1;%c"
+      "rot=0;%c"
+      "a=%f;%c"
+      "blendmode=%d;%c"
+      "burn=%d;%c"
+      "repeatx=%f;%c"
+      "repeaty=%f;%c"
+      "done=0;%c"
+      "_bsx=%f;%c"
+      "_bsy=%f;%c",
+      texX, LINEFEED_CONTROL_CHAR,
+      texY, LINEFEED_CONTROL_CHAR,
+      LINEFEED_CONTROL_CHAR,
+      LINEFEED_CONTROL_CHAR,
+      LINEFEED_CONTROL_CHAR,
+      spr.fAlpha, LINEFEED_CONTROL_CHAR,
+      mappedBlend, LINEFEED_CONTROL_CHAR,
+      spr.bBurn ? 1 : 0, LINEFEED_CONTROL_CHAR,
+      spr.fRepeatX, LINEFEED_CONTROL_CHAR,
+      spr.fRepeatY, LINEFEED_CONTROL_CHAR,
+      LINEFEED_CONTROL_CHAR,
+      adjustedSX, LINEFEED_CONTROL_CHAR,
+      adjustedSY, LINEFEED_CONTROL_CHAR);
+
+    // Append user init code from the milk2 file
+    if (spr.szInitCode[0]) {
+      size_t len = strlen(initcode);
+      strncat_s(initcode, sizeof(initcode), spr.szInitCode, sizeof(initcode) - len - 1);
+    }
+
+    // Build per-frame code: prepend rotation animation, then user code.
+    char code[8192];
+    code[0] = 0;
+    // SpriteSpeed is in radians/second; SpriteRot is a direction multiplier (+1/-1).
+    if (spr.fRot != 0.0f && spr.fSpeed != 0.0f) {
+      snprintf(code, sizeof(code), "rot=rot+%f/fps;%c",
+        spr.fSpeed * spr.fRot, LINEFEED_CONTROL_CHAR);
+    }
+    // Append user per-frame code from the milk2 file
+    if (spr.szCode[0]) {
+      size_t len = strlen(code);
+      strncat_s(code, sizeof(code), spr.szCode, sizeof(code) - len - 1);
+    }
+
+    // Append base scale multiplication: apply SpriteSX/SpriteSY as persistent
+    // multipliers AFTER all per-frame code, so user code like "sx=new_scale"
+    // gets scaled by the base sprite dimensions rather than overwriting them.
+    {
+      char scaleCode[128];
+      snprintf(scaleCode, sizeof(scaleCode), "sx=sx*_bsx;%csy=sy*_bsy;%c",
+        LINEFEED_CONTROL_CHAR, LINEFEED_CONTROL_CHAR);
+      size_t len = strlen(code);
+      strncat_s(code, sizeof(code), scaleCode, sizeof(code) - len - 1);
+    }
+
+    int ret = m_texmgr.LoadTex(spr.szImgPath, nSlot, initcode, code, GetTime(), GetFrame(), spr.nColorKey);
+    if ((ret & TEXMGR_ERROR_MASK) == TEXMGR_ERR_SUCCESS) {
+      m_nMilk2SpriteSlots[si] = nSlot;
+      m_texmgr.m_tex[nSlot].nUserData = -1; // mark as milk2 sprite (not a user-launched sprite)
+    } else {
+      wchar_t buf[1024];
+      swprintf(buf, L"milk2 sprite: failed to load '%s' (error %d)", spr.szImgPath, ret);
+      AddError(buf, 6.0f, ERR_MISC, true);
+      m_nMilk2SpriteSlots[si] = -1;
+    }
+  }
 }
 
 int SAMPLE_RATE = 44100; //Initialize sample rate globally, 44100hz is the default sample rate for MilkDrop

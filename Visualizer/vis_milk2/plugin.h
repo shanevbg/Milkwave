@@ -512,6 +512,34 @@ public:
   unsigned int m_nMilk2PatternSeed = 0;	// deterministic seed from .milk2 random_1..5 values
   wchar_t m_szMilk2Temp1[MAX_PATH] = {};	// temp file for .milk2 preset 1
   wchar_t m_szMilk2Temp2[MAX_PATH] = {};	// temp file for .milk2 preset 2
+
+  // .milk2 embedded sprite support
+  struct Milk2Sprite {
+    bool        valid = false;
+    wchar_t     szImgPath[512] = {};    // resolved absolute path to sprite image
+    unsigned int nColorKey = 0x000000;
+    int         nLayer = 0;             // 0 = behind composite, 1 = on top
+    int         nBlend = 0;             // blend mode (MilkDrop 3 range: 0-10)
+    float       fAlpha = 1.0f;
+    bool        bBurn = true;
+    float       fX = 0.0f;
+    float       fY = 0.0f;
+    float       fSX = 1.0f;
+    float       fSY = 1.0f;
+    float       fRot = 0.0f;
+    float       fSpeed = 0.0f;
+    float       fRepeatX = 1.0f;
+    float       fRepeatY = 1.0f;
+    char        szInitCode[8192] = {};
+    char        szCode[8192] = {};
+  };
+  static const int MAX_MILK2_SPRITES = 4;
+  Milk2Sprite m_milk2Sprites[MAX_MILK2_SPRITES];
+  int         m_nMilk2SpriteCount = 0;
+  int         m_nMilk2SpriteSlots[MAX_MILK2_SPRITES] = { -1, -1, -1, -1 }; // texmgr slot for each milk2 sprite
+  void        LaunchMilk2Sprites();
+  void        KillMilk2Sprites();
+
   ui_mode	m_UI_mode;				// can be UI_REGULAR, UI_LOAD, UI_SAVEHOW, or UI_SAVEAS
 
 #define MASH_SLOTS 5

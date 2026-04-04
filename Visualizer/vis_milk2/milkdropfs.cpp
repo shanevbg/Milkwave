@@ -4635,26 +4635,33 @@ lpDevice->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTFP_LINEAR );
 
       lpDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, (LPVOID)v3, sizeof(SPRITEVERTEX));
 
-      if (/*bKillSprite &&*/ bBurnIn)	// final render-to-VS1
+      if (bBurnIn)
       {
-        // Change the rendertarget back to the original setup
+        // Always restore render target to backbuffer (avoids black screen).
         lpDevice->SetTexture(0, NULL);
         lpDevice->SetRenderTarget(0, pBackBuffer);
-        //lpDevice->SetDepthStencilSurface( pZBuffer );
         lpDevice->SetTexture(0, m_texmgr.m_tex[iSlot].pSurface);
 
-        // undo aspect ratio changes (that were used to fit it to VS1):
+        // Milk2 sprites (nUserData==-1) live exclusively in the warp feedback loop:
+        // they are only visible through comp-shader processing (blur, decay, etc.)
+        // which gives the softly-blended look matching MilkDrop 3.
+        // Regular sprites keep the original double-draw behaviour.
+        // On kill frames every sprite gets a final direct backbuffer draw.
+        bool bMilk2Sprite = (m_texmgr.m_tex[iSlot].nUserData == -1);
+        if (!bMilk2Sprite || bKillSprite)
         {
-          float aspect = GetWidth() / (float)(GetHeight() * 4.0f / 3.0f);
-
-          if (!m_bScreenDependentRenderMode)
-            if (aspect < 1.0f)
-              for (k = 0; k < 4; k++) v3[k].x /= aspect;
-            else
-              for (k = 0; k < 4; k++) v3[k].y *= aspect;
+          // Undo 3rd-AR correction only if it was applied (kill frames only).
+          if (bKillSprite)
+          {
+            float aspect = GetWidth() / (float)(GetHeight() * 4.0f / 3.0f);
+            if (!m_bScreenDependentRenderMode)
+              if (aspect < 1.0f)
+                for (k = 0; k < 4; k++) v3[k].x /= aspect;
+              else
+                for (k = 0; k < 4; k++) v3[k].y *= aspect;
+          }
+          lpDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, (LPVOID)v3, sizeof(SPRITEVERTEX));
         }
-
-        lpDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, (LPVOID)v3, sizeof(SPRITEVERTEX));
       }
 
       SafeRelease(pBackBuffer);
