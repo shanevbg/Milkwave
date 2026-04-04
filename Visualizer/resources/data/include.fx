@@ -198,9 +198,9 @@ sampler2D sampler_blur1;
 sampler2D sampler_blur2;
 sampler2D sampler_blur3;
 
-// FFT audio spectrum texture (512x2, R32F: row0=smoothed, row1=peak hold)
+// FFT audio spectrum texture (4096x2, R32F: row0=smoothed, row1=peak hold)
 sampler2D sampler_fft;
-#define texsize_fft float4(512.0, 2.0, 1.0/512.0, 0.5)
+#define texsize_fft float4(4096.0, 2.0, 1.0/4096.0, 0.5)
 #define HAS_FFT_PEAK 1
 
 // Get FFT magnitude at normalized position [0..1] in the spectrum

@@ -59,6 +59,8 @@ typedef char* CHARPTR;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 #define MY_FFT_SAMPLES 512     // for old [pre-vms] milkdrop sound analysis
+#define MY_FFT_SHADER_INPUT 8192   // input samples for shader FFT (larger window for ~5.4 Hz/bin low-freq resolution)
+#define MY_FFT_SHADER_BINS  4096   // output frequency bins for shader FFT texture
 typedef struct {
   float   imm[3];			// bass, mids, treble (absolute)
   float	  imm_rel[3];		// bass, mids, treble (relative to song; 1=avg, 0.9~below, 1.1~above)
@@ -682,10 +684,10 @@ public:
 
   // DIRECTX 9:
   IDirect3DTexture9* m_lpVS[2];
-  IDirect3DTexture9* m_lpFFTTexture = nullptr;  // 512x2 R32F FFT spectrum texture (row0=smoothed, row1=peak hold)
-  float m_fFFTSmoothed[MY_FFT_SAMPLES] = {};    // smoothed mono FFT buffer
-  float m_fFFTPeak[MY_FFT_SAMPLES] = {};         // peak hold values
-  int   m_nFFTPeakHold[MY_FFT_SAMPLES] = {};    // frames remaining at current peak
+  IDirect3DTexture9* m_lpFFTTexture = nullptr;  // 4096x2 R32F FFT spectrum texture (row0=smoothed, row1=peak hold)
+  float m_fFFTSmoothed[MY_FFT_SHADER_BINS] = {};    // smoothed mono FFT buffer
+  float m_fFFTPeak[MY_FFT_SHADER_BINS] = {};         // peak hold values
+  int   m_nFFTPeakHold[MY_FFT_SHADER_BINS] = {};    // frames remaining at current peak
 #define NUM_BLUR_TEX 6
 #if (NUM_BLUR_TEX>0)
   IDirect3DTexture9* m_lpBlur[NUM_BLUR_TEX]; // each is successively 1/2 size of prev.

@@ -1253,7 +1253,7 @@ void CPlugin::MyPreInitialize() {
   //m_nRatingReadProgress = -1;
 
   myfft.Init(576, MY_FFT_SAMPLES, -1);
-  m_fftShader.Init(576, MY_FFT_SAMPLES, 0, 3.0f);  // Hann³ window for minimal sidelobes, no equalization
+  m_fftShader.Init(MY_FFT_SHADER_INPUT, MY_FFT_SHADER_BINS, 0, 1.0f);  // Hann¹ window: tighter main lobe vs Hann³, giving stable per-bin amplitude especially at high frequencies
   memset(&mysound, 0, sizeof(mysound));
 
   int i;
@@ -2400,8 +2400,8 @@ int CPlugin::AllocateMyDX9Stuff() {
   if (pDev) {
     pDev->CreateTexture(m_nVideoCaptureWidth, m_nVideoCaptureHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &m_pVideoCaptureTexture, NULL);
   
-    // Create FFT spectrum texture (512x2, R32F: row0=smoothed, row1=peak hold)
-    if (pDev->CreateTexture(MY_FFT_SAMPLES, 2, 1, D3DUSAGE_DYNAMIC, D3DFMT_R32F, D3DPOOL_DEFAULT, &m_lpFFTTexture, NULL) == D3D_OK)
+    // Create FFT spectrum texture (4096x2, R32F: row0=smoothed, row1=peak hold)
+    if (pDev->CreateTexture(MY_FFT_SHADER_BINS, 2, 1, D3DUSAGE_DYNAMIC, D3DFMT_R32F, D3DPOOL_DEFAULT, &m_lpFFTTexture, NULL) == D3D_OK)
       milkwave->LogInfo(L"FFT texture created successfully");
     else
       milkwave->LogInfo(L"Failed to create FFT texture (D3DFMT_R32F not supported?)");
@@ -12638,49 +12638,67 @@ void CPlugin::DoCustomSoundAnalysis() {
   memcpy(mysound.fWave[0], m_sound.fWaveform[0], sizeof(float) * 576);
   memcpy(mysound.fWave[1], m_sound.fWaveform[1], sizeof(float) * 576);
 
-  // do our own [UN-NORMALIZED] fft
-  float fWaveLeft[576];
-  float fWaveRight[576];
-  GetAudioBufFloat(fWaveLeft, fWaveRight, 576);
+  // Read audio: large buffer for shader FFT, last 576 samples for legacy FFT
+  float fWaveLargeL[MY_FFT_SHADER_INPUT];
+  float fWaveLargeR[MY_FFT_SHADER_INPUT];
+  GetAudioBufFloat(fWaveLargeL, fWaveLargeR, MY_FFT_SHADER_INPUT);
+  float* fWaveLeft = fWaveLargeL + (MY_FFT_SHADER_INPUT - 576);
+  float* fWaveRight = fWaveLargeR + (MY_FFT_SHADER_INPUT - 576);
 
+  // Legacy un-normalized FFT (576 samples, 512 bins)
   memset(mysound.fSpecLeft, 0, sizeof(float) * MY_FFT_SAMPLES);
   memset(mysound.fSpecRight, 0, sizeof(float) * MY_FFT_SAMPLES);
 
   myfft.time_to_frequency_domain(fWaveLeft, mysound.fSpecLeft);
   myfft.time_to_frequency_domain(fWaveRight, mysound.fSpecRight);
-  //for (i=0; i<MY_FFT_SAMPLES; i++) fSpecLeft[i] = sqrtf(fSpecLeft[i]*fSpecLeft[i] + fSpecTemp[i]*fSpecTemp[i]);
 
-  // Compute clean (un-equalized) FFT for get_fft()/get_fft_hz() shader functions
-  float fShaderSpecLeft[MY_FFT_SAMPLES];
-  float fShaderSpecRight[MY_FFT_SAMPLES];
-  memset(fShaderSpecLeft, 0, sizeof(float) * MY_FFT_SAMPLES);
-  memset(fShaderSpecRight, 0, sizeof(float) * MY_FFT_SAMPLES);
-  m_fftShader.time_to_frequency_domain(fWaveLeft, fShaderSpecLeft);
-  m_fftShader.time_to_frequency_domain(fWaveRight, fShaderSpecRight);
+  // Compute high-resolution FFT for get_fft()/get_fft_hz() shader functions
+  // Uses 8192 samples for ~5.4 Hz/bin resolution (vs old ~43 Hz/bin with 576 samples).
+  // This provides proper frequency separation for ISO 31-band EQ display (20 Hz - 20 kHz).
+  float fShaderSpecLeft[MY_FFT_SHADER_BINS];
+  float fShaderSpecRight[MY_FFT_SHADER_BINS];
+  memset(fShaderSpecLeft, 0, sizeof(float) * MY_FFT_SHADER_BINS);
+  memset(fShaderSpecRight, 0, sizeof(float) * MY_FFT_SHADER_BINS);
+  m_fftShader.time_to_frequency_domain(fWaveLargeL, fShaderSpecLeft);
+  m_fftShader.time_to_frequency_domain(fWaveLargeR, fShaderSpecRight);
 
   // Apply FFT smoothing and upload to GPU texture
   {
     float attack = m_pState ? m_pState->m_fFFTAttack : m_fFFTAttackGlobal;
     float decay  = m_pState ? m_pState->m_fFFTDecay : m_fFFTDecayGlobal;
+    // Scale factor: 0.00035 was tuned empirically for the old 576-sample / NFREQ=1024 FFT.
+    // New FFT has NFREQ=8192 (8× larger), so raw magnitudes are ~8× higher.
+    // Using (old NFREQ) / (new NFREQ) = 1024/8192 as the primary correction, then ×4
+    // to restore the perceptual sensitivity level comparable to BeatDrop.
+    // (Pink noise compensation normalises to 1.0 at 1 kHz and attenuates below it,
+    //  so the extra headroom is intentional.)
+    const float kScaleFactor = 0.00065f * (4096.0f / (float)MY_FFT_SHADER_INPUT);
     const float kNoiseGate = 5e-5f;
     const float kVisibleFloor = 2.5e-4f;
-    for (int fi = 0; fi < MY_FFT_SAMPLES; fi++) {
+    // Pink noise compensation reference bin at 1 kHz (~bin 185.9).
+    // Applying sqrt(fi/refBin) gives +3 dB/octave slope so that a 1/f spectrum
+    // (pink noise, typical of music) displays as a flat EQ response.
+    const float kPinkRefBin = 1000.0f * (float)MY_FFT_SHADER_BINS / 22050.0f;
+    for (int fi = 0; fi < MY_FFT_SHADER_BINS; fi++) {
       float mono = (fShaderSpecLeft[fi] + fShaderSpecRight[fi]) * 0.5f;
       // Store linear magnitude in texture; sqrt() is applied in the shader.
-      // This preserves dynamic range so FFT sidelobes stay proportionally small.
-      mono = mono * 0.00035f;
+      mono = mono * kScaleFactor;
       // Noise gate: zero out values below threshold to suppress window sidelobes.
       if (mono < kNoiseGate) mono = 0.0f;
-      // Attenuate low-frequency bins to reduce bass over-accentuation.
-      // Bins below ~215 Hz (bin ~5) are progressively reduced.
-      // The curve ramps from 0.15 at bin 0 to 1.0 at bin 5.
-      if (fi < 5) {
-        float t = fi / 5.0f;
-        float lowcut = 0.15f + 0.85f * t;
-        mono *= lowcut;
-      }
+      // Pink noise compensation: +3 dB/octave, normalized to 1.0 at 1 kHz.
+      // Equalizes the natural 1/f amplitude rolloff of music so all EQ bands
+      // display at comparable heights for a spectrally balanced signal.
+      mono *= sqrtf((float)(fi + 1) / kPinkRefBin);
+      // High-frequency bins have shorter periods per wavelength so frame-to-frame
+      // variance is higher. Blend towards more temporal smoothing above ~4 kHz
+      // so high bands appear as stable as low ones when playing a steady tone.
+      // Below 4 kHz: use preset attack; above 16 kHz: use ~50% of attack.
+      const float kHiFreqBinLo = 4000.0f  * (float)MY_FFT_SHADER_BINS / 22050.0f;
+      const float kHiFreqBinHi = 16000.0f * (float)MY_FFT_SHADER_BINS / 22050.0f;
+      float hiBlend = clamp((float)(fi - kHiFreqBinLo) / (kHiFreqBinHi - kHiFreqBinLo), 0.0f, 1.0f);
+      float eff_attack = attack * (1.0f - 0.5f * hiBlend);
       if (mono > m_fFFTSmoothed[fi])
-        m_fFFTSmoothed[fi] += (mono - m_fFFTSmoothed[fi]) * attack;
+        m_fFFTSmoothed[fi] += (mono - m_fFFTSmoothed[fi]) * eff_attack;
       else {
         float decayFactor = (1.0f - decay) * (1.0f - decay);
         m_fFFTSmoothed[fi] += (mono - m_fFFTSmoothed[fi]) * decayFactor;
@@ -12689,7 +12707,7 @@ void CPlugin::DoCustomSoundAnalysis() {
         m_fFFTSmoothed[fi] = 0.0f;
     }
     // Update peak hold: hold for ~0.5 seconds then decay
-    for (int fi = 0; fi < MY_FFT_SAMPLES; fi++) {
+    for (int fi = 0; fi < MY_FFT_SHADER_BINS; fi++) {
       if (m_fFFTSmoothed[fi] >= m_fFFTPeak[fi]) {
         m_fFFTPeak[fi] = m_fFFTSmoothed[fi];
         m_nFFTPeakHold[fi] = 30;
@@ -12705,7 +12723,7 @@ void CPlugin::DoCustomSoundAnalysis() {
       if (D3D_OK == m_lpFFTTexture->LockRect(0, &r, NULL, D3DLOCK_DISCARD)) {
         float* row0 = (float*)r.pBits;
         float* row1 = (float*)((BYTE*)r.pBits + r.Pitch);
-        for (int fi = 0; fi < MY_FFT_SAMPLES; fi++) {
+        for (int fi = 0; fi < MY_FFT_SHADER_BINS; fi++) {
           row0[fi] = m_fFFTSmoothed[fi];
           row1[fi] = m_fFFTPeak[fi];
         }
