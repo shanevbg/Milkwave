@@ -9041,7 +9041,31 @@ void CPlugin::RandomizeBlendPattern() {
     }
   }
   else if (mixtype == 10) {
-    if (m_bLoadingMilk2 && m_nMilk2MixType == 10) {
+    if (m_bLoadingMilk2 && m_nMilk2MixType == 10 && m_bMilk2LinesVertical) {
+      // MilkDrop 3 linesvertical:
+      // Use a repeating vertical field, but keep it broad enough that the
+      // reference reads as a couple of major regions rather than many narrow lines.
+      const float repeats = 2.0f;
+      const float phase = 0.18f;
+      float band = 0.10f + 0.03f * FRAND;
+      float inv_band = 1.0f / band;
+
+      int nVert = 0;
+      for (int y = 0; y <= m_nGridY; y++) {
+        for (int x = 0; x <= m_nGridX; x++) {
+          float raw_fx = x / (float)m_nGridX;
+
+          // Use a repeating sawtooth field; progress should move the blend from
+          // green (old) toward red (new).
+          float t = fmodf(raw_fx * repeats + phase, 1.0f);
+
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * t;
+          nVert++;
+        }
+      }
+    }
+    else if (m_bLoadingMilk2 && m_nMilk2MixType == 10) {
       // MilkDrop 3 curtain: a single centered vertical curtain with a broad feather.
       float band = 0.45f + 0.05f * FRAND;
       float inv_band = 1.0f / band;
@@ -9960,6 +9984,7 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     if (!pat.empty()) outMixType = Milk2PatternNameToMixtype(pat.c_str());
     // "horizontal" pattern = horizontal split line => vertical wipe axis
     m_bMilk2VerticalWipe = (!pat.empty() && _stricmp(pat.c_str(), "horizontal") == 0);
+    m_bMilk2LinesVertical = (!pat.empty() && _stricmp(pat.c_str(), "linesvertical") == 0);
     m_bMilk2CornerWipe = (!pat.empty() && _stricmp(pat.c_str(), "corner") == 0);
     m_bMilk2ArrowWipe = (!pat.empty() && _stricmp(pat.c_str(), "arrow") == 0);
     std::string prog = getVal("blending_progress");
@@ -10164,6 +10189,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   m_bMilk2PermanentBlend = false;
   m_fMilk2BlendDirection = 0.0f;
   m_bMilk2VerticalWipe = false;
+  m_bMilk2LinesVertical = false;
   m_bMilk2CornerWipe = false;
 
   // Kill any active milk2 sprites from the previous preset
