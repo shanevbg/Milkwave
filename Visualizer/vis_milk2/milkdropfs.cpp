@@ -757,6 +757,19 @@ void CPlugin::RunPerFrameEquations(int code) {
     // For all variables that do NOT affect pixel motion, blend them NOW,
     // so later the user can just access m_pState->m_pf_whatever.
     // For .milk2 permanent blends this uses the fixed blend progress from the file metadata.
+    // Gate each state's border alpha by whether that state's FINAL (static) border size
+    // is nonzero.  The animated CBlendableFloat for ob_size starts at the old preset's
+    // value and transitions to the new one, so using it as a gate lets alpha through
+    // during the brief transition window.  eval(-1) returns the stable per-preset target
+    // value and is unaffected by the CBlendableFloat animation.
+    double static_new_ob_size = (double)m_pState->m_fOuterBorderSize.eval(-1);
+    double static_old_ob_size = (double)m_pOldState->m_fOuterBorderSize.eval(-1);
+    double static_new_ib_size = (double)m_pState->m_fInnerBorderSize.eval(-1);
+    double static_old_ib_size = (double)m_pOldState->m_fInnerBorderSize.eval(-1);
+    double pre_blend_new_ob_a  = *m_pState->var_pf_ob_a;
+    double pre_blend_old_ob_a  = *m_pOldState->var_pf_ob_a;
+    double pre_blend_new_ib_a  = *m_pState->var_pf_ib_a;
+    double pre_blend_old_ib_a  = *m_pOldState->var_pf_ib_a;
     double mix = (double)CosineInterp(m_pState->m_fBlendProgress);
     double mix2 = 1.0 - mix;
     *m_pState->var_pf_decay = mix * (*m_pState->var_pf_decay) + mix2 * (*m_pOldState->var_pf_decay);
@@ -772,12 +785,14 @@ void CPlugin::RunPerFrameEquations(int code) {
     *m_pState->var_pf_ob_r = mix * (*m_pState->var_pf_ob_r) + mix2 * (*m_pOldState->var_pf_ob_r);
     *m_pState->var_pf_ob_g = mix * (*m_pState->var_pf_ob_g) + mix2 * (*m_pOldState->var_pf_ob_g);
     *m_pState->var_pf_ob_b = mix * (*m_pState->var_pf_ob_b) + mix2 * (*m_pOldState->var_pf_ob_b);
-    *m_pState->var_pf_ob_a = mix * (*m_pState->var_pf_ob_a) + mix2 * (*m_pOldState->var_pf_ob_a);
+    *m_pState->var_pf_ob_a = mix  * (static_new_ob_size > 0.001 ? pre_blend_new_ob_a : 0.0)
+                           + mix2 * (static_old_ob_size > 0.001 ? pre_blend_old_ob_a : 0.0);
     *m_pState->var_pf_ib_size = mix * (*m_pState->var_pf_ib_size) + mix2 * (*m_pOldState->var_pf_ib_size);
     *m_pState->var_pf_ib_r = mix * (*m_pState->var_pf_ib_r) + mix2 * (*m_pOldState->var_pf_ib_r);
     *m_pState->var_pf_ib_g = mix * (*m_pState->var_pf_ib_g) + mix2 * (*m_pOldState->var_pf_ib_g);
     *m_pState->var_pf_ib_b = mix * (*m_pState->var_pf_ib_b) + mix2 * (*m_pOldState->var_pf_ib_b);
-    *m_pState->var_pf_ib_a = mix * (*m_pState->var_pf_ib_a) + mix2 * (*m_pOldState->var_pf_ib_a);
+    *m_pState->var_pf_ib_a = mix  * (static_new_ib_size > 0.001 ? pre_blend_new_ib_a : 0.0)
+                           + mix2 * (static_old_ib_size > 0.001 ? pre_blend_old_ib_a : 0.0);
     *m_pState->var_pf_mv_x = mix * (*m_pState->var_pf_mv_x) + mix2 * (*m_pOldState->var_pf_mv_x);
     *m_pState->var_pf_mv_y = mix * (*m_pState->var_pf_mv_y) + mix2 * (*m_pOldState->var_pf_mv_y);
     *m_pState->var_pf_mv_dx = mix * (*m_pState->var_pf_mv_dx) + mix2 * (*m_pOldState->var_pf_mv_dx);
