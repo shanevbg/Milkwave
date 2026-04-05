@@ -2043,6 +2043,8 @@ void CPlugin::ComputeGridAlphaValues() {
           // blend to UV's for m_pOldState
           float mix2 = m_vertinfo[n].a * fBlend + m_vertinfo[n].c;//fCosineBlend2;
           mix2 = max(0, min(1, mix2));
+          if (m_bMilk2PermanentBlend && m_nMilk2MixType == 3)
+            mix2 = mix2 * mix2 * (3.0f - 2.0f * mix2);
           if (m_bMilk2PermanentBlend && m_nMilk2MixType == 5)
             mix2 = mix2 * mix2 * (3.0f - 2.0f * mix2);
           //     if fBlend un-flipped, then mix2 is 0 at the beginning of a blend, 1 at the end...

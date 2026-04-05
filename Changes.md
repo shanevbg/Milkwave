@@ -13,7 +13,7 @@
 * Visualizer menu font can be configured from Remote
 * Visualizer help (F1) adjusts to window size
 * Restructured Remote tabs and controls
-* Improved transitions
+* Improved transitions quality
 * Basic .milk2 file support
 * Global stability improvements
 

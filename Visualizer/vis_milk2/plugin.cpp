@@ -8636,12 +8636,12 @@ void CPlugin::RandomizeBlendPattern() {
   }
   else if (mixtype == 3) {
     // radial blend
-    float band = 0.02f + 0.14f * FRAND + 0.34f * FRAND;
+    float band = 0.025f + 0.14f * FRAND + 0.34f * FRAND;
     float inv_band = 1.0f / band;
     float dir = (float)((rand() % 2) * 2 - 1);      // 1=outside-in, -1=inside-out
     if (m_fMilk2BlendDirection != 0.0f) {
       dir = m_fMilk2BlendDirection;
-      band = 0.25f;  // fixed band width for .milk2 deterministic circle size
+      band = 0.8f;  // broader feather for .milk2 deterministic circle size
       inv_band = 1.0f / band;
     }
 
