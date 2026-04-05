@@ -9041,7 +9041,51 @@ void CPlugin::RandomizeBlendPattern() {
     }
   }
   else if (mixtype == 10) {
-    // DeepSeek - Curtain Transition
+    if (m_bLoadingMilk2 && m_nMilk2MixType == 10) {
+      // MilkDrop 3 curtain: a single centered vertical curtain with a broad feather.
+      float band = 0.45f + 0.05f * FRAND;
+      float inv_band = 1.0f / band;
+      float progress = m_fMilk2BlendProgress * 0.75f + 0.02f;
+      if (progress < 0.0f) progress = 0.0f;
+      if (progress > 1.0f) progress = 1.0f;
+      float halfWidth = 0.08f + 0.55f * progress;
+
+      int nVert = 0;
+      for (int y = 0; y <= m_nGridY; y++) {
+        float fy;
+        if (m_bScreenDependentRenderMode)
+          fy = (y / (float)m_nGridY);
+        else
+          fy = (y / (float)m_nGridY) * m_fAspectY;
+
+        for (int x = 0; x <= m_nGridX; x++) {
+          float fx;
+          if (m_bScreenDependentRenderMode)
+            fx = (x / (float)m_nGridX);
+          else
+            fx = (x / (float)m_nGridX) * m_fAspectX;
+
+          float dist = fabsf(fx - 0.5f);
+          float t;
+          if (dist <= halfWidth) {
+            t = 1.0f;
+          }
+          else if (dist >= halfWidth + band) {
+            t = 0.0f;
+          }
+          else {
+            float u = (dist - halfWidth) / band;
+            t = 1.0f - (u * u * (3.0f - 2.0f * u));
+          }
+
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * t;
+          nVert++;
+        }
+      }
+    }
+    else {
+      // DeepSeek - Curtain Transition
     float band = 0.05f + 0.15f * FRAND;  // transition edge width
     float inv_band = 1.0f / band;
     bool opening = (rand() % 2) == 0;    // true = opening, false = closing
@@ -9144,74 +9188,132 @@ void CPlugin::RandomizeBlendPattern() {
         nVert++;
       }
     }
+    }
   }
   else if (mixtype == 11) {
-    // DeepSeek - Bubble Transition
-    float band = 0.05f + 0.15f * FRAND;  // transition edge width
-    float inv_band = 1.0f / band;
-    int bubble_count = 10 + (rand() % 30); // number of bubbles (10-40)
-    float bubble_size_min = 0.05f + FRAND * 0.1f; // min bubble size (0.05-0.15)
-    float bubble_size_max = 0.15f + FRAND * 0.2f; // max bubble size (0.15-0.35)
-    bool growing_bubbles = (rand() % 2) == 0; // true = bubbles grow, false = shrink
+    if (m_bLoadingMilk2 && m_nMilk2MixType == 11) {
+      // MilkDrop 3 donuts: a centered bullseye with a broad smooth middle ring.
+      float band = 0.22f + 0.04f * FRAND;
+      float inv_band = 1.0f / band;
+      float progress = m_fMilk2BlendProgress;
+      progress = progress * progress;
+      if (progress < 0.0f) progress = 0.0f;
+      if (progress > 1.0f) progress = 1.0f;
 
-    // Generate random bubble positions and sizes
-    struct Bubble {
-      float x, y;     // position (0-1 range)
-      float size;     // radius (0-1 range)
-      float speed;    // growth/shrink speed
-    };
+      float innerRadius = 0.05f + 0.26f * progress;
+      float outerRadius = 0.68f + 0.12f * progress;
+      if (outerRadius < innerRadius + 0.20f)
+        outerRadius = innerRadius + 0.20f;
 
-    Bubble* bubbles = new Bubble[bubble_count];
-    for (int i = 0; i < bubble_count; i++) {
-      bubbles[i].x = FRAND;
-      bubbles[i].y = FRAND;
-      bubbles[i].size = bubble_size_min + FRAND * (bubble_size_max - bubble_size_min);
-      bubbles[i].speed = 0.5f + FRAND * 1.5f; // speed multiplier (0.5-2.0)
-    }
+      int nVert = 0;
+      for (int y = 0; y <= m_nGridY; y++) {
+        float fy;
+        if (m_bScreenDependentRenderMode)
+          fy = (y / (float)m_nGridY - 0.5f);
+        else
+          fy = (y / (float)m_nGridY - 0.5f) * m_fAspectY;
 
-    int nVert = 0;
-    for (int y = 0; y <= m_nGridY; y++) {
-      float fy = (y / (float)m_nGridY);
-      for (int x = 0; x <= m_nGridX; x++) {
-        float fx = (x / (float)m_nGridX);
+        for (int x = 0; x <= m_nGridX; x++) {
+          float fx;
+          if (m_bScreenDependentRenderMode)
+            fx = (x / (float)m_nGridX - 0.5f);
+          else
+            fx = (x / (float)m_nGridX - 0.5f) * m_fAspectX;
 
-        // Find the maximum bubble influence at this pixel
-        float max_influence = 0.0f;
-
-        for (int i = 0; i < bubble_count; i++) {
-          // Calculate distance to bubble center
-          float dx, dy;
-          if (m_bScreenDependentRenderMode) {
-            dx = (fx - bubbles[i].x);
-            dy = (fy - bubbles[i].y);
+          float dist = sqrtf(fx * fx + fy * fy) * 1.41421356f;
+          float t;
+          if (dist <= innerRadius) {
+            t = 1.0f;
+          }
+          else if (dist < innerRadius + band) {
+            float u = (dist - innerRadius) / band;
+            t = 1.0f - (u * u * (3.0f - 2.0f * u));
+          }
+          else if (dist < outerRadius - band) {
+            t = 0.0f;
+          }
+          else if (dist < outerRadius) {
+            float u = (dist - (outerRadius - band)) / band;
+            t = u * u * (3.0f - 2.0f * u);
           }
           else {
-            dx = (fx - bubbles[i].x) * m_fAspectX;
-            dy = (fy - bubbles[i].y) * m_fAspectY;
+            t = 1.0f;
           }
-          float dist = sqrtf(dx * dx + dy * dy);
 
-          // Calculate bubble influence (1 at center, 0 at edge)
-          float influence = 1.0f - (dist / bubbles[i].size);
-          if (influence < 0) influence = 0;
-
-          // Apply smoothstep for smoother edges
-          influence = influence * influence * (3.0f - 2.0f * influence);
-
-          if (influence > max_influence)
-            max_influence = influence;
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * t;
+          nVert++;
         }
-
-        // If we're shrinking bubbles, invert the influence
-        float t = growing_bubbles ? max_influence : (1.0f - max_influence);
-
-        // Apply band blending
-        m_vertinfo[nVert].a = inv_band * (1.0f + band);
-        m_vertinfo[nVert].c = -inv_band + inv_band * t;
-        nVert++;
       }
     }
-    delete[] bubbles;
+    else {
+      // DeepSeek - Bubble Transition
+      float band = 0.05f + 0.15f * FRAND;  // transition edge width
+      float inv_band = 1.0f / band;
+      int bubble_count = 10 + (rand() % 30); // number of bubbles (10-40)
+      float bubble_size_min = 0.05f + FRAND * 0.1f; // min bubble size (0.05-0.15)
+      float bubble_size_max = 0.15f + FRAND * 0.2f; // max bubble size (0.15-0.35)
+      bool growing_bubbles = (rand() % 2) == 0; // true = bubbles grow, false = shrink
+
+      // Generate random bubble positions and sizes
+      struct Bubble {
+        float x, y;     // position (0-1 range)
+        float size;     // radius (0-1 range)
+        float speed;    // growth/shrink speed
+      };
+
+      Bubble* bubbles = new Bubble[bubble_count];
+      for (int i = 0; i < bubble_count; i++) {
+        bubbles[i].x = FRAND;
+        bubbles[i].y = FRAND;
+        bubbles[i].size = bubble_size_min + FRAND * (bubble_size_max - bubble_size_min);
+        bubbles[i].speed = 0.5f + FRAND * 1.5f; // speed multiplier (0.5-2.0)
+      }
+
+      int nVert = 0;
+      for (int y = 0; y <= m_nGridY; y++) {
+        float fy = (y / (float)m_nGridY);
+        for (int x = 0; x <= m_nGridX; x++) {
+          float fx = (x / (float)m_nGridX);
+
+          // Find the maximum bubble influence at this pixel
+          float max_influence = 0.0f;
+
+          for (int i = 0; i < bubble_count; i++) {
+            // Calculate distance to bubble center
+            float dx, dy;
+            if (m_bScreenDependentRenderMode) {
+              dx = (fx - bubbles[i].x);
+              dy = (fy - bubbles[i].y);
+            }
+            else {
+              dx = (fx - bubbles[i].x) * m_fAspectX;
+              dy = (fy - bubbles[i].y) * m_fAspectY;
+            }
+            float dist = sqrtf(dx * dx + dy * dy);
+
+            // Calculate bubble influence (1 at center, 0 at edge)
+            float influence = 1.0f - (dist / bubbles[i].size);
+            if (influence < 0) influence = 0;
+
+            // Apply smoothstep for smoother edges
+            influence = influence * influence * (3.0f - 2.0f * influence);
+
+            if (influence > max_influence)
+              max_influence = influence;
+          }
+
+          // If we're shrinking bubbles, invert the influence
+          float t = growing_bubbles ? max_influence : (1.0f - max_influence);
+
+          // Apply band blending
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * t;
+          nVert++;
+        }
+      }
+      delete[] bubbles;
+    }
   }
   else if (mixtype == 12) {
     // DeepSeek - Kaleidoscope Wipe Transition
