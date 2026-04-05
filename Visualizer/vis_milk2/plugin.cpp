@@ -8639,9 +8639,10 @@ void CPlugin::RandomizeBlendPattern() {
     float band = 0.025f + 0.14f * FRAND + 0.34f * FRAND;
     float inv_band = 1.0f / band;
     float dir = (float)((rand() % 2) * 2 - 1);      // 1=outside-in, -1=inside-out
+    const bool bMilk2Corner = m_bLoadingMilk2 && m_nMilk2MixType == 3 && m_bMilk2CornerWipe;
     if (m_fMilk2BlendDirection != 0.0f) {
       dir = m_fMilk2BlendDirection;
-      band = 0.8f;  // broader feather for .milk2 deterministic circle size
+      band = 0.7f;  // broader feather for .milk2 deterministic circle size
       inv_band = 1.0f / band;
     }
 
@@ -8661,7 +8662,20 @@ void CPlugin::RandomizeBlendPattern() {
         else
           dx = (x / (float)m_nGridX - 0.5f) * m_fAspectX;
 
-        float t = sqrtf(dx * dx + dy * dy) * 1.41421f;
+        float t;
+        if (bMilk2Corner) {
+          float cornerCenterX = 0.25f;
+          float cornerCenterY = 0.25f;
+          dx = (x / (float)m_nGridX - cornerCenterX);
+          if (m_bScreenDependentRenderMode)
+            dy = (y / (float)m_nGridY - cornerCenterY);
+          else
+            dy = (y / (float)m_nGridY - cornerCenterY) * m_fAspectY;
+          t = sqrtf(dx * dx + dy * dy) * 1.41421f;
+        }
+        else {
+          t = sqrtf(dx * dx + dy * dy) * 1.41421f;
+        }
         if (dir == -1)
           t = 1 - t;
 
@@ -8876,55 +8890,90 @@ void CPlugin::RandomizeBlendPattern() {
     }
   }
   else if (mixtype == 8) {
-    // DeepSeek - Square/Diamond Transition
-    float band = 0.08f + 0.12f * FRAND;  // transition edge width
-    float inv_band = 1.0f / band;
-    bool diagonal = (rand() % 2) == 0;    // true = X-shape, false = +-shape
-    float center_bias = 0.3f + FRAND * 0.4f; // 0.3-0.7, controls center emphasis
-    float softness = 0.1f + FRAND * 0.2f; // edge softness
+    if (m_bLoadingMilk2 && wcsstr(m_szLoadingPreset, L"corner") != NULL) {
+      // Corner transition: quarter-circle anchored in the bottom-left corner.
+      float band = 0.38f;
+      float inv_band = 1.0f / band;
+      float dir = (m_fMilk2BlendDirection == 0.0f) ? 1.0f : m_fMilk2BlendDirection;
 
-    // Define our own clamp function
-    auto clamp = [](float value, float min, float max) {
-      return (value < min) ? min : ((value > max) ? max : value);
-      };
-
-    int nVert = 0;
-    for (int y = 0; y <= m_nGridY; y++) {
-      float fy;
-      if (m_bScreenDependentRenderMode)
-        fy = (y / (float)m_nGridY - 0.5f);
-      else
-        fy = (y / (float)m_nGridY - 0.5f) * m_fAspectY;
-      for (int x = 0; x <= m_nGridX; x++) {
-        float fx;
+      int nVert = 0;
+      for (int y = 0; y <= m_nGridY; y++) {
+        float fy;
         if (m_bScreenDependentRenderMode)
-          fx = (x / (float)m_nGridX - 0.5f);
+          fy = (y / (float)m_nGridY);
         else
-          fx = (x / (float)m_nGridX - 0.5f) * m_fAspectX;
+          fy = (y / (float)m_nGridY) * m_fAspectY;
 
-        float t;
-        if (diagonal) {
-          // X-shaped wipe (diagonal)
-          float d1 = (fx + fy) * 0.7071f; // 1/sqrt(2)
-          float d2 = (fx - fy) * 0.7071f;
-          t = (fabsf(d1) > fabsf(d2)) ? fabsf(d1) : fabsf(d2);
+        for (int x = 0; x <= m_nGridX; x++) {
+          float fx;
+          if (m_bScreenDependentRenderMode)
+            fx = (x / (float)m_nGridX);
+          else
+            fx = (x / (float)m_nGridX) * m_fAspectX;
+
+          float dx = fx;
+          float dy = 1.0f - fy;
+          float t = sqrtf(dx * dx + dy * dy) * 0.70710678f;
+          if (dir == -1.0f)
+            t = 1.0f - t;
+
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * t;
+          nVert++;
         }
-        else {
-          // +-shaped wipe (cardinal directions)
-          t = (fabsf(fx) > fabsf(fy)) ? fabsf(fx) : fabsf(fy);
+      }
+    }
+    else {
+      // DeepSeek - Square/Diamond Transition
+      float band = 0.08f + 0.12f * FRAND;  // transition edge width
+      float inv_band = 1.0f / band;
+      bool diagonal = (rand() % 2) == 0;    // true = X-shape, false = +-shape
+      float center_bias = 0.3f + FRAND * 0.4f; // 0.3-0.7, controls center emphasis
+      float softness = 0.1f + FRAND * 0.2f; // edge softness
+
+      // Define our own clamp function
+      auto clamp = [](float value, float min, float max) {
+        return (value < min) ? min : ((value > max) ? max : value);
+        };
+
+      int nVert = 0;
+      for (int y = 0; y <= m_nGridY; y++) {
+        float fy;
+        if (m_bScreenDependentRenderMode)
+          fy = (y / (float)m_nGridY - 0.5f);
+        else
+          fy = (y / (float)m_nGridY - 0.5f) * m_fAspectY;
+        for (int x = 0; x <= m_nGridX; x++) {
+          float fx;
+          if (m_bScreenDependentRenderMode)
+            fx = (x / (float)m_nGridX - 0.5f);
+          else
+            fx = (x / (float)m_nGridX - 0.5f) * m_fAspectX;
+
+          float t;
+          if (diagonal) {
+            // X-shaped wipe (diagonal)
+            float d1 = (fx + fy) * 0.7071f; // 1/sqrt(2)
+            float d2 = (fx - fy) * 0.7071f;
+            t = (fabsf(d1) > fabsf(d2)) ? fabsf(d1) : fabsf(d2);
+          }
+          else {
+            // +-shaped wipe (cardinal directions)
+            t = (fabsf(fx) > fabsf(fy)) ? fabsf(fx) : fabsf(fy);
+          }
+
+          // Apply center bias for more interesting pattern
+          t = powf(t, center_bias);
+
+          // Add optional softness to edges
+          t = t * (1.0f + softness) - softness * 0.5f;
+          t = clamp(t, 0.0f, 1.0f);
+
+          // Apply band blending
+          m_vertinfo[nVert].a = inv_band * (1.0f + band);
+          m_vertinfo[nVert].c = -inv_band + inv_band * t;
+          nVert++;
         }
-
-        // Apply center bias for more interesting pattern
-        t = powf(t, center_bias);
-
-        // Add optional softness to edges
-        t = t * (1.0f + softness) - softness * 0.5f;
-        t = clamp(t, 0.0f, 1.0f);
-
-        // Apply band blending
-        m_vertinfo[nVert].a = inv_band * (1.0f + band);
-        m_vertinfo[nVert].c = -inv_band + inv_band * t;
-        nVert++;
       }
     }
   }
@@ -9756,7 +9805,7 @@ static int Milk2PatternNameToMixtype(const char* name) {
     {"stars",         14},  // star wipe
     {"patches",        9},  // checkerboard / patches
     {"arrow",          1},  // directional arrow wipe
-    {"corner",          8},  // corner / square variant
+    {"corner",          3},  // corner / bottom-left quarter-circle
     {"vertical",      19},  // fixed left-to-right wipe
     {"horizontal",    20},  // fixed top-to-bottom wipe
   };
@@ -9809,6 +9858,7 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     if (!pat.empty()) outMixType = Milk2PatternNameToMixtype(pat.c_str());
     // "horizontal" pattern = horizontal split line => vertical wipe axis
     m_bMilk2VerticalWipe = (!pat.empty() && _stricmp(pat.c_str(), "horizontal") == 0);
+    m_bMilk2CornerWipe = (!pat.empty() && _stricmp(pat.c_str(), "corner") == 0);
     m_bMilk2ArrowWipe = (!pat.empty() && _stricmp(pat.c_str(), "arrow") == 0);
     std::string prog = getVal("blending_progress");
     if (!prog.empty()) outProgress = (float)atof(prog.c_str());
@@ -10012,6 +10062,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   m_bMilk2PermanentBlend = false;
   m_fMilk2BlendDirection = 0.0f;
   m_bMilk2VerticalWipe = false;
+  m_bMilk2CornerWipe = false;
 
   // Kill any active milk2 sprites from the previous preset
   KillMilk2Sprites();

@@ -502,6 +502,7 @@ public:
   int     m_nMilk2MixType = -1;	// blend pattern from .milk2 metadata (-1 = random)
   float   m_fMilk2BlendDirection = 0.0f;	// blend direction from .milk2 metadata (0 = random; other values tune angle)
   bool    m_bMilk2VerticalWipe = false;	// true = "horizontal" pattern (horizontal split => vertical wipe axis)
+    bool    m_bMilk2CornerWipe = false;	// true when the .milk2 pattern name is corner
   bool    m_bMilk2PermanentBlend = false;	// true = blend never completes (both presets render forever)
   float   m_fMilk2BlendProgress = 0.5f;	// fixed blend position from .milk2 header (0..1)
   float   m_fMilk2FrozenProgress = 0.5f;	// derived blend position used while the .milk2 blend is pinned
