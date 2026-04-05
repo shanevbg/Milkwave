@@ -8719,13 +8719,17 @@ void CPlugin::RandomizeBlendPattern() {
     }
   }
   else if (mixtype == 5) {
-    // DeepSeek - Spiral/Snail transition
+    // Spiral/Snail transition - symmetric spiral band with even feathering
     const bool bMilk2Snail = m_bLoadingMilk2 && m_nMilk2MixType == 5;
-    float band = bMilk2Snail ? (0.07f + 0.10f * m_fMilk2Random2) : (0.09f + 0.11f * FRAND);
+
+    // Keep the band very wide so the blend region reads as a broad feather.
+    float band = bMilk2Snail ? (0.42f + 0.18f * m_fMilk2Random2) : (0.42f + 0.18f * FRAND);
     float inv_band = 1.0f / band;
-    float loops = bMilk2Snail ? (1.2f + 1.8f * m_fMilk2Random3) : (2.0f + (float)(rand() % 7));
-    float rotation_phase = bMilk2Snail ? (m_fMilk2Random1 * 6.2831853f) : (FRAND * 0.5f * 6.2831853f);
-    bool inward_spiral = bMilk2Snail ? (m_fMilk2BlendDirection < 0.0f) : ((rand() % 2) == 0);
+
+    // Fewer turns keeps the spiral broad enough to look smooth on the mesh.
+    float loops = bMilk2Snail ? (0.65f + 0.55f * m_fMilk2Random3) : (0.65f + 0.95f * FRAND);
+    float phase = bMilk2Snail ? (m_fMilk2Random1 * 6.2831853f) : (FRAND * 6.2831853f);
+    bool inward = bMilk2Snail ? (m_fMilk2BlendDirection < 0.0f) : ((rand() % 2) == 0);
 
     int nVert = 0;
     for (int y = 0; y <= m_nGridY; y++) {
@@ -8742,36 +8746,34 @@ void CPlugin::RandomizeBlendPattern() {
         else
           fx = (x / (float)m_nGridX - 0.5f) * m_fAspectX;
 
-        // Calculate polar coordinates
-        float angle = atan2f(fy, fx); // range: -PI to PI
-        float radius = sqrtf(fx * fx + fy * fy) * 1.41421356f; // normalized 0-1
+        float angle = atan2f(fy, fx); // -PI..PI
+        float radius = sqrtf(fx * fx + fy * fy) * 1.41421356f; // 0..~1
 
-        // Convert angle to 0-2PI range
-        if (angle < 0) angle += 6.2831853f;
+        // Signed spiral distance: the arm is centered on a smooth 0.5 contour.
+        float spiral = (angle + 3.14159265f) / 6.2831853f;
+        spiral += loops * radius;
+        spiral += phase / 6.2831853f;
+        spiral -= floorf(spiral);
 
-        float spiral_value;
-        if (bMilk2Snail) {
-          spiral_value = fmodf(angle / 6.2831853f + loops * radius + rotation_phase / 6.2831853f, 1.0f);
-          if (spiral_value < 0.0f)
-            spiral_value += 1.0f;
-          if (inward_spiral)
-            spiral_value = 1.0f - spiral_value;
-          m_vertinfo[nVert].a = inv_band * (1.0f + band);
-          m_vertinfo[nVert].c = -inv_band + inv_band * spiral_value;
-        }
-        else {
-          spiral_value = angle / 6.2831853f + loops * radius + rotation_phase / 6.2831853f;
-          spiral_value -= floorf(spiral_value);
-          spiral_value = spiral_value * spiral_value * (3.0f - 2.0f * spiral_value);
-          if (inward_spiral)
-            spiral_value = 1.0f - spiral_value;
-          m_vertinfo[nVert].a = inv_band * (1.0f + band);
-          m_vertinfo[nVert].c = -inv_band + inv_band * spiral_value;
-        }
+        // Turn the wrap-around into a symmetric distance from the spiral center.
+        float dist = fabsf(spiral - 0.5f) * 2.0f;
+        if (dist > 1.0f)
+          dist = 1.0f;
+
+        // Soften the ramp, then keep the center neutral longer before ramping outward.
+        float t = dist * dist * (3.0f - 2.0f * dist);
+        float center_soften = radius * radius * (3.0f - 2.0f * radius);
+        center_soften = 0.05f + 0.95f * center_soften;
+        t = 0.5f + (t - 0.5f) * center_soften;
+
+        if (inward)
+          t = 1.0f - t;
+
+        m_vertinfo[nVert].a = inv_band * (1.0f + band);
+        m_vertinfo[nVert].c = -inv_band + inv_band * t;
         nVert++;
       }
     }
-
   }
   else if (mixtype == 6) {
     // DeepSeek - Rhombus/Diamond transition
