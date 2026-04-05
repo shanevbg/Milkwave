@@ -9770,7 +9770,7 @@ void CPlugin::RandomizeBlendPattern() {
   }
   else if (mixtype == 20) {
     // Fixed horizontal wipe (top-to-bottom) for .milk2 "horizontal"
-    float band = 0.15f;
+    float band = 0.34f;
     float inv_band = 1.0f / band;
     int nVert = 0;
     for (int y = 0; y <= m_nGridY; y++) {
