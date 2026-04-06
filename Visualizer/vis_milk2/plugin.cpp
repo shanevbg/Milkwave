@@ -8820,7 +8820,9 @@ void CPlugin::RandomizeBlendPattern() {
     float inv_band = 1.0f / band;
     float angle = 0.0f;                   // keep the diamond upright for milk2 parity
     float aspect = 1.0f;                  // keep the diamond symmetric
-    bool reverse = (rand() % 2) == 0;     // random direction
+    bool reverse = (m_bLoadingMilk2 && m_nMilk2MixType == 6)
+                     ? (m_fMilk2BlendDirection < 0.0f)
+                     : ((rand() % 2) == 0); // random direction
 
     // Precompute rotation matrix and normalization factor
     float cos_a = cosf(angle);
@@ -10339,10 +10341,10 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
         m_fMilk2BlendProgress = 1.0f;
     }
     else if (mixType == 6) {
-      // Triangle transitions lag behind the MilkDrop reference, so we push the
-      // reported progress forward with a stronger ease-out curve.
       float clampedProgress = min(1.0f, max(0.0f, progress));
-      m_fMilk2BlendProgress = 0.10f + 0.90f * powf(clampedProgress, 0.55f);
+      m_fMilk2BlendProgress = 0.1f + clampedProgress;
+      if (m_fMilk2BlendProgress > 1.0f)
+        m_fMilk2BlendProgress = 1.0f;
     }
     else if (mixType == 5) {
       // Snail works best close to the authored progress from the .milk2 header.
