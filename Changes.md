@@ -1,9 +1,9 @@
-## v3.6 (unreleased)
+## v4.0 (unreleased)
 
 * [MDropDX12](https://github.com/shanevbg/MDropDX12) Visualizer support (experimental)
   - Milkwave DirectX 12 Visualizer fork by @shanevbg (included)
   - Named Pipes IPC Communication between Remote and Visualizers
-  - Network Mode: Control over network using Milkwave Remote
+* Network support: Control MDropDX12 over network using Milkwave Remote
 * Multi-Mode: Send commands to multiple Visualizers (local and network)
 * Support for equalizer shader presets (FFT)
   - Adjust FFT attack/decay on Settings tab
@@ -11,11 +11,12 @@
   - 5 different versions (switch on Settings tab)
   - Band peak marking and mouse support (Right-click)
   - Supports Intensity and Shift parameters
+* Basic .milk2 file support
+* 100 new shader-based "Basic" presets
 * Visualizer menu font can be configured from Remote
 * Visualizer help (F1) adjusts to window size
 * Restructured Remote tabs and controls
 * Improved transitions quality
-* Basic .milk2 file support
 * Global stability improvements
 
 You can get a preview build on [my Discord](https://bit.ly/Ikes-Discord).
