@@ -100,13 +100,7 @@
 		{
 			"label": "Clean Solution",
 			"type": "shell",
-			"command": "msbuild",
-			"args": [
-				"${workspaceFolder}\\Milkwave.sln",
-				"/t:Clean",
-				"/p:Configuration=Debug",
-				"/p:Platform=Win32"
-			],
+			"command": "& { msbuild '${workspaceFolder}\\Milkwave.sln' /t:Clean /p:Configuration=Debug /p:Platform=Win32; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; msbuild '${workspaceFolder}\\Milkwave.sln' /t:Clean /p:Configuration=Release /p:Platform=Win32; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }",
 			"problemMatcher": "$msCompile"
 		},
 		{

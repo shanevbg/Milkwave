@@ -31,3 +31,4 @@ enc_temp_folder/
 /Build/plan*.md
 /Build/*issues*.md
 
+Remote/MilkwaveRemote.csproj.lscache

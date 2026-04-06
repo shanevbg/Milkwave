@@ -21,6 +21,7 @@ set mDropDX12Path=..\..\MDropDX12\src\mDropDX12\Release_x64
 call copy-MDropDX12.cmd
 
 copy settings.ini %releasePath%
+copy sprites.ini %releasePath%
 copy MDropDX12\*.ini %releasePath%\MDropDX12
 
 copy *.txt %releasePath%
