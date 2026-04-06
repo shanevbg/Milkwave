@@ -8978,62 +8978,92 @@ void CPlugin::RandomizeBlendPattern() {
     }
   }
   else if (mixtype == 9) {
-    // DeepSeek - Animated Checkerboard Transition
-    float band = 0.05f + 0.15f * FRAND;  // transition edge sharpness
-    float inv_band = 1.0f / band;
-    int checker_size = 4 + (rand() % 12); // checker squares size (4-15)
-    float anim_speed = 0.5f + FRAND * 2.0f; // animation speed (0.5-2.5)
-    bool diagonal_anim = (rand() % 2) == 0; // diagonal or straight animation
-    bool reverse = (rand() % 2) == 0; // reverse animation direction
+    // MilkDrop 3 patches: four rounded lobes arranged like a star/cross.
+    float progress = m_fMilk2BlendProgress;
+    if (progress < 0.0f) progress = 0.0f;
+    if (progress > 1.0f) progress = 1.0f;
 
-    // Get current time for animation (using a fake time if not available)
-    static float fake_time = 0.0f;
-    fake_time += 1 / GetFps();
-    float time = fake_time; // replace with actual time if available
+    const float pi = 3.14159265f;
+    float lobePulse = 0.03f * sinf(progress * pi);
+    float band = 0.08f + 0.04f * m_fMilk2Random2;
+    float inv_band = 1.0f / band;
+
+    float aspectX = m_bScreenDependentRenderMode ? 1.0f : m_fAspectX;
+    float aspectY = m_bScreenDependentRenderMode ? 1.0f : m_fAspectY;
+    float centerX = 0.26f * aspectX;
+    float centerY = 0.26f * aspectY;
+
+    float shiftX = 0.02f * aspectX * (m_fMilk2Random1 - 0.5f);
+    float shiftY = 0.02f * aspectY * (m_fMilk2Random3 - 0.5f);
+
+    struct Patch {
+      float x;
+      float y;
+      float rx;
+      float ry;
+      bool isRed;
+    };
+
+    Patch patches[4];
+    patches[0].x = shiftX;
+    patches[0].y = centerY + shiftY;
+    patches[0].rx = 0.46f * aspectX * (0.96f + lobePulse + 0.02f * m_fMilk2Random4);
+    patches[0].ry = 0.24f * aspectY * (0.96f - lobePulse + 0.02f * m_fMilk2Random5);
+    patches[0].isRed = false;
+
+    patches[1].x = centerX - shiftX;
+    patches[1].y = shiftY;
+    patches[1].rx = 0.24f * aspectX * (0.96f - lobePulse + 0.02f * m_fMilk2Random2);
+    patches[1].ry = 0.46f * aspectY * (0.96f + lobePulse + 0.02f * m_fMilk2Random3);
+    patches[1].isRed = true;
+
+    patches[2].x = shiftX;
+    patches[2].y = -centerY - shiftY;
+    patches[2].rx = 0.46f * aspectX * (0.96f + lobePulse + 0.02f * m_fMilk2Random3);
+    patches[2].ry = 0.24f * aspectY * (0.96f - lobePulse + 0.02f * m_fMilk2Random4);
+    patches[2].isRed = false;
+
+    patches[3].x = -centerX + shiftX;
+    patches[3].y = shiftY;
+    patches[3].rx = 0.24f * aspectX * (0.96f - lobePulse + 0.02f * m_fMilk2Random5);
+    patches[3].ry = 0.46f * aspectY * (0.96f + lobePulse + 0.02f * m_fMilk2Random1);
+    patches[3].isRed = true;
+
+    auto patchInfluence = [](float dx, float dy, float rx, float ry) {
+      float nx = fabsf(dx) / rx;
+      float ny = fabsf(dy) / ry;
+      float dist = sqrtf(nx * nx + ny * ny);
+      float influence = 1.0f - dist;
+      if (influence < 0.0f)
+        influence = 0.0f;
+      return influence * influence * influence * (influence * (influence * 6.0f - 15.0f) + 10.0f);
+    };
 
     int nVert = 0;
     for (int y = 0; y <= m_nGridY; y++) {
-      float fy = y / (float)m_nGridY;
+      float fy = (y / (float)m_nGridY - 0.5f) * aspectY;
+
       for (int x = 0; x <= m_nGridX; x++) {
-        float fx = x / (float)m_nGridX;
+        float fx = (x / (float)m_nGridX - 0.5f) * aspectX;
 
-        // Calculate checkerboard pattern (0 or 1)
-        int cx = (int)(fx * checker_size);
-        int cy;
-        if (m_bScreenDependentRenderMode)
-          cy = (int)(fy * checker_size);
-        else
-          cy = (int)(fy * checker_size * m_fAspectY);
-        int checker = (cx + cy) % 2;
-
-        // Calculate animation progress
-        float anim_progress;
-        if (diagonal_anim) {
-          // Diagonal animation (top-left to bottom-right)
-          anim_progress = (fx + fy) * 0.5f + time * anim_speed;
-        }
-        else {
-          // Horizontal animation
-          anim_progress = fx + time * anim_speed;
+        float red_influence = 0.0f;
+        float green_influence = 0.0f;
+        for (int i = 0; i < 4; i++) {
+          float dx = fx - patches[i].x;
+          float dy = fy - patches[i].y;
+          float influence = patchInfluence(dx, dy, patches[i].rx, patches[i].ry);
+          if (patches[i].isRed) {
+            red_influence += influence;
+          }
+          else {
+            green_influence += influence;
+          }
         }
 
-        // Wrap around and reverse if needed
-        anim_progress = fmodf(anim_progress, 2.0f);
-        if (anim_progress > 1.0f) anim_progress = 2.0f - anim_progress;
-        if (reverse) anim_progress = 1.0f - anim_progress;
+        float sum = red_influence + green_influence;
+        float t = (sum > 0.0001f) ? (red_influence / sum) : 0.5f;
+        t = t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
 
-        // Combine checker pattern with animation
-        float t;
-        if (checker == 0) {
-          // First set of squares - delayed animation
-          t = anim_progress - 0.3f;
-        }
-        else {
-          // Second set of squares - advanced animation
-          t = anim_progress + 0.3f;
-        }
-
-        // Apply band blending
         m_vertinfo[nVert].a = inv_band * (1.0f + band);
         m_vertinfo[nVert].c = -inv_band + inv_band * t;
         nVert++;
