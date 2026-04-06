@@ -8,20 +8,19 @@
 
 void CPlugin::WaitString_NukeSelection() {
   if (m_waitstring.bActive &&
-    m_waitstring.nSelAnchorPos != -1) {
+      m_waitstring.nSelAnchorPos != -1) {
     // nuke selection.  note: start & end are INCLUSIVE.
     int start = (m_waitstring.nCursorPos < m_waitstring.nSelAnchorPos) ? m_waitstring.nCursorPos : m_waitstring.nSelAnchorPos;
     int end = (m_waitstring.nCursorPos > m_waitstring.nSelAnchorPos) ? m_waitstring.nCursorPos - 1 : m_waitstring.nSelAnchorPos - 1;
     int len = (m_waitstring.bDisplayAsCode ? lstrlenA((char*)m_waitstring.szText) : lstrlenW(m_waitstring.szText));
     int how_far_to_shift = end - start + 1;
-    int num_chars_to_shift = len - end;		// includes NULL char
+    int num_chars_to_shift = len - end;  // includes NULL char
 
     if (m_waitstring.bDisplayAsCode) {
       char* ptr = (char*)m_waitstring.szText;
       for (int i = 0; i < num_chars_to_shift; i++)
         *(ptr + start + i) = *(ptr + start + i + how_far_to_shift);
-    }
-    else {
+    } else {
       for (int i = 0; i < num_chars_to_shift; i++)
         m_waitstring.szText[start + i] = m_waitstring.szText[start + i + how_far_to_shift];
     }
@@ -34,7 +33,7 @@ void CPlugin::WaitString_NukeSelection() {
 
 void CPlugin::WaitString_Cut() {
   if (m_waitstring.bActive &&
-    m_waitstring.nSelAnchorPos != -1) {
+      m_waitstring.nSelAnchorPos != -1) {
     WaitString_Copy();
     WaitString_NukeSelection();
   }
@@ -42,7 +41,7 @@ void CPlugin::WaitString_Cut() {
 
 void CPlugin::WaitString_Copy() {
   if (m_waitstring.bActive &&
-    m_waitstring.nSelAnchorPos != -1) {
+      m_waitstring.nSelAnchorPos != -1) {
     // note: start & end are INCLUSIVE.
     int start = (m_waitstring.nCursorPos < m_waitstring.nSelAnchorPos) ? m_waitstring.nCursorPos : m_waitstring.nSelAnchorPos;
     int end = (m_waitstring.nCursorPos > m_waitstring.nSelAnchorPos) ? m_waitstring.nCursorPos - 1 : m_waitstring.nSelAnchorPos - 1;
@@ -57,8 +56,7 @@ void CPlugin::WaitString_Copy() {
       char tmp[64000];
       ConvertLFCToCRsA(m_waitstring.szClipboard, tmp);
       copyStringToClipboardA(tmp);
-    }
-    else {
+    } else {
       for (int i = 0; i < chars_to_copy; i++)
         m_waitstring.szClipboardW[i] = m_waitstring.szText[start + i];
       m_waitstring.szClipboardW[chars_to_copy] = 0;
@@ -80,8 +78,7 @@ void CPlugin::WaitString_Paste() {
       char tmp[64000];
       lstrcpyA(tmp, getStringFromClipboardA());
       ConvertCRsToLFCA(tmp, m_waitstring.szClipboard);
-    }
-    else {
+    } else {
       wchar_t tmp[64000];
       lstrcpyW(tmp, getStringFromClipboardW());
       ConvertCRsToLFCW(tmp, m_waitstring.szClipboardW);
@@ -93,8 +90,7 @@ void CPlugin::WaitString_Paste() {
     if (m_waitstring.bDisplayAsCode) {
       len = lstrlenA((char*)m_waitstring.szText);
       chars_to_insert = lstrlenA(m_waitstring.szClipboard);
-    }
-    else {
+    } else {
       len = lstrlenW(m_waitstring.szText);
       chars_to_insert = lstrlenW(m_waitstring.szClipboardW);
     }
@@ -104,9 +100,8 @@ void CPlugin::WaitString_Paste() {
 
       // inform user
       AddError(wasabiApiLangString(IDS_STRING_TOO_LONG), 2.5f, ERR_MISC, true);
-    }
-    else {
-      //m_fShowUserMessageUntilThisTime = GetTime();	// if there was an error message already, clear it
+    } else {
+      // m_fShowUserMessageUntilThisTime = GetTime();	// if there was an error message already, clear it
     }
 
     int i;
@@ -116,8 +111,7 @@ void CPlugin::WaitString_Paste() {
         *(ptr + i + chars_to_insert) = *(ptr + i);
       for (i = 0; i < chars_to_insert; i++)
         *(ptr + i + m_waitstring.nCursorPos) = m_waitstring.szClipboard[i];
-    }
-    else {
+    } else {
       for (i = len; i >= m_waitstring.nCursorPos; i--)
         m_waitstring.szText[i + chars_to_insert] = m_waitstring.szText[i];
       for (i = 0; i < chars_to_insert; i++)
@@ -132,20 +126,19 @@ void CPlugin::WaitString_SeekLeftWord() {
   if (m_waitstring.bDisplayAsCode) {
     char* ptr = (char*)m_waitstring.szText;
     while (m_waitstring.nCursorPos > 0 &&
-      !IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos - 1)))
+           !IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos - 1)))
       m_waitstring.nCursorPos--;
 
     while (m_waitstring.nCursorPos > 0 &&
-      IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos - 1)))
+           IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos - 1)))
       m_waitstring.nCursorPos--;
-  }
-  else {
+  } else {
     while (m_waitstring.nCursorPos > 0 &&
-      !IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos - 1]))
+           !IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos - 1]))
       m_waitstring.nCursorPos--;
 
     while (m_waitstring.nCursorPos > 0 &&
-      IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos - 1]))
+           IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos - 1]))
       m_waitstring.nCursorPos--;
   }
 }
@@ -153,29 +146,28 @@ void CPlugin::WaitString_SeekLeftWord() {
 void CPlugin::WaitString_SeekRightWord() {
   // move to beginning of next word
 
-  //testing  lotsa   stuff
+  // testing  lotsa   stuff
 
   if (m_waitstring.bDisplayAsCode) {
     int len = lstrlenA((char*)m_waitstring.szText);
 
     char* ptr = (char*)m_waitstring.szText;
     while (m_waitstring.nCursorPos < len &&
-      IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos)))
+           IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos)))
       m_waitstring.nCursorPos++;
 
     while (m_waitstring.nCursorPos < len &&
-      !IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos)))
+           !IsAlphanumericChar(*(ptr + m_waitstring.nCursorPos)))
       m_waitstring.nCursorPos++;
-  }
-  else {
+  } else {
     int len = lstrlenW(m_waitstring.szText);
 
     while (m_waitstring.nCursorPos < len &&
-      IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos]))
+           IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos]))
       m_waitstring.nCursorPos++;
 
     while (m_waitstring.nCursorPos < len &&
-      !IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos]))
+           !IsAlphanumericChar(m_waitstring.szText[m_waitstring.nCursorPos]))
       m_waitstring.nCursorPos++;
   }
 }
@@ -185,29 +177,27 @@ int CPlugin::WaitString_GetCursorColumn() {
     int column = 0;
     char* ptr = (char*)m_waitstring.szText;
     while (m_waitstring.nCursorPos - column - 1 >= 0 &&
-      *(ptr + m_waitstring.nCursorPos - column - 1) != LINEFEED_CONTROL_CHAR)
+           *(ptr + m_waitstring.nCursorPos - column - 1) != LINEFEED_CONTROL_CHAR)
       column++;
 
     return column;
-  }
-  else {
+  } else {
     return m_waitstring.nCursorPos;
   }
 }
 
-int	CPlugin::WaitString_GetLineLength() {
+int CPlugin::WaitString_GetLineLength() {
   int line_start = m_waitstring.nCursorPos - WaitString_GetCursorColumn();
   int line_length = 0;
 
   if (m_waitstring.bDisplayAsCode) {
     char* ptr = (char*)m_waitstring.szText;
     while (*(ptr + line_start + line_length) != 0 &&
-      *(ptr + line_start + line_length) != LINEFEED_CONTROL_CHAR)
+           *(ptr + line_start + line_length) != LINEFEED_CONTROL_CHAR)
       line_length++;
-  }
-  else {
+  } else {
     while (m_waitstring.szText[line_start + line_length] != 0 &&
-      m_waitstring.szText[line_start + line_length] != LINEFEED_CONTROL_CHAR)
+           m_waitstring.szText[line_start + line_length] != LINEFEED_CONTROL_CHAR)
       line_length++;
   }
 
@@ -240,11 +230,10 @@ void CPlugin::WaitString_SeekDownOneLine() {
     m_waitstring.nCursorPos = newpos + 1;
 
     while (column > 0 &&
-      *(ptr + m_waitstring.nCursorPos) != LINEFEED_CONTROL_CHAR &&
-      *(ptr + m_waitstring.nCursorPos) != 0) {
+           *(ptr + m_waitstring.nCursorPos) != LINEFEED_CONTROL_CHAR &&
+           *(ptr + m_waitstring.nCursorPos) != 0) {
       m_waitstring.nCursorPos++;
       column--;
     }
   }
 }
-

@@ -21,7 +21,7 @@ inline wchar_t* AutoWideDup(const char* convert, UINT codePage = CP_ACP) {
 }
 
 class AutoWide {
-public:
+ public:
   AutoWide(const char* convert, UINT codePage = CP_ACP) : wide(0) {
     wide = AutoWideDup(convert, codePage);
   }
@@ -29,10 +29,11 @@ public:
     free(wide);
     wide = 0;
   }
-  operator wchar_t* () {
+  operator wchar_t*() {
     return wide;
   }
-private:
+
+ private:
   wchar_t* wide;
 };
 #elif defined(__APPLE__)
@@ -54,7 +55,7 @@ inline wchar_t* AutoWideDup(const char* convert) {
 }
 
 class AutoWide {
-public:
+ public:
   AutoWide(const char* convert) : wide(0) {
     wide = AutoWideDup(convert);
   }
@@ -62,10 +63,11 @@ public:
     free(wide);
     wide = 0;
   }
-  operator wchar_t* () {
+  operator wchar_t*() {
     return wide;
   }
-private:
+
+ private:
   wchar_t* wide;
 };
 

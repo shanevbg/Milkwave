@@ -31,8 +31,14 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "support.h"
 #include "utility.h"
 
-#define MAX_MSG_CHARS (65536*2)
-#define SafeRelease(x) { if (x) {x->Release(); x=NULL;} } 
+#define MAX_MSG_CHARS (65536 * 2)
+#define SafeRelease(x) \
+  {                    \
+    if (x) {           \
+      x->Release();    \
+      x = NULL;        \
+    }                  \
+  }
 wchar_t g_szMsgPool[2][MAX_MSG_CHARS];
 
 /*
@@ -92,7 +98,7 @@ void CTextManager::DrawBox(LPRECT pRect, DWORD boxColor) {
     return;
 
   if ((m_nMsg[m_b] < MAX_MSGS) &&
-    (DWORD)m_next_msg_start_ptr - (DWORD)g_szMsgPool[m_b] + 0 + 1 < MAX_MSG_CHARS) {
+      (DWORD)m_next_msg_start_ptr - (DWORD)g_szMsgPool[m_b] + 0 + 1 < MAX_MSG_CHARS) {
     *m_next_msg_start_ptr = 0;
 
     m_msg[m_b][m_nMsg[m_b]].msg = m_next_msg_start_ptr;
@@ -122,7 +128,7 @@ int CTextManager::DrawText(LPD3DXFONT pFont, char* szText, RECT* pRect, DWORD fl
   int len = strlen(szText);
 
   if ((m_nMsg[m_b] < MAX_MSGS) &&
-    (DWORD)m_next_msg_start_ptr - (DWORD)g_szMsgPool[m_b] + len + 1 < MAX_MSG_CHARS) {
+      (DWORD)m_next_msg_start_ptr - (DWORD)g_szMsgPool[m_b] + len + 1 < MAX_MSG_CHARS) {
     wcscpy(m_next_msg_start_ptr, AutoWide(szText));
 
     m_msg[m_b][m_nMsg[m_b]].msg = m_next_msg_start_ptr;
@@ -171,7 +177,7 @@ int CTextManager::DrawTextW(LPD3DXFONT pFont, wchar_t* szText, RECT* pRect, DWOR
   int len = wcslen(szText);
 
   if ((m_nMsg[m_b] < MAX_MSGS) &&
-    (DWORD)m_next_msg_start_ptr - (DWORD)g_szMsgPool[m_b] + len + 1 < MAX_MSG_CHARS) {
+      (DWORD)m_next_msg_start_ptr - (DWORD)g_szMsgPool[m_b] + len + 1 < MAX_MSG_CHARS) {
     wcscpy(m_next_msg_start_ptr, szText);
 
     m_msg[m_b][m_nMsg[m_b]].msg = m_next_msg_start_ptr;
@@ -204,12 +210,12 @@ int CTextManager::DrawTextW(LPD3DXFONT pFont, wchar_t* szText, RECT* pRect, DWOR
   return h;
 }
 
-#define MATCH(i,j) ( m_msg[m_b][i].pfont == m_msg[1-m_b][j].pfont && \
-                     m_msg[m_b][i].flags == m_msg[1-m_b][j].flags && \
-                     m_msg[m_b][i].color == m_msg[1-m_b][j].color && \
-                     m_msg[m_b][i].bgColor == m_msg[1-m_b][j].bgColor && \
-                     memcmp(&m_msg[m_b][i].rect, &m_msg[1-m_b][j].rect, sizeof(RECT))==0 && \
-                     wcscmp(m_msg[m_b][i].msg, m_msg[1-m_b][j].msg)==0 )
+#define MATCH(i, j) (m_msg[m_b][i].pfont == m_msg[1 - m_b][j].pfont &&                          \
+                     m_msg[m_b][i].flags == m_msg[1 - m_b][j].flags &&                          \
+                     m_msg[m_b][i].color == m_msg[1 - m_b][j].color &&                          \
+                     m_msg[m_b][i].bgColor == m_msg[1 - m_b][j].bgColor &&                      \
+                     memcmp(&m_msg[m_b][i].rect, &m_msg[1 - m_b][j].rect, sizeof(RECT)) == 0 && \
+                     wcscmp(m_msg[m_b][i].msg, m_msg[1 - m_b][j].msg) == 0)
 
 void CTextManager::DrawNow() {
   if (!m_lpDevice)
@@ -226,7 +232,7 @@ void CTextManager::DrawNow() {
     int dirty_rects_ready = 0;
 
     int bRTT = (m_lpTextSurface == NULL) ? 0 : 1;
-    LPDIRECT3DSURFACE9 pBackBuffer = NULL;//, pZBuffer=NULL;
+    LPDIRECT3DSURFACE9 pBackBuffer = NULL;  //, pZBuffer=NULL;
     D3DSURFACE_DESC desc_backbuf, desc_text_surface;
 
     // clear added/deleted flags
@@ -247,16 +253,15 @@ void CTextManager::DrawNow() {
 
     int bRedrawText = 0;
     if (!bRTT || (m_nMsg[m_b] > 0 && m_nMsg[1 - m_b] == 0)) {
-      bRedrawText = 2;    // redraw ALL
-    }
-    else {
+      bRedrawText = 2;  // redraw ALL
+    } else {
       // try to synchronize the text strings from last frame + this frame,
       // and label additions & deletions.  algorithm will catch:
       //      -insertion of any # of items in one spot
       //      -deletion of any # of items from one spot
       //      -changes to 1 item
       //      -changes to 2 consecutive items
-      // (provided that the 2 text strings immediately bounding the 
+      // (provided that the 2 text strings immediately bounding the
       //  additions/deletions/change(s) are left unchanged.)
       // in any other case, all the text is just re-rendered.
 
@@ -267,8 +272,7 @@ void CTextManager::DrawNow() {
         if (MATCH(i, j)) {
           i++;
           j++;
-        }
-        else {
+        } else {
           int continue_now = 0;
 
           // scan to see if something was added:
@@ -326,7 +330,7 @@ void CTextManager::DrawNow() {
             continue;
 
           // otherwise, nontrivial case -> just re-render whole thing
-          bRedrawText = 2;    // redraw ALL
+          bRedrawText = 2;  // redraw ALL
           break;
         }
       }
@@ -353,8 +357,8 @@ void CTextManager::DrawNow() {
     pBackBuffer->GetDesc(&desc_backbuf);
 
     if (bRTT) {
-      //if (m_lpDevice->GetDepthStencilSurface( &pZBuffer ) != D3D_OK)
-      //    pZBuffer = NULL;                  // ok if return val != D3D_OK - just means there is no zbuffer.
+      // if (m_lpDevice->GetDepthStencilSurface( &pZBuffer ) != D3D_OK)
+      //     pZBuffer = NULL;                  // ok if return val != D3D_OK - just means there is no zbuffer.
       if (m_lpTextSurface->GetLevelDesc(0, &desc_text_surface) != D3D_OK)
         bRTT = 0;
 
@@ -368,8 +372,7 @@ void CTextManager::DrawNow() {
       m_lpDevice->SetTextureStageState(1, D3DTSS_ALPHAOP, D3DTOP_DISABLE);
 
       m_lpDevice->SetRenderState(D3DRS_ZENABLE, FALSE);
-    }
-    else {
+    } else {
       desc_text_surface = desc_backbuf;
     }
 
@@ -388,20 +391,20 @@ void CTextManager::DrawNow() {
           bRTT = 0;
           break;
         }
-        //m_lpDevice->SetDepthStencilSurface( ??? );
+        // m_lpDevice->SetDepthStencilSurface( ??? );
         pNewTarget->Release();
 
         m_lpDevice->SetTexture(0, NULL);
 
         // 2. clear to black
-      //m_lpDevice->SetTexture(0, NULL);
+        // m_lpDevice->SetTexture(0, NULL);
         m_lpDevice->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
         m_lpDevice->SetVertexShader(NULL);
         m_lpDevice->SetFVF(WFVERTEX_FORMAT);
         m_lpDevice->SetPixelShader(NULL);
         WFVERTEX v3[4];
         if (bRedrawText == 2) {
-          DWORD clearcolor = m_msg[m_b][j].bgColor;//0xFF000000;// | ((rand()%32)<<16) | ((rand()%32)<<8) | ((rand()%32));
+          DWORD clearcolor = m_msg[m_b][j].bgColor;  // 0xFF000000;// | ((rand()%32)<<16) | ((rand()%32)<<8) | ((rand()%32));
           for (int i = 0; i < 4; i++) {
             v3[i].x = -1.0f + 2.0f * (i % 2);
             v3[i].y = -1.0f + 2.0f * (i / 2);
@@ -409,8 +412,7 @@ void CTextManager::DrawNow() {
             v3[i].Diffuse = clearcolor;
           }
           m_lpDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, v3, sizeof(WFVERTEX));
-        }
-        else {
+        } else {
           // 1. erase (draw black box over) any old text items deleted.
           // also, update the dirty rects; stuff that was ABOVE/BELOW these guys will need redrawn!
           //   (..picture them staggered)
@@ -425,13 +427,13 @@ void CTextManager::DrawNow() {
                 v3[i].x = (i % 2) ? x0 : x1;
                 v3[i].y = (i / 2) ? y0 : y1;
                 v3[i].z = 0;
-                v3[i].Diffuse = m_msg[m_b][j].bgColor;//0xFF000000;//0xFF300000;
+                v3[i].Diffuse = m_msg[m_b][j].bgColor;  // 0xFF000000;//0xFF300000;
               }
               m_lpDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, v3, sizeof(WFVERTEX));
 
               //----------------------------------
 
-              // special case: 
+              // special case:
               //   if something is erased, but it's totally inside a dark box,
               //   then don't add it to the dirty rectangle.
               td_string* pDarkBox = (td_string*)m_msg[1 - m_b][j].prev_dark_box_ptr;
@@ -511,8 +513,8 @@ void CTextManager::DrawNow() {
             if (!m_msg[m_b][j].added) {
               // check vs. dirty rects so far; if intersects any, erase + redraw this one.
               for (i = 0; i < dirty_rects_ready; i++)
-                if (m_msg[m_b][j].pfont &&   // exclude dark boxes... //fixme?
-                  IntersectRect(&t, &dirty_rect[i], &m_msg[m_b][j].rect)) {
+                if (m_msg[m_b][j].pfont &&  // exclude dark boxes... //fixme?
+                    IntersectRect(&t, &dirty_rect[i], &m_msg[m_b][j].rect)) {
                   float x0 = -1.0f + 2.0f * m_msg[m_b][j].rect.left / (float)desc_text_surface.Width;
                   float x1 = -1.0f + 2.0f * m_msg[m_b][j].rect.right / (float)desc_text_surface.Width;
                   float y0 = -1.0f + 2.0f * m_msg[m_b][j].rect.top / (float)desc_text_surface.Height;
@@ -521,7 +523,7 @@ void CTextManager::DrawNow() {
                     v3[i].x = (i % 2) ? x0 : x1;
                     v3[i].y = (i / 2) ? y0 : y1;
                     v3[i].z = 0;
-                    v3[i].Diffuse = m_msg[m_b][j].bgColor;//0xFF000000;//0xFF000030;
+                    v3[i].Diffuse = m_msg[m_b][j].bgColor;  // 0xFF000000;//0xFF000030;
                   }
                   m_lpDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, v3, sizeof(WFVERTEX));
 
@@ -545,7 +547,7 @@ void CTextManager::DrawNow() {
 
       for (int i = 0; i < m_nMsg[m_b]; i++)
         if (bRedrawText == 2 || m_msg[m_b][i].added == 1)
-          if (m_msg[m_b][i].pfont) // dark boxes have pfont==NULL
+          if (m_msg[m_b][i].pfont)  // dark boxes have pfont==NULL
             // warning: in DX9, the DT_WORD_ELLIPSIS and DT_NOPREFIX flags cause no text to render!!
             m_msg[m_b][i].pfont->DrawTextW(NULL, m_msg[m_b][i].msg, -1, &m_msg[m_b][i].rect, m_msg[m_b][i].flags, m_msg[m_b][i].color);
           else if (m_msg[m_b][i].added || bRedrawText == 2 || !bRTT) {
@@ -558,18 +560,18 @@ void CTextManager::DrawNow() {
               v3[k].x = (k % 2) ? x0 : x1;
               v3[k].y = (k / 2) ? y0 : y1;
               v3[k].z = 0;
-              v3[k].Diffuse = m_msg[m_b][i].bgColor;//0xFF303000;
+              v3[k].Diffuse = m_msg[m_b][i].bgColor;  // 0xFF303000;
             }
             m_lpDevice->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, v3, sizeof(WFVERTEX));
           }
     }
 
     if (bRTT) {
-      // 4. restore render target 
+      // 4. restore render target
       if (bRedrawText) {
         m_lpDevice->SetTexture(0, NULL);
-        m_lpDevice->SetRenderTarget(0, pBackBuffer);//, pZBuffer );
-        //m_lpDevice->SetDepthStencilSurface( pZBuffer );
+        m_lpDevice->SetRenderTarget(0, pBackBuffer);  //, pZBuffer );
+        // m_lpDevice->SetDepthStencilSurface( pZBuffer );
       }
 
       // 5. blit text surface to backbuffer
@@ -589,15 +591,15 @@ void CTextManager::DrawNow() {
         v3[i].x = (i % 2 == 0) ? -1 : -1 + 2 * fx;
         v3[i].y = (i / 2 == 0) ? -1 : -1 + 2 * fy;
         v3[i].z = 0;
-        v3[i].tu = ((i % 2 == 0) ? 0.0f : 1.0f) + 0.5f / desc_text_surface.Width;  // FIXES BLURRY TEXT even when bilinear interp. is on (which can't be turned off on all cards!)
-        v3[i].tv = ((i / 2 == 0) ? 0.0f : 1.0f) + 0.5f / desc_text_surface.Height; // FIXES BLURRY TEXT even when bilinear interp. is on (which can't be turned off on all cards!)
+        v3[i].tu = ((i % 2 == 0) ? 0.0f : 1.0f) + 0.5f / desc_text_surface.Width;   // FIXES BLURRY TEXT even when bilinear interp. is on (which can't be turned off on all cards!)
+        v3[i].tv = ((i / 2 == 0) ? 0.0f : 1.0f) + 0.5f / desc_text_surface.Height;  // FIXES BLURRY TEXT even when bilinear interp. is on (which can't be turned off on all cards!)
         v3[i].Diffuse = 0xFFFFFFFF;
       }
 
       DWORD oldblend[3];
-      //m_lpDevice->GetTextureStageState(0, D3DTSS_MAGFILTER, &oldblend[0]);
-      //m_lpDevice->GetTextureStageState(1, D3DTSS_MINFILTER, &oldblend[1]);
-      //m_lpDevice->GetTextureStageState(2, D3DTSS_MIPFILTER, &oldblend[2]);
+      // m_lpDevice->GetTextureStageState(0, D3DTSS_MAGFILTER, &oldblend[0]);
+      // m_lpDevice->GetTextureStageState(1, D3DTSS_MINFILTER, &oldblend[1]);
+      // m_lpDevice->GetTextureStageState(2, D3DTSS_MIPFILTER, &oldblend[2]);
       m_lpDevice->GetSamplerState(0, D3DSAMP_MAGFILTER, &oldblend[0]);
       m_lpDevice->GetSamplerState(1, D3DSAMP_MINFILTER, &oldblend[1]);
       m_lpDevice->GetSamplerState(2, D3DSAMP_MIPFILTER, &oldblend[2]);
@@ -615,7 +617,7 @@ void CTextManager::DrawNow() {
     }
 
     SafeRelease(pBackBuffer);
-    //SafeRelease(pZBuffer);
+    // SafeRelease(pZBuffer);
 
     m_lpDevice->SetTexture(0, NULL);
     m_lpDevice->SetTexture(1, NULL);
@@ -624,9 +626,9 @@ void CTextManager::DrawNow() {
     m_lpDevice->SetPixelShader(NULL);
     m_lpDevice->SetFVF(SPRITEVERTEX_FORMAT);
 
-    //D3DXMATRIX ident;    
-    //D3DXMatrixIdentity(&ident);
-    //m_lpDevice->SetTransform(D3DTS_PROJECTION, &ident);
+    // D3DXMATRIX ident;
+    // D3DXMatrixIdentity(&ident);
+    // m_lpDevice->SetTransform(D3DTS_PROJECTION, &ident);
   }
 
   // flip:

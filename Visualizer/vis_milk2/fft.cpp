@@ -33,7 +33,13 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define PI 3.141592653589793238462643383279502884197169399f
 
-#define SafeDeleteArray(x) { if (x) { delete [] x; x = 0; } }
+#define SafeDeleteArray(x) \
+  {                        \
+    if (x) {               \
+      delete[] x;          \
+      x = 0;               \
+    }                      \
+  }
 
 /*****************************************************************************/
 
@@ -106,8 +112,8 @@ void FFT::InitEqualizeTable() {
 /*****************************************************************************/
 
 void FFT::InitEnvelopeTable(float power) {
-  // this precomputation is for multiplying the waveform sample 
-  // by a bell-curve-shaped envelope, so we don't see the ugly 
+  // this precomputation is for multiplying the waveform sample
+  // by a bell-curve-shaped envelope, so we don't see the ugly
   // frequency response (oscillations) of a square filter.
 
   // a power of 1.0 will compute the FFT with exactly one convolution.
@@ -161,7 +167,6 @@ void FFT::InitBitRevTable() {
 /*****************************************************************************/
 
 void FFT::InitCosSinTable() {
-
   int i, dftsize, tabsize;
   float theta;
 
@@ -194,9 +199,9 @@ void FFT::time_to_frequency_domain(float* in_wavedata, float* out_spectraldata) 
 
   // The last sample of the output data will represent the frequency
   //   that is 1/4th of the input sampling rate.  For example,
-  //   if the input wave data is sampled at 44,100 Hz, then the last 
+  //   if the input wave data is sampled at 44,100 Hz, then the last
   //   sample of the spectral data output will represent the frequency
-  //   11,025 Hz.  The first sample will be 0 Hz; the frequencies of 
+  //   11,025 Hz.  The first sample will be 0 Hz; the frequencies of
   //   the rest of the samples vary linearly in between.
   // Note that since human hearing is limited to the range 200 - 20,000
   //   Hz.  200 is a low bass hum; 20,000 is an ear-piercing high shriek.
@@ -229,8 +234,8 @@ void FFT::time_to_frequency_domain(float* in_wavedata, float* out_spectraldata) 
   float wr, wi, wpi, wpr, wtemp, tempr, tempi;
 
   if (!bitrevtable) return;
-  //if (!envelope) return;
-  //if (!equalize) return;
+  // if (!envelope) return;
+  // if (!equalize) return;
   if (!temp1) return;
   if (!temp2) return;
   if (!cossintable) return;
@@ -244,12 +249,11 @@ void FFT::time_to_frequency_domain(float* in_wavedata, float* out_spectraldata) 
       else
         temp1[i] = 0;
     }
-  }
-  else {
+  } else {
     for (i = 0; i < NFREQ; i++) {
       int idx = bitrevtable[i];
       if (idx < m_samples_in)
-        temp1[i] = in_wavedata[idx];// * envelope[idx];
+        temp1[i] = in_wavedata[idx];  // * envelope[idx];
       else
         temp1[i] = 0;
     }

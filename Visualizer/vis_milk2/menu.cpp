@@ -27,7 +27,7 @@ IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISI
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "state.h"		// for CBlendableFloat - fix this
+#include "state.h"  // for CBlendableFloat - fix this
 #include "menu.h"
 #include "plugin.h"
 #include "wasabi.h"
@@ -36,7 +36,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assert.h>
 #include "resource.h"
 
-extern CPlugin g_plugin;		// declared in main.cpp
+extern CPlugin g_plugin;  // declared in main.cpp
 
 //----------------------------------------
 
@@ -64,7 +64,7 @@ CMilkMenuItem::~CMilkMenuItem() {
 //----------------------------------------
 
 CMilkMenu::CMilkMenu() {
-  //Reset();
+  // Reset();
 }
 
 CMilkMenu::~CMilkMenu() {
@@ -98,7 +98,7 @@ bool CMilkMenu::ItemIsEnabled(int j) {
 //----------------------------------------
 
 void CMilkMenu::EnableItem(wchar_t* szName, bool bEnable) {
-  //search submenus
+  // search submenus
   int i;
   for (i = 0; i < m_nChildMenus; i++) {
     if (!wcscmp(m_ppChildMenu[i]->GetName(), szName)) {
@@ -114,7 +114,7 @@ void CMilkMenu::EnableItem(wchar_t* szName, bool bEnable) {
     }
   }
 
-  //search child items
+  // search child items
   CMilkMenuItem* pChild = m_pFirstChildItem;
   while (pChild) {
     if (!wcscmp(pChild->m_szName, szName)) {
@@ -175,8 +175,8 @@ void CMilkMenu::AddChildMenu(CMilkMenu* pMenu) {
 //----------------------------------------
 
 void CMilkMenu::AddItem(wchar_t* szName, void* var, MENUITEMTYPE type, wchar_t* szToolTip,
-  float min, float max, MilkMenuCallbackFnPtr pCallback,
-  unsigned int wParam, unsigned int lParam) {
+                        float min, float max, MilkMenuCallbackFnPtr pCallback,
+                        unsigned int wParam, unsigned int lParam) {
   CMilkMenuItem* pLastItem = NULL;
 
   // find last item in linked list
@@ -184,8 +184,7 @@ void CMilkMenu::AddItem(wchar_t* szName, void* var, MENUITEMTYPE type, wchar_t* 
     // first item
     m_pFirstChildItem = new CMilkMenuItem;
     pLastItem = m_pFirstChildItem;
-  }
-  else {
+  } else {
     pLastItem = m_pFirstChildItem;
     while (pLastItem->m_pNext)
       pLastItem = pLastItem->m_pNext;
@@ -221,11 +220,10 @@ void MyMenuTextOut(eFontIndex font_index, wchar_t* str, DWORD color, RECT* pRect
     RECT t = *pRect;
     pRect->top += g_plugin.m_text.DrawTextW(g_plugin.GetFont(font_index), str, -1, &t, DT_SINGLELINE | DT_END_ELLIPSIS | DT_CALCRECT, 0xFFFFFFFF, false);
     pCalcRect->bottom += t.bottom - t.top;
-    //if (pCalcRect->bottom > pRect->bottom)
-    //    pCalcRect->bottom = pRect->bottom;
+    // if (pCalcRect->bottom > pRect->bottom)
+    //     pCalcRect->bottom = pRect->bottom;
     pCalcRect->right = max(pCalcRect->right, pCalcRect->left + t.right - t.left);
-  }
-  else {
+  } else {
     pRect->top += g_plugin.m_text.DrawTextW(g_plugin.GetFont(font_index), str, -1, pRect, DT_SINGLELINE | DT_END_ELLIPSIS, color, false);
   }
 }
@@ -247,7 +245,7 @@ void CMilkMenu::DrawMenu(RECT rect, int xR, int yB, int bCalcRect, RECT* pCalcRe
   }
 
   if (!m_bEditingCurSel) {
-    int nLines = (rect.bottom - rect.top - PLAYLIST_INNER_MARGIN * 2) / g_plugin.GetFontHeight(SIMPLE_FONT) - 1;	// save 1 line for the tooltip
+    int nLines = (rect.bottom - rect.top - PLAYLIST_INNER_MARGIN * 2) / g_plugin.GetFontHeight(SIMPLE_FONT) - 1;  // save 1 line for the tooltip
     if (nLines < 1) return;
     int nStart = (m_nCurSel / nLines) * nLines;
 
@@ -255,7 +253,7 @@ void CMilkMenu::DrawMenu(RECT rect, int xR, int yB, int bCalcRect, RECT* pCalcRe
     int i;
     for (i = 0; i < m_nChildMenus; i++) {
       if (i >= nStart && i < nStart + nLines) {
-        //rect.top += g_plugin.GetFont(SIMPLE_FONT)->DrawText(m_ppChildMenu[i]->m_szMenuName, -1, pRect, DT_SINGLELINE | DT_END_ELLIPSIS, (i == m_nCurSel) ? MENU_HILITE_COLOR : MENU_COLOR);
+        // rect.top += g_plugin.GetFont(SIMPLE_FONT)->DrawText(m_ppChildMenu[i]->m_szMenuName, -1, pRect, DT_SINGLELINE | DT_END_ELLIPSIS, (i == m_nCurSel) ? MENU_HILITE_COLOR : MENU_COLOR);
         if (m_ppChildMenu[i]->IsEnabled()) {
           MyMenuTextOut(SIMPLE_FONT, m_ppChildMenu[i]->m_szMenuName, (i == m_nCurSel) ? MENU_HILITE_COLOR : MENU_COLOR, &rect, bCalcRect, pCalcRect);
           nLinesDrawn++;
@@ -281,16 +279,16 @@ void CMilkMenu::DrawMenu(RECT rect, int xR, int yB, int bCalcRect, RECT* pCalcRe
       if (i >= nStart) {
         wchar_t szItemText[256];
         switch (pItem->m_type) {
-        case MENUITEMTYPE_STRING:
-          lstrcpyW(szItemText, pItem->m_szName);
-          break;
-        case MENUITEMTYPE_BOOL:
-          swprintf(szItemText, L"%s [%s]", pItem->m_szName,
-            wasabiApiLangString(*((bool*)(addr)) ? IDS_ON : IDS_OFF));
-          break;
-        default:
-          lstrcpyW(szItemText, pItem->m_szName);
-          break;
+          case MENUITEMTYPE_STRING:
+            lstrcpyW(szItemText, pItem->m_szName);
+            break;
+          case MENUITEMTYPE_BOOL:
+            swprintf(szItemText, L"%s [%s]", pItem->m_szName,
+                     wasabiApiLangString(*((bool*)(addr)) ? IDS_ON : IDS_OFF));
+            break;
+          default:
+            lstrcpyW(szItemText, pItem->m_szName);
+            break;
         }
 
         if (i == m_nCurSel) {
@@ -300,8 +298,7 @@ void CMilkMenu::DrawMenu(RECT rect, int xR, int yB, int bCalcRect, RECT* pCalcRe
             // tooltip:
             g_plugin.DrawTooltip(pItem->m_szToolTip, xR, yB);
           }
-        }
-        else {
+        } else {
           MyMenuTextOut(SIMPLE_FONT, szItemText, MENU_COLOR, &rect, bCalcRect, pCalcRect);
         }
         nLinesDrawn++;
@@ -310,8 +307,7 @@ void CMilkMenu::DrawMenu(RECT rect, int xR, int yB, int bCalcRect, RECT* pCalcRe
       pItem = pItem->m_pNext;
       i++;
     }
-  }
-  else {
+  } else {
     // editing current selection
 
     // find the item
@@ -327,20 +323,20 @@ void CMilkMenu::DrawMenu(RECT rect, int xR, int yB, int bCalcRect, RECT* pCalcRe
     MyMenuTextOut(SIMPLE_FONT, buf, MENU_COLOR, &rect, bCalcRect, pCalcRect);
 
     switch (pItem->m_type) {
-    case MENUITEMTYPE_INT:
-      swprintf(buf, L" %d ", *((int*)(addr)));
-      break;
-    case MENUITEMTYPE_FLOAT:
-    case MENUITEMTYPE_LOGFLOAT:
-      swprintf(buf, L" %5.3f ", *((float*)(addr)));
-      break;
-    case MENUITEMTYPE_BLENDABLE:
-    case MENUITEMTYPE_LOGBLENDABLE:
-      swprintf(buf, L" %5.3f ", ((CBlendableFloat*)addr)->eval(-1));
-      break;
-    default:
-      lstrcpyW(buf, L" ? ");
-      break;
+      case MENUITEMTYPE_INT:
+        swprintf(buf, L" %d ", *((int*)(addr)));
+        break;
+      case MENUITEMTYPE_FLOAT:
+      case MENUITEMTYPE_LOGFLOAT:
+        swprintf(buf, L" %5.3f ", *((float*)(addr)));
+        break;
+      case MENUITEMTYPE_BLENDABLE:
+      case MENUITEMTYPE_LOGBLENDABLE:
+        swprintf(buf, L" %5.3f ", ((CBlendableFloat*)addr)->eval(-1));
+        break;
+      default:
+        lstrcpyW(buf, L" ? ");
+        break;
     }
 
     MyMenuTextOut(SIMPLE_FONT, buf, MENU_HILITE_COLOR, &rect, bCalcRect, pCalcRect);
@@ -388,153 +384,151 @@ LRESULT CMilkMenu::HandleKeydown(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
   if (!m_bEditingCurSel) {
     switch (wParam) {
-    case VK_UP:
-      for (rep = 0; rep < nRepeat; rep++) {
-        if (m_nCurSel == 0)
-          break;
-        do {
-          m_nCurSel--;
-        } while (m_nCurSel > 0 && !ItemIsEnabled(m_nCurSel));
-      }
-      if (m_nCurSel < 0) m_nCurSel = 0;//m_nChildMenus + m_nChildItems - 1;
-      while (m_nCurSel < m_nChildMenus + m_nChildItems - 1 && !ItemIsEnabled(m_nCurSel))
-        m_nCurSel++;
-      return 0; // we processed (or absorbed) the key
-
-    case VK_DOWN:
-      for (rep = 0; rep < nRepeat; rep++) {
-        if (m_nCurSel == m_nChildMenus + m_nChildItems - 1)
-          break;
-        do {
-          m_nCurSel++;
-        } while (m_nCurSel < m_nChildMenus + m_nChildItems - 1 && !ItemIsEnabled(m_nCurSel));
-      }
-      if (m_nCurSel >= m_nChildMenus + m_nChildItems) m_nCurSel = m_nChildMenus + m_nChildItems - 1;//0;
-      while (m_nCurSel > 0 && !ItemIsEnabled(m_nCurSel))
-        m_nCurSel--;
-      return 0; // we processed (or absorbed) the key
-
-    case VK_HOME:
-      m_nCurSel = 0;
-      return 0; // we processed (or absorbed) the key
-
-    case VK_END:
-      m_nCurSel = m_nChildMenus + m_nChildItems - 1;
-      return 0; // we processed (or absorbed) the key
-
-    case VK_ESCAPE:
-      g_plugin.m_UI_mode = UI_REGULAR;
-      return 0; // we processed (or absorbed) the key
-
-    case VK_BACK:
-    case VK_LEFT:
-      if (m_pParentMenu)
-        g_plugin.m_pCurMenu = m_pParentMenu;
-      else
-        g_plugin.m_UI_mode = UI_REGULAR;		// exit the menu
-      return 0; // we processed (or absorbed) the key
-
-    case VK_RETURN:
-    case VK_RIGHT:
-    case VK_SPACE:
-      if (m_nCurSel < m_nChildMenus) {
-        // go to sub-menu
-        g_plugin.m_pCurMenu = m_ppChildMenu[m_nCurSel];
-      }
-      else {
-        // find the item
-        CMilkMenuItem* pItem = GetCurItem();
-        size_t addr = pItem->m_var_offset + (size_t)g_plugin.m_pState;
-
-        float fTemp;
-
-        // begin editing the item
-
-        switch (pItem->m_type) {
-        case MENUITEMTYPE_UIMODE:
-          g_plugin.m_UI_mode = (ui_mode)pItem->m_wParam;
-
-          if (g_plugin.m_UI_mode == UI_IMPORT_WAVE ||
-            g_plugin.m_UI_mode == UI_EXPORT_WAVE ||
-            g_plugin.m_UI_mode == UI_IMPORT_SHAPE ||
-            g_plugin.m_UI_mode == UI_EXPORT_SHAPE) {
-            g_plugin.m_bPresetLockedByCode = true;
-
-            // enter WaitString mode
-            g_plugin.m_waitstring.bActive = true;
-            g_plugin.m_waitstring.bFilterBadChars = false;
-            g_plugin.m_waitstring.bDisplayAsCode = false;
-            g_plugin.m_waitstring.nSelAnchorPos = -1;
-            g_plugin.m_waitstring.nMaxLen = min(sizeof(g_plugin.m_waitstring.szText) - 1, MAX_PATH - wcslen(g_plugin.GetPresetDir()) - 6);	// 6 for the extension + null char.    We set this because win32 LoadFile, MoveFile, etc. barf if the path+filename+ext are > MAX_PATH chars.
-            swprintf(g_plugin.m_waitstring.szText, L"%sfile.dat", g_plugin.m_szPresetDir);
-            if (g_plugin.m_UI_mode == UI_IMPORT_WAVE || g_plugin.m_UI_mode == UI_IMPORT_SHAPE)
-              wasabiApiLangString(IDS_LOAD_FROM_FILE, g_plugin.m_waitstring.szPrompt, 512);
-            else
-              wasabiApiLangString(IDS_SAVE_TO_FILE, g_plugin.m_waitstring.szPrompt, 512);
-            g_plugin.m_waitstring.szToolTip[0] = 0;
-            g_plugin.m_waitstring.nCursorPos = wcslen(g_plugin.m_waitstring.szText);	// set the starting edit position
-          }
-          break;
-        case MENUITEMTYPE_BOOL:
-          *((bool*)addr) = !(*((bool*)addr));
-          break;
-        case MENUITEMTYPE_INT:
-          m_bEditingCurSel = true;
-          pItem->m_original_value = (LPARAM)(*((int*)(addr)));
-          break;
-        case MENUITEMTYPE_FLOAT:
-        case MENUITEMTYPE_LOGFLOAT:
-          m_bEditingCurSel = true;
-          pItem->m_original_value = (LPARAM)(*((float*)(addr)) * 10000L);
-          break;
-        case MENUITEMTYPE_BLENDABLE:
-        case MENUITEMTYPE_LOGBLENDABLE:
-          m_bEditingCurSel = true;
-          {
-            //CBlendableFloat *p = (CBlendableFloat*)(pItem->m_pVariable);
-            //*p = 0.99f;
-            fTemp = ((CBlendableFloat*)addr)->eval(-1);//p->eval(-1);
-          }
-          pItem->m_original_value = (LPARAM)(fTemp * 10000L);
-          break;
-        case MENUITEMTYPE_STRING:
-          // enter waitstring mode.  ***This function will cease to receive keyboard input
-          // while the string is being edited***
-          g_plugin.m_UI_mode = UI_EDIT_MENU_STRING;
-          g_plugin.m_waitstring.bActive = true;
-          g_plugin.m_waitstring.bFilterBadChars = false;
-          g_plugin.m_waitstring.bDisplayAsCode = true;
-          g_plugin.m_waitstring.nSelAnchorPos = -1;
-          g_plugin.m_waitstring.nMaxLen = pItem->m_wParam ? pItem->m_wParam : 8190;
-          g_plugin.m_waitstring.nMaxLen = min(g_plugin.m_waitstring.nMaxLen, sizeof(g_plugin.m_waitstring.szText) - 16);
-          //lstrcpyW(g_plugin.m_waitstring.szText, (wchar_t *)addr);
-          lstrcpyA((char*)g_plugin.m_waitstring.szText, (char*)addr);
-          swprintf(g_plugin.m_waitstring.szPrompt, wasabiApiLangString(IDS_ENTER_THE_NEW_STRING), pItem->m_szName);
-          lstrcpyW(g_plugin.m_waitstring.szToolTip, pItem->m_szToolTip);
-          g_plugin.m_waitstring.nCursorPos = strlen/*wcslen*/((char*)g_plugin.m_waitstring.szText);
-          if (pItem->m_nLastCursorPos < g_plugin.m_waitstring.nCursorPos)
-            g_plugin.m_waitstring.nCursorPos = pItem->m_nLastCursorPos;
-          break;
-          /*
-          case MENUITEMTYPE_OSC:
-            m_bEditingCurSel = true;
-            pItem->m_bEditingSubSel = false;
+      case VK_UP:
+        for (rep = 0; rep < nRepeat; rep++) {
+          if (m_nCurSel == 0)
             break;
-            */
+          do {
+            m_nCurSel--;
+          } while (m_nCurSel > 0 && !ItemIsEnabled(m_nCurSel));
         }
-      }
-      return 0; // we processed (or absorbed) the key
+        if (m_nCurSel < 0) m_nCurSel = 0;  // m_nChildMenus + m_nChildItems - 1;
+        while (m_nCurSel < m_nChildMenus + m_nChildItems - 1 && !ItemIsEnabled(m_nCurSel))
+          m_nCurSel++;
+        return 0;  // we processed (or absorbed) the key
 
-    default:
-      // key wasn't handled
-      return TRUE;
-      break;
+      case VK_DOWN:
+        for (rep = 0; rep < nRepeat; rep++) {
+          if (m_nCurSel == m_nChildMenus + m_nChildItems - 1)
+            break;
+          do {
+            m_nCurSel++;
+          } while (m_nCurSel < m_nChildMenus + m_nChildItems - 1 && !ItemIsEnabled(m_nCurSel));
+        }
+        if (m_nCurSel >= m_nChildMenus + m_nChildItems) m_nCurSel = m_nChildMenus + m_nChildItems - 1;  // 0;
+        while (m_nCurSel > 0 && !ItemIsEnabled(m_nCurSel))
+          m_nCurSel--;
+        return 0;  // we processed (or absorbed) the key
+
+      case VK_HOME:
+        m_nCurSel = 0;
+        return 0;  // we processed (or absorbed) the key
+
+      case VK_END:
+        m_nCurSel = m_nChildMenus + m_nChildItems - 1;
+        return 0;  // we processed (or absorbed) the key
+
+      case VK_ESCAPE:
+        g_plugin.m_UI_mode = UI_REGULAR;
+        return 0;  // we processed (or absorbed) the key
+
+      case VK_BACK:
+      case VK_LEFT:
+        if (m_pParentMenu)
+          g_plugin.m_pCurMenu = m_pParentMenu;
+        else
+          g_plugin.m_UI_mode = UI_REGULAR;  // exit the menu
+        return 0;                           // we processed (or absorbed) the key
+
+      case VK_RETURN:
+      case VK_RIGHT:
+      case VK_SPACE:
+        if (m_nCurSel < m_nChildMenus) {
+          // go to sub-menu
+          g_plugin.m_pCurMenu = m_ppChildMenu[m_nCurSel];
+        } else {
+          // find the item
+          CMilkMenuItem* pItem = GetCurItem();
+          size_t addr = pItem->m_var_offset + (size_t)g_plugin.m_pState;
+
+          float fTemp;
+
+          // begin editing the item
+
+          switch (pItem->m_type) {
+            case MENUITEMTYPE_UIMODE:
+              g_plugin.m_UI_mode = (ui_mode)pItem->m_wParam;
+
+              if (g_plugin.m_UI_mode == UI_IMPORT_WAVE ||
+                  g_plugin.m_UI_mode == UI_EXPORT_WAVE ||
+                  g_plugin.m_UI_mode == UI_IMPORT_SHAPE ||
+                  g_plugin.m_UI_mode == UI_EXPORT_SHAPE) {
+                g_plugin.m_bPresetLockedByCode = true;
+
+                // enter WaitString mode
+                g_plugin.m_waitstring.bActive = true;
+                g_plugin.m_waitstring.bFilterBadChars = false;
+                g_plugin.m_waitstring.bDisplayAsCode = false;
+                g_plugin.m_waitstring.nSelAnchorPos = -1;
+                g_plugin.m_waitstring.nMaxLen = min(sizeof(g_plugin.m_waitstring.szText) - 1, MAX_PATH - wcslen(g_plugin.GetPresetDir()) - 6);  // 6 for the extension + null char.    We set this because win32 LoadFile, MoveFile, etc. barf if the path+filename+ext are > MAX_PATH chars.
+                swprintf(g_plugin.m_waitstring.szText, L"%sfile.dat", g_plugin.m_szPresetDir);
+                if (g_plugin.m_UI_mode == UI_IMPORT_WAVE || g_plugin.m_UI_mode == UI_IMPORT_SHAPE)
+                  wasabiApiLangString(IDS_LOAD_FROM_FILE, g_plugin.m_waitstring.szPrompt, 512);
+                else
+                  wasabiApiLangString(IDS_SAVE_TO_FILE, g_plugin.m_waitstring.szPrompt, 512);
+                g_plugin.m_waitstring.szToolTip[0] = 0;
+                g_plugin.m_waitstring.nCursorPos = wcslen(g_plugin.m_waitstring.szText);  // set the starting edit position
+              }
+              break;
+            case MENUITEMTYPE_BOOL:
+              *((bool*)addr) = !(*((bool*)addr));
+              break;
+            case MENUITEMTYPE_INT:
+              m_bEditingCurSel = true;
+              pItem->m_original_value = (LPARAM)(*((int*)(addr)));
+              break;
+            case MENUITEMTYPE_FLOAT:
+            case MENUITEMTYPE_LOGFLOAT:
+              m_bEditingCurSel = true;
+              pItem->m_original_value = (LPARAM)(*((float*)(addr)) * 10000L);
+              break;
+            case MENUITEMTYPE_BLENDABLE:
+            case MENUITEMTYPE_LOGBLENDABLE:
+              m_bEditingCurSel = true;
+              {
+                // CBlendableFloat *p = (CBlendableFloat*)(pItem->m_pVariable);
+                //*p = 0.99f;
+                fTemp = ((CBlendableFloat*)addr)->eval(-1);  // p->eval(-1);
+              }
+              pItem->m_original_value = (LPARAM)(fTemp * 10000L);
+              break;
+            case MENUITEMTYPE_STRING:
+              // enter waitstring mode.  ***This function will cease to receive keyboard input
+              // while the string is being edited***
+              g_plugin.m_UI_mode = UI_EDIT_MENU_STRING;
+              g_plugin.m_waitstring.bActive = true;
+              g_plugin.m_waitstring.bFilterBadChars = false;
+              g_plugin.m_waitstring.bDisplayAsCode = true;
+              g_plugin.m_waitstring.nSelAnchorPos = -1;
+              g_plugin.m_waitstring.nMaxLen = pItem->m_wParam ? pItem->m_wParam : 8190;
+              g_plugin.m_waitstring.nMaxLen = min(g_plugin.m_waitstring.nMaxLen, sizeof(g_plugin.m_waitstring.szText) - 16);
+              // lstrcpyW(g_plugin.m_waitstring.szText, (wchar_t *)addr);
+              lstrcpyA((char*)g_plugin.m_waitstring.szText, (char*)addr);
+              swprintf(g_plugin.m_waitstring.szPrompt, wasabiApiLangString(IDS_ENTER_THE_NEW_STRING), pItem->m_szName);
+              lstrcpyW(g_plugin.m_waitstring.szToolTip, pItem->m_szToolTip);
+              g_plugin.m_waitstring.nCursorPos = strlen /*wcslen*/ ((char*)g_plugin.m_waitstring.szText);
+              if (pItem->m_nLastCursorPos < g_plugin.m_waitstring.nCursorPos)
+                g_plugin.m_waitstring.nCursorPos = pItem->m_nLastCursorPos;
+              break;
+              /*
+              case MENUITEMTYPE_OSC:
+                m_bEditingCurSel = true;
+                pItem->m_bEditingSubSel = false;
+                break;
+                */
+          }
+        }
+        return 0;  // we processed (or absorbed) the key
+
+      default:
+        // key wasn't handled
+        return TRUE;
+        break;
     }
-  }
-  else  // m_bEditingCurSel
+  } else  // m_bEditingCurSel
   {
     float fMult = 1.0f;
-    bool  bDec;
+    bool bDec;
 
     // find the item
     CMilkMenuItem* pItem = m_pFirstChildItem;
@@ -543,151 +537,140 @@ LRESULT CMilkMenu::HandleKeydown(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     size_t addr = pItem->m_var_offset + (size_t)g_plugin.m_pState;
 
     switch (wParam) {
-    case VK_ESCAPE:		// exit Edit mode & restore original value
+      case VK_ESCAPE:  // exit Edit mode & restore original value
 
-      switch (pItem->m_type) {
-      case MENUITEMTYPE_INT:
+        switch (pItem->m_type) {
+          case MENUITEMTYPE_INT:
+            m_bEditingCurSel = false;
+            *((int*)addr) = (int)pItem->m_original_value;
+            break;
+          case MENUITEMTYPE_FLOAT:
+            m_bEditingCurSel = false;
+            *((float*)addr) = ((float)pItem->m_original_value) * 0.0001f;
+            break;
+          case MENUITEMTYPE_LOGFLOAT:
+            m_bEditingCurSel = false;
+            *((float*)addr) = ((float)pItem->m_original_value) * 0.0001f;
+            break;
+          case MENUITEMTYPE_BLENDABLE:
+            m_bEditingCurSel = false;
+            *((CBlendableFloat*)(addr)) = ((float)(pItem->m_original_value)) * 0.0001f;
+            break;
+          case MENUITEMTYPE_LOGBLENDABLE:
+            m_bEditingCurSel = false;
+            *((CBlendableFloat*)(addr)) = ((float)(pItem->m_original_value)) * 0.0001f;
+            break;
+            // case MENUITEMTYPE_STRING:
+            //  won't ever happen - see OnWaitStringCancel()
+        }
+        return 0;
+
+      case VK_RETURN:
+
+        // if (pItem->m_type == MENUITEMTYPE_STRING)
+        //	... won't ever happen - see OnWaitStringAccept()
+
         m_bEditingCurSel = false;
-        *((int*)addr) = (int)pItem->m_original_value;
-        break;
-      case MENUITEMTYPE_FLOAT:
-        m_bEditingCurSel = false;
-        *((float*)addr) = ((float)pItem->m_original_value) * 0.0001f;
-        break;
-      case MENUITEMTYPE_LOGFLOAT:
-        m_bEditingCurSel = false;
-        *((float*)addr) = ((float)pItem->m_original_value) * 0.0001f;
-        break;
-      case MENUITEMTYPE_BLENDABLE:
-        m_bEditingCurSel = false;
-        *((CBlendableFloat*)(addr)) = ((float)(pItem->m_original_value)) * 0.0001f;
-        break;
-      case MENUITEMTYPE_LOGBLENDABLE:
-        m_bEditingCurSel = false;
-        *((CBlendableFloat*)(addr)) = ((float)(pItem->m_original_value)) * 0.0001f;
-        break;
-        //case MENUITEMTYPE_STRING:
-          // won't ever happen - see OnWaitStringCancel()
-      }
-      return 0;
+        return 0;
 
-    case VK_RETURN:
+      case VK_NEXT:
+      case VK_PRIOR:
+        fMult *= 10.0f;
+        // break intentionally left out here...
+      case VK_UP:
+      case VK_DOWN:
 
-      //if (pItem->m_type == MENUITEMTYPE_STRING)
-      //	... won't ever happen - see OnWaitStringAccept()
-
-      m_bEditingCurSel = false;
-      return 0;
-
-
-    case VK_NEXT:
-    case VK_PRIOR:
-      fMult *= 10.0f;
-      // break intentionally left out here...
-    case VK_UP:
-    case VK_DOWN:
-
-    {
-      USHORT mask = 1 << (sizeof(USHORT) * 8 - 1);	// we want the highest-order bit
-      bool bShiftHeldDown = (GetKeyState(VK_SHIFT) & mask) != 0;
-      //bool bCtrlHeldDown = (GetKeyState(VK_CONTROL) & mask) != 0;
-      if (bShiftHeldDown && (wParam == VK_UP || wParam == VK_DOWN))
-        fMult *= 0.1f;
-    }
-
-    bDec = (wParam == VK_DOWN || wParam == VK_NEXT);
-
-    switch (pItem->m_type) {
-    case MENUITEMTYPE_INT:
-    {
-      int* pInt = ((int*)addr);
-      if (fMult < 1) fMult = 1;
-      (*pInt) += (int)((bDec) ? -fMult : fMult);
-      if (*pInt < pItem->m_fMin) *pInt = (int)pItem->m_fMin;
-      if (*pInt > pItem->m_fMax) *pInt = (int)pItem->m_fMax;
-    }
-    break;
-    case MENUITEMTYPE_FLOAT:
-    {
-      float* pFloat = ((float*)addr);
-      float fInc = (pItem->m_fMax - pItem->m_fMin) * 0.01f * fMult;
-      (*pFloat) += (bDec) ? -fInc : fInc;
-      if (*pFloat < pItem->m_fMin) *pFloat = pItem->m_fMin;
-      if (*pFloat > pItem->m_fMax) *pFloat = pItem->m_fMax;
-    }
-    break;
-    case MENUITEMTYPE_LOGFLOAT:
-    {
-      float* pFloat = ((float*)addr);
-      (*pFloat) *= (bDec) ? powf(1.0f / 1.01f, fMult) : powf(1.01f, fMult);
-      if (*pFloat < pItem->m_fMin) *pFloat = pItem->m_fMin;
-      if (*pFloat > pItem->m_fMax) *pFloat = pItem->m_fMax;
-    }
-    break;
-    case MENUITEMTYPE_BLENDABLE:
-    {
-      CBlendableFloat* pBlend = ((CBlendableFloat*)addr);
-      float fInc = (pItem->m_fMax - pItem->m_fMin) * 0.01f * fMult;
-      (*pBlend) += (bDec) ? -fInc : fInc;
-      if (pBlend->eval(-1) < pItem->m_fMin) *pBlend = pItem->m_fMin;
-      if (pBlend->eval(-1) > pItem->m_fMax) *pBlend = pItem->m_fMax;
-    }
-    break;
-    case MENUITEMTYPE_LOGBLENDABLE:
-    {
-      CBlendableFloat* pBlend = ((CBlendableFloat*)addr);
-      (*pBlend) *= (bDec) ? powf(1.0f / 1.01f, fMult) : powf(1.01f, fMult);
-      if (pBlend->eval(-1) < pItem->m_fMin) *pBlend = pItem->m_fMin;
-      if (pBlend->eval(-1) > pItem->m_fMax) *pBlend = pItem->m_fMax;
-    }
-    break;
-    /*
-    case MENUITEMTYPE_OSC:
-      if (pItem->m_bEditingSubSel)
       {
-        if (wParam == VK_UP)
-        {
-          pItem->m_nSubSel--;
-          if (pItem->m_nSubSel < 0) pItem->m_nSubSel = 4;
-        }
-        else if (wParam == VK_DOWN)
-        {
-          pItem->m_nSubSel++;
-          if (pItem->m_nSubSel > 4) pItem->m_nSubSel = 0;
-        }
+        USHORT mask = 1 << (sizeof(USHORT) * 8 - 1);  // we want the highest-order bit
+        bool bShiftHeldDown = (GetKeyState(VK_SHIFT) & mask) != 0;
+        // bool bCtrlHeldDown = (GetKeyState(VK_CONTROL) & mask) != 0;
+        if (bShiftHeldDown && (wParam == VK_UP || wParam == VK_DOWN))
+          fMult *= 0.1f;
       }
-      else
-      {
-        switch(pItem->m_nSubSel)
-        {
-          also to do: make 'drawtext' draw it properly
 
-        case 0:
-          fixme	- what are the bounds for each type?  and are incs constant or log?
-          break;
-        case 1:
-          fixme
-          break;
-        case 2:
-          fixme
-          break;
-        case 3:
-          fixme
-          break;
-        case 4:
-          fixme
-          break;
+        bDec = (wParam == VK_DOWN || wParam == VK_NEXT);
+
+        switch (pItem->m_type) {
+          case MENUITEMTYPE_INT: {
+            int* pInt = ((int*)addr);
+            if (fMult < 1) fMult = 1;
+            (*pInt) += (int)((bDec) ? -fMult : fMult);
+            if (*pInt < pItem->m_fMin) *pInt = (int)pItem->m_fMin;
+            if (*pInt > pItem->m_fMax) *pInt = (int)pItem->m_fMax;
+          } break;
+          case MENUITEMTYPE_FLOAT: {
+            float* pFloat = ((float*)addr);
+            float fInc = (pItem->m_fMax - pItem->m_fMin) * 0.01f * fMult;
+            (*pFloat) += (bDec) ? -fInc : fInc;
+            if (*pFloat < pItem->m_fMin) *pFloat = pItem->m_fMin;
+            if (*pFloat > pItem->m_fMax) *pFloat = pItem->m_fMax;
+          } break;
+          case MENUITEMTYPE_LOGFLOAT: {
+            float* pFloat = ((float*)addr);
+            (*pFloat) *= (bDec) ? powf(1.0f / 1.01f, fMult) : powf(1.01f, fMult);
+            if (*pFloat < pItem->m_fMin) *pFloat = pItem->m_fMin;
+            if (*pFloat > pItem->m_fMax) *pFloat = pItem->m_fMax;
+          } break;
+          case MENUITEMTYPE_BLENDABLE: {
+            CBlendableFloat* pBlend = ((CBlendableFloat*)addr);
+            float fInc = (pItem->m_fMax - pItem->m_fMin) * 0.01f * fMult;
+            (*pBlend) += (bDec) ? -fInc : fInc;
+            if (pBlend->eval(-1) < pItem->m_fMin) *pBlend = pItem->m_fMin;
+            if (pBlend->eval(-1) > pItem->m_fMax) *pBlend = pItem->m_fMax;
+          } break;
+          case MENUITEMTYPE_LOGBLENDABLE: {
+            CBlendableFloat* pBlend = ((CBlendableFloat*)addr);
+            (*pBlend) *= (bDec) ? powf(1.0f / 1.01f, fMult) : powf(1.01f, fMult);
+            if (pBlend->eval(-1) < pItem->m_fMin) *pBlend = pItem->m_fMin;
+            if (pBlend->eval(-1) > pItem->m_fMax) *pBlend = pItem->m_fMax;
+          } break;
+            /*
+            case MENUITEMTYPE_OSC:
+              if (pItem->m_bEditingSubSel)
+              {
+                if (wParam == VK_UP)
+                {
+                  pItem->m_nSubSel--;
+                  if (pItem->m_nSubSel < 0) pItem->m_nSubSel = 4;
+                }
+                else if (wParam == VK_DOWN)
+                {
+                  pItem->m_nSubSel++;
+                  if (pItem->m_nSubSel > 4) pItem->m_nSubSel = 0;
+                }
+              }
+              else
+              {
+                switch(pItem->m_nSubSel)
+                {
+                  also to do: make 'drawtext' draw it properly
+
+                case 0:
+                  fixme	- what are the bounds for each type?  and are incs constant or log?
+                  break;
+                case 1:
+                  fixme
+                  break;
+                case 2:
+                  fixme
+                  break;
+                case 3:
+                  fixme
+                  break;
+                case 4:
+                  fixme
+                  break;
+                }
+              }
+              break;
+              */
         }
-      }
-      break;
-      */
-    }
-    return 0;
+        return 0;
 
-    default:
-      // key wasn't handled
-      return TRUE;
-      break;
+      default:
+        // key wasn't handled
+        return TRUE;
+        break;
     }
   }
 

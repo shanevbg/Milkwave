@@ -70,8 +70,7 @@ BOOL DXContext::Internal_Init(DXCONTEXT_PARAMS* pParams, BOOL bFirstInit) {
   if (m_lpDevice) {
     __try {
       m_lpDevice->GetDeviceCaps(&m_caps);
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER) {
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
       // Ignore
     }
   }
@@ -82,7 +81,6 @@ BOOL DXContext::Internal_Init(DXCONTEXT_PARAMS* pParams, BOOL bFirstInit) {
 }
 
 BOOL DXContext::StartOrRestartDevice(DXCONTEXT_PARAMS* pParams) {
-
   // call this to [re]initialize the DirectX environment with new parameters.
   // examples: startup; toggle windowed/fullscreen mode; change fullscreen resolution;
   //   and so on.
@@ -94,14 +92,13 @@ BOOL DXContext::StartOrRestartDevice(DXCONTEXT_PARAMS* pParams) {
   if (!m_ready) {
     // first-time init: create a fresh new device
     return Internal_Init(pParams, TRUE);
-  }
-  else {
+  } else {
     // re-init: preserve the DX9 object (m_lpD3D),
     // but destroy and re-create the DX9 device (m_lpDevice).
     m_ready = FALSE;
 
-    //SafeRelease(m_lpDevice);
-    // but leave the D3D object!
+    // SafeRelease(m_lpDevice);
+    //  but leave the D3D object!
 
     //		RestoreWinamp();
     return Internal_Init(pParams, FALSE);
@@ -133,9 +130,9 @@ bool DXContext::OnUserResizeWindow(RECT* new_window_rect, RECT* new_client_rect,
     return FALSE;
 
   if ((m_client_width == new_client_rect->right - new_client_rect->left) &&
-    (m_client_height == new_client_rect->bottom - new_client_rect->top) &&
-    (m_window_width == new_window_rect->right - new_window_rect->left) &&
-    (m_window_height == new_window_rect->bottom - new_window_rect->top)) {
+      (m_client_height == new_client_rect->bottom - new_client_rect->top) &&
+      (m_window_width == new_window_rect->right - new_window_rect->left) &&
+      (m_window_height == new_window_rect->bottom - new_window_rect->top)) {
     return TRUE;
   }
 
@@ -145,7 +142,7 @@ bool DXContext::OnUserResizeWindow(RECT* new_window_rect, RECT* new_client_rect,
   m_window_height = new_window_rect->bottom - new_window_rect->top;
   m_client_width = m_REAL_client_width = new_client_rect->right - new_client_rect->left;
   m_client_height = m_REAL_client_height = new_client_rect->bottom - new_client_rect->top;
-  
+
   if (bSetBackBuffer) {
     m_d3dpp->BackBufferWidth = m_client_width;
     m_backbuffer_width = m_client_width;
@@ -157,8 +154,7 @@ bool DXContext::OnUserResizeWindow(RECT* new_window_rect, RECT* new_client_rect,
     if (m_lpDevice) {
       __try {
         hr = m_lpDevice->Reset(m_d3dpp);
-      }
-      __except (EXCEPTION_EXECUTE_HANDLER) {
+      } __except (EXCEPTION_EXECUTE_HANDLER) {
         hr = E_FAIL;
       }
     }
@@ -188,8 +184,7 @@ void DXContext::SetViewport() {
 
   __try {
     m_lpDevice->SetViewport(&v);
-  }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  } __except (EXCEPTION_EXECUTE_HANDLER) {
     // Silently ignore if device is invalid or lost
   }
 }

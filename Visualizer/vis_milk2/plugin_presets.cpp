@@ -22,16 +22,15 @@ void CPlugin::PrevPreset(float fBlendTime) {
     m_nCurrentPreset--;
     if (m_nCurrentPreset < m_nDirs)
       m_nCurrentPreset = m_nPresets - 1;
-    if (m_nCurrentPreset >= m_nPresets) // just in case
+    if (m_nCurrentPreset >= m_nPresets)  // just in case
       m_nCurrentPreset = m_nDirs;
 
     wchar_t szFile[MAX_PATH];
-    lstrcpyW(szFile, m_szPresetDir);	// note: m_szPresetDir always ends with '\'
+    lstrcpyW(szFile, m_szPresetDir);  // note: m_szPresetDir always ends with '\'
     lstrcatW(szFile, m_presets[m_nCurrentPreset].szFilename.c_str());
 
     LoadPreset(szFile, fBlendTime);
-  }
-  else {
+  } else {
     int prev = (m_presetHistoryPos - 1 + PRESET_HIST_LEN) % PRESET_HIST_LEN;
     if (m_presetHistoryPos != m_presetHistoryBackFence) {
       m_presetHistoryPos = prev;
@@ -40,12 +39,10 @@ void CPlugin::PrevPreset(float fBlendTime) {
   }
 }
 
-
 void CPlugin::NextPreset(float fBlendTime)  // if not retracing our former steps, it will choose a random one.
 {
   LoadRandomPreset(fBlendTime);
 }
-
 
 void CPlugin::LoadRandomPreset(float fBlendTime) {
   if (m_RemotePresetLink) {
@@ -106,14 +103,12 @@ void CPlugin::LoadRandomPreset(float fBlendTime) {
     m_nCurrentPreset++;
     if (m_nCurrentPreset < m_nDirs || m_nCurrentPreset >= m_nPresets)
       m_nCurrentPreset = m_nDirs;
-  }
-  else {
+  } else {
     // pick a random file
-    if (!m_bEnableRating || (m_presets[m_nPresets - 1].fRatingCum < 0.1f))// || (m_nRatingReadProgress < m_nPresets))
+    if (!m_bEnableRating || (m_presets[m_nPresets - 1].fRatingCum < 0.1f))  // || (m_nRatingReadProgress < m_nPresets))
     {
       m_nCurrentPreset = m_nDirs + (rand() % (m_nPresets - m_nDirs));
-    }
-    else {
+    } else {
       float cdf_pos = (rand() % 14345) / 14345.0f * m_presets[m_nPresets - 1].fRatingCum;
 
       /*
@@ -130,8 +125,7 @@ void CPlugin::LoadRandomPreset(float fBlendTime) {
 
       if (cdf_pos < m_presets[m_nDirs].fRatingCum) {
         m_nCurrentPreset = m_nDirs;
-      }
-      else {
+      } else {
         int lo = m_nDirs;
         int hi = m_nPresets;
         while (lo + 1 < hi) {
@@ -148,8 +142,8 @@ void CPlugin::LoadRandomPreset(float fBlendTime) {
 
   // m_pPresetAddr[m_nCurrentPreset] points to the preset file to load (w/o the path);
   // first prepend the path, then load section [preset00] within that file
-  wchar_t szFile[MAX_PATH] = { 0 };
-  lstrcpyW(szFile, m_szPresetDir);	// note: m_szPresetDir always ends with '\'
+  wchar_t szFile[MAX_PATH] = {0};
+  lstrcpyW(szFile, m_szPresetDir);  // note: m_szPresetDir always ends with '\'
   lstrcatW(szFile, m_presets[m_nCurrentPreset].szFilename.c_str());
 
   if (!bHistoryEmpty)
@@ -158,9 +152,7 @@ void CPlugin::LoadRandomPreset(float fBlendTime) {
   LoadPreset(szFile, fBlendTime);
 }
 
-
 void CPlugin::ClearPreset() {
-
   m_pState->Default(STATE_ALL);
   wcscpy(m_szCurrentPresetFile, m_pState->m_szDesc);
   RemoveAngleBrackets(m_szCurrentPresetFile);
@@ -183,9 +175,8 @@ void CPlugin::ClearPreset() {
   OnFinishedLoadingPreset();
 }
 
-
 void CPlugin::RemoveAngleBrackets(wchar_t* str) {
-  wchar_t cleaned[MAX_PATH] = { 0 }; // Temporary buffer for the cleaned string
+  wchar_t cleaned[MAX_PATH] = {0};  // Temporary buffer for the cleaned string
   int j = 0;
 
   for (int i = 0; str[i] != L'\0'; i++) {
@@ -194,8 +185,8 @@ void CPlugin::RemoveAngleBrackets(wchar_t* str) {
     }
   }
 
-  cleaned[j] = L'\0'; // Null-terminate the cleaned string
-  wcscpy_s(str, MAX_PATH, cleaned); // Copy the cleaned string back to the original
+  cleaned[j] = L'\0';                // Null-terminate the cleaned string
+  wcscpy_s(str, MAX_PATH, cleaned);  // Copy the cleaned string back to the original
 }
 
 // .milk2 double-preset support
@@ -205,29 +196,32 @@ void CPlugin::RemoveAngleBrackets(wchar_t* str) {
 // Returns -1 (random) for any name that is not explicitly mapped.
 
 static int Milk2PatternNameToMixtype(const char* name) {
-  struct { const char* name; int type; } kMap[] = {
-    {"zoom",           0},  // uniform fade
-    {"side",           1},  // directional wipe
-    {"plasma",         2},  // fractal plasma
-    {"plasma2",        2},
-    {"plasma3",        2},
-    {"circle",         3},  // radial / circle
-    {"cercle",         3},  // radial / circle (MilkDrop3 spelling)
-    {"clock",          4},  // angular clock sweep
-    {"snail",          5},  // spiral
-    {"snail2",         5},
-    {"snail3",         5},
-    {"triangle",       6},
-    {"square",         8},  // square/diamond
-    {"curtain",       10},  // curtain
-    {"linesvertical", 10},  // vertical lines / curtain variant
-    {"donuts",        11},  // bubble / donuts
-    {"stars",         14},  // star wipe
-    {"patches",        9},  // checkerboard / patches
-    {"arrow",          1},  // directional arrow wipe
-    {"corner",          3},  // corner / bottom-left quarter-circle
-    {"vertical",      19},  // fixed left-to-right wipe
-    {"horizontal",    20},  // fixed top-to-bottom wipe
+  struct {
+    const char* name;
+    int type;
+  } kMap[] = {
+      {"zoom", 0},    // uniform fade
+      {"side", 1},    // directional wipe
+      {"plasma", 2},  // fractal plasma
+      {"plasma2", 2},
+      {"plasma3", 2},
+      {"circle", 3},  // radial / circle
+      {"cercle", 3},  // radial / circle (MilkDrop3 spelling)
+      {"clock", 4},   // angular clock sweep
+      {"snail", 5},   // spiral
+      {"snail2", 5},
+      {"snail3", 5},
+      {"triangle", 6},
+      {"square", 8},          // square/diamond
+      {"curtain", 10},        // curtain
+      {"linesvertical", 10},  // vertical lines / curtain variant
+      {"donuts", 11},         // bubble / donuts
+      {"stars", 14},          // star wipe
+      {"patches", 9},         // checkerboard / patches
+      {"arrow", 1},           // directional arrow wipe
+      {"corner", 3},          // corner / bottom-left quarter-circle
+      {"vertical", 19},       // fixed left-to-right wipe
+      {"horizontal", 20},     // fixed top-to-bottom wipe
   };
   for (auto& e : kMap)
     if (_stricmp(name, e.name) == 0) return e.type;
@@ -243,10 +237,10 @@ extern void GetFast_CLEAR();
 // Returns false on parse failure (malformed .milk2); temp files are not written.
 
 bool CPlugin::ParseMilk2File(const wchar_t* szPath,
-                              wchar_t* outTemp1, wchar_t* outTemp2,
-                              int& outMixType, float& outProgress, float& outDirection,
-                              unsigned int& outSeed) {
-  outMixType  = -1;
+                             wchar_t* outTemp1, wchar_t* outTemp2,
+                             int& outMixType, float& outProgress, float& outDirection,
+                             unsigned int& outSeed) {
+  outMixType = -1;
   outProgress = 0.5f;
   outDirection = 0.0f;
   outSeed = 0;
@@ -291,7 +285,7 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     if (!dir.empty()) outDirection = (float)atof(dir.c_str());
 
     // Parse random_1..5 and compute a deterministic seed for blend pattern generation
-    float randoms[5] = { 0.0f };
+    float randoms[5] = {0.0f};
     for (int i = 0; i < 5; i++) {
       char key[16];
       snprintf(key, sizeof(key), "random_%d", i + 1);
@@ -378,7 +372,7 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
       };
 
       Milk2Sprite& spr = m_milk2Sprites[m_nMilk2SpriteCount];
-      spr = Milk2Sprite{}; // reset
+      spr = Milk2Sprite{};  // reset
 
       std::string imgName = sprGetVal("SpriteName");
       if (imgName.empty()) continue;
@@ -390,7 +384,8 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
         wcsncpy_s(spr.szImgPath, wImg.c_str(), _TRUNCATE);
       } else {
         // Relative: replace forward slashes with backslashes
-        for (auto& ch : imgName) if (ch == '/') ch = '\\';
+        for (auto& ch : imgName)
+          if (ch == '/') ch = '\\';
         std::wstring wImg(imgName.begin(), imgName.end());
         swprintf(spr.szImgPath, L"%s%s", m_szMilkdrop2Path, wImg.c_str());
       }
@@ -478,7 +473,6 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
   return true;
 }
 
-
 void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   // clear old error msg...
   if (m_nFramesSinceResize > 4)
@@ -500,7 +494,6 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   // make sure preset still exists.  (might not if they are using the "back"/fwd buttons
   //  in RANDOM preset order and a file was renamed or deleted!)
   if (GetFileAttributesW(szPresetFilename) == 0xFFFFFFFF) {
-
     wchar_t fullPath[MAX_PATH];
     GetFullPathNameW(szPresetFilename, MAX_PATH, fullPath, NULL);
     // Log the full path (to debugger or console)
@@ -511,7 +504,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
     swprintf(buf, wasabiApiLangString(IDS_ERROR_PRESET_NOT_FOUND_X), fullPath);
     AddError(buf, 6.0f, ERR_PRESET, true);
     m_fPresetStartTime = GetTime();
-    m_fNextPresetTime = -1.0f;		// flags UpdateTime() to recompute this
+    m_fNextPresetTime = -1.0f;  // flags UpdateTime() to recompute this
     return;
   }
 
@@ -525,8 +518,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
       // don't let the two fences touch
       if (m_presetHistoryBackFence == m_presetHistoryFwdFence)
         m_presetHistoryBackFence = (m_presetHistoryBackFence + 1) % PRESET_HIST_LEN;
-    }
-    else {
+    } else {
       // we're retracing our steps, either forward or backward...
     }
   }
@@ -562,15 +554,13 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
       float clampedProgress = min(1.0f, max(0.0f, progress));
       if (m_bMilk2Plasma3) {
         m_fMilk2BlendProgress = 0.10f + 0.90f * clampedProgress;
-      }
-      else {
+      } else {
         if (clampedProgress <= 0.5f)
           m_fMilk2BlendProgress = clampedProgress * 0.64f;
         else
           m_fMilk2BlendProgress = 0.32f + (clampedProgress - 0.5f) * 1.36f;
       }
-    }
-    else if (mixType == 14) {
+    } else if (mixType == 14) {
       float clampedProgress = min(1.0f, max(0.0f, progress));
       // Stars stay visibly in progress at 0.5, then finish quickly by 0.7.
       if (clampedProgress <= 0.5f)
@@ -579,18 +569,15 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
         m_fMilk2BlendProgress = 0.35f + (clampedProgress - 0.5f) * 3.00f;
       if (m_fMilk2BlendProgress > 1.0f)
         m_fMilk2BlendProgress = 1.0f;
-    }
-    else if (mixType == 6) {
+    } else if (mixType == 6) {
       float clampedProgress = min(1.0f, max(0.0f, progress));
       m_fMilk2BlendProgress = 0.1f + clampedProgress;
       if (m_fMilk2BlendProgress > 1.0f)
         m_fMilk2BlendProgress = 1.0f;
-    }
-    else if (mixType == 5) {
+    } else if (mixType == 5) {
       // Snail works best close to the authored progress from the .milk2 header.
       m_fMilk2BlendProgress = min(1.0f, max(0.0f, progress));
-    }
-    else
+    } else
       m_fMilk2BlendProgress = min(1.0f, max(0.0f, progress));
     m_fMilk2FrozenProgress = m_fMilk2BlendProgress;
     m_nMilk2PatternSeed = seed;
@@ -628,7 +615,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
 
   if (fBlendTime == 0) {
     // do it all NOW!
-    if (szPresetFilename != m_szCurrentPresetFile) //[sic]
+    if (szPresetFilename != m_szCurrentPresetFile)  //[sic]
       lstrcpyW(m_szCurrentPresetFile, szPresetFilename);
 
     CState* temp = m_pState;
@@ -647,7 +634,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
     }
 
     m_fPresetStartTime = GetTime();
-    m_fNextPresetTime = -1.0f;		// flags UpdateTime() to recompute this
+    m_fNextPresetTime = -1.0f;  // flags UpdateTime() to recompute this
 
     // release stuff from m_OldShaders, then move m_shaders to m_OldShaders, then load the new shaders.
     SafeRelease(m_OldShaders.comp.ptr);
@@ -660,8 +647,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
     LoadShaders(&m_shaders, m_pState, false, false);
     NumTotalPresetsLoaded++;
     OnFinishedLoadingPreset();
-  }
-  else {
+  } else {
     // set ourselves up to load the preset (and esp. compile shaders) a little bit at a time
     SafeRelease(m_NewShaders.comp.ptr);
     SafeRelease(m_NewShaders.warp.ptr);
@@ -673,7 +659,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
 
     m_pNewState->Import(szPresetFilename, GetTime(), m_pOldState, ApplyFlags);
 
-    m_nLoadingPreset = 1;   // this will cause LoadPresetTick() to get called over the next few frames...
+    m_nLoadingPreset = 1;  // this will cause LoadPresetTick() to get called over the next few frames...
 
     m_fLoadingPresetBlendTime = fBlendTime;
     lstrcpyW(m_szLoadingPreset, szPresetFilename);
@@ -681,12 +667,11 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   }
 }
 
-
 void CPlugin::OnFinishedLoadingPreset() {
   // note: only used this if you loaded the preset *intact* (or mostly intact)
 
   SetMenusForPresetVersion(m_pState->m_nWarpPSVersion, m_pState->m_nCompPSVersion);
-  m_nPresetsLoadedTotal++; //only increment this on COMPLETION of the load.
+  m_nPresetsLoadedTotal++;  // only increment this on COMPLETION of the load.
 
   for (int mash = 0; mash < MASH_SLOTS; mash++)
     m_nMashPreset[mash] = m_nCurrentPreset;
@@ -696,7 +681,6 @@ void CPlugin::OnFinishedLoadingPreset() {
 // â”€â”€â”€ IPC via Named Pipe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Outgoing messages are sent through g_pipeServer (pipe_server.h).
 // The old WM_COPYDATA / FindWindow code has been removed.
-
 
 int CPlugin::SendMessageToMilkwaveRemote(const wchar_t* messageToSend) {
   return SendMessageToMilkwaveRemote(messageToSend, false);
@@ -726,17 +710,21 @@ int CPlugin::SendMessageToMilkwaveRemote(const wchar_t* messageToSend, bool doFo
   return 1;
 }
 
-
 void CPlugin::PostMessageToMilkwaveRemote(UINT msg) {
   try {
     extern PipeServer g_pipeServer;
     // Map WM_USER+N constants to SIGNAL| pipe messages
     const wchar_t* signal = nullptr;
-    if (msg == WM_USER + 100) signal = L"SIGNAL|NEXT_PRESET";
-    else if (msg == WM_USER + 101) signal = L"SIGNAL|PREV_PRESET";
-    else if (msg == WM_USER + 102) signal = L"SIGNAL|COVER_CHANGED";
-    else if (msg == WM_USER + 103) signal = L"SIGNAL|SPRITE_MODE";
-    else if (msg == WM_USER + 104) signal = L"SIGNAL|MESSAGE_MODE";
+    if (msg == WM_USER + 100)
+      signal = L"SIGNAL|NEXT_PRESET";
+    else if (msg == WM_USER + 101)
+      signal = L"SIGNAL|PREV_PRESET";
+    else if (msg == WM_USER + 102)
+      signal = L"SIGNAL|COVER_CHANGED";
+    else if (msg == WM_USER + 103)
+      signal = L"SIGNAL|SPRITE_MODE";
+    else if (msg == WM_USER + 104)
+      signal = L"SIGNAL|MESSAGE_MODE";
     if (signal)
       g_pipeServer.Send(signal);
   } catch (...) {
@@ -744,13 +732,11 @@ void CPlugin::PostMessageToMilkwaveRemote(UINT msg) {
   }
 }
 
-
 void CPlugin::LoadPresetTick() {
   if (m_nLoadingPreset == 2 || m_nLoadingPreset == 5) {
     // just loads one shader (warp or comp) then returns.
     LoadShaders(&m_NewShaders, m_pNewState, true, false);
-  }
-  else if (m_nLoadingPreset == 8) {
+  } else if (m_nLoadingPreset == 8) {
     // finished loading the shaders - apply the preset!
     lstrcpyW(m_szCurrentPresetFile, m_szLoadingPreset);
     m_szLoadingPreset[0] = 0;
@@ -772,7 +758,10 @@ void CPlugin::LoadPresetTick() {
       // Fix descriptions: Import() derived m_szDesc from temp file paths.
       // Override with the .milk2 filename (without path or extension).
       const wchar_t* p = wcsrchr(m_szCurrentPresetFile, L'\\');
-      if (!p) p = m_szCurrentPresetFile; else p++;
+      if (!p)
+        p = m_szCurrentPresetFile;
+      else
+        p++;
       wcsncpy_s(m_pState->m_szDesc, p, MAX_PATH - 1);
       wchar_t* dot = wcsrchr(m_pState->m_szDesc, L'.');
       if (dot) *dot = L'\0';
@@ -794,7 +783,7 @@ void CPlugin::LoadPresetTick() {
       RandomizeBlendPattern();
     }
 
-    //if (fBlendTime >= 0.001f)
+    // if (fBlendTime >= 0.001f)
     m_pState->StartBlendFrom(m_pOldState, GetTime(), m_fLoadingPresetBlendTime);
 
     // .milk2: activate permanent blend â€” pin progress immediately at target value (no animation)
@@ -811,7 +800,7 @@ void CPlugin::LoadPresetTick() {
     }
 
     m_fPresetStartTime = GetTime();
-    m_fNextPresetTime = -1.0f;		// flags UpdateTime() to recompute this
+    m_fNextPresetTime = -1.0f;  // flags UpdateTime() to recompute this
 
     // release stuff from m_OldShaders, then move m_shaders to m_OldShaders, then load the new shaders.
     SafeRelease(m_OldShaders.comp.ptr);
@@ -842,7 +831,6 @@ void CPlugin::LoadPresetTick() {
     m_nLoadingPreset++;
 }
 
-
 void CPlugin::SeekToPreset(wchar_t cStartChar) {
   if (cStartChar >= L'a' && cStartChar <= L'z')
     cStartChar -= L'a' - L'A';
@@ -858,7 +846,6 @@ void CPlugin::SeekToPreset(wchar_t cStartChar) {
   }
 }
 
-
 void CPlugin::FindValidPresetDir() {
   swprintf(m_szPresetDir, L"%spresets\\", m_szMilkdrop2Path);
   if (GetFileAttributesW(m_szPresetDir) != -1)
@@ -869,10 +856,10 @@ void CPlugin::FindValidPresetDir() {
   lstrcpyW(m_szPresetDir, GetPluginsDirPath());
   if (GetFileAttributesW(m_szPresetDir) != -1)
     return;
-  lstrcpyW(m_szPresetDir, L"c:\\program files\\winamp\\");  //getting desperate here
+  lstrcpyW(m_szPresetDir, L"c:\\program files\\winamp\\");  // getting desperate here
   if (GetFileAttributesW(m_szPresetDir) != -1)
     return;
-  lstrcpyW(m_szPresetDir, L"c:\\program files\\");  //getting desperate here
+  lstrcpyW(m_szPresetDir, L"c:\\program files\\");  // getting desperate here
   if (GetFileAttributesW(m_szPresetDir) != -1)
     return;
   lstrcpyW(m_szPresetDir, L"c:\\");
@@ -917,7 +904,7 @@ retry:
 
   // make sure the path exists; if not, go to winamp plugins dir
   if (GetFileAttributesW(g_plugin.m_szPresetDir) == -1) {
-    //FIXME...
+    // FIXME...
     g_plugin.FindValidPresetDir();
   }
 
@@ -939,8 +926,8 @@ retry:
     g_plugin.m_presets.clear();
 
     // find first .MILK file
-    //if( (hFile = _findfirst(szMask, &c_file )) != -1L )		// note: returns filename -without- path
-    if ((h = FindFirstFileW(g_plugin.m_szUpdatePresetMask, &fd)) == INVALID_HANDLE_VALUE)		// note: returns filename -without- path
+    // if( (hFile = _findfirst(szMask, &c_file )) != -1L )		// note: returns filename -without- path
+    if ((h = FindFirstFileW(g_plugin.m_szUpdatePresetMask, &fd)) == INVALID_HANDLE_VALUE)  // note: returns filename -without- path
     {
       // --> revert back to plugins dir
       wchar_t buf[1024];
@@ -970,7 +957,7 @@ retry:
     return 0;
   }
 
-  int  nMaxPSVersion = g_plugin.m_nMaxPSVersion;
+  int nMaxPSVersion = g_plugin.m_nMaxPSVersion;
   wchar_t szPresetDir[MAX_PATH];
   lstrcpyW(szPresetDir, g_plugin.m_szPresetDir);
 
@@ -991,16 +978,14 @@ retry:
 
     if (bIsDir) {
       // skip "." directory
-      if (wcscmp(fd.cFileName, L".") == 0)// || lstrlen(ffd.cFileName) < 1)
+      if (wcscmp(fd.cFileName, L".") == 0)  // || lstrlen(ffd.cFileName) < 1)
         bSkip = true;
       else
         swprintf(szFilename, L"*%s", fd.cFileName);
-    }
-    else {
+    } else {
       // skip normal files not ending in ".milk" or ".milk2"
       int len = lstrlenW(fd.cFileName);
-      bool bHasPresetExt = (len >= 6 && _wcsicmp(fd.cFileName + len - 6, L".milk2") == 0)
-                        || (len >= 5 && _wcsicmp(fd.cFileName + len - 5, L".milk") == 0);
+      bool bHasPresetExt = (len >= 6 && _wcsicmp(fd.cFileName + len - 6, L".milk2") == 0) || (len >= 5 && _wcsicmp(fd.cFileName + len - 5, L".milk") == 0);
       if (!bHasPresetExt)
         bSkip = true;
 
@@ -1027,8 +1012,7 @@ retry:
             fseek(f, SEEK_SET, 0);
             count = fread(szLine, 1, bytes_to_read, f);
             szLine[count] = 0;
-          }
-          else
+          } else
             szLine[bytes_to_read - 1] = 0;
 
           bool bScanForPreset00AndRating = false;
@@ -1038,21 +1022,20 @@ retry:
           // most presets (unless hand-edited) will have these right at the top.
           // if not, [at least for fRating] use GetPrivateProfileFloat to search whole file.
           // read line 1
-          //p = NextLine(p);//fgets(p, sizeof(p)-1, f);
+          // p = NextLine(p);//fgets(p, sizeof(p)-1, f);
           if (!strncmp(p, "MILKDROP_PRESET_VERSION", 23)) {
-            p = NextLine(p);//fgets(p, sizeof(p)-1, f);
+            p = NextLine(p);  // fgets(p, sizeof(p)-1, f);
             int ps_version = 2;
             if (p && !strncmp(p, "PSVERSION", 9)) {
               sscanf(&p[10], "%d", &ps_version);
               if (ps_version > nMaxPSVersion)
                 bSkip = true;
               else {
-                p = NextLine(p);//fgets(p, sizeof(p)-1, f);
+                p = NextLine(p);  // fgets(p, sizeof(p)-1, f);
                 bScanForPreset00AndRating = true;
               }
             }
-          }
-          else {
+          } else {
             // otherwise it's a MilkDrop 1 preset - we can run it.
             bScanForPreset00AndRating = true;
           }
@@ -1109,7 +1092,7 @@ retry:
     if (temp_nPresets == 30 || ((temp_nPresets % PRESET_UPDATE_INTERVAL) == 0)) {
       EnterCriticalSection(&g_cs);
 
-      //g_plugin.m_presets  = temp_presets;
+      // g_plugin.m_presets  = temp_presets;
       int curPreset = g_plugin.m_nPresets;
       while (!g_bThreadShouldQuit && curPreset < temp_nPresets) {
         g_plugin.m_presets.push_back(temp_presets[curPreset]);
@@ -1131,7 +1114,7 @@ retry:
 
   EnterCriticalSection(&g_cs);
 
-  //g_plugin.m_presets  = temp_presets;
+  // g_plugin.m_presets  = temp_presets;
   for (int i = g_plugin.m_nPresets; i < temp_nPresets; i++)
     g_plugin.m_presets.push_back(temp_presets[i]);
   g_plugin.m_nPresets = temp_nPresets;
@@ -1193,15 +1176,13 @@ retry:
   return 0;
 }
 
-
 void CPlugin::UpdatePresetList(bool bBackground, bool bForce, bool bTryReselectCurrentPreset) {
   // note: if dir changed, make sure bForce is true!
 
   if (bForce) {
     if (g_bThreadAlive)
       CancelThread(3000);  // flags it to exit; the param is the # of ms to wait before forcefully killing it
-  }
-  else {
+  } else {
     if (bBackground && (g_bThreadAlive || m_bPresetListReady))
       return;
     if (!bBackground && m_bPresetListReady)
@@ -1218,7 +1199,7 @@ void CPlugin::UpdatePresetList(bool bBackground, bool bForce, bool bTryReselectC
 
   if (!bBackground) {
     // crank up priority, wait for it to finish, and then return
-    SetThreadPriority(g_hThread, THREAD_PRIORITY_HIGHEST); //THREAD_PRIORITY_IDLE,    THREAD_PRIORITY_LOWEST,    THREAD_PRIORITY_NORMAL,    THREAD_PRIORITY_HIGHEST,
+    SetThreadPriority(g_hThread, THREAD_PRIORITY_HIGHEST);  // THREAD_PRIORITY_IDLE,    THREAD_PRIORITY_LOWEST,    THREAD_PRIORITY_NORMAL,    THREAD_PRIORITY_HIGHEST,
 
     // wait for it to finish
     while (g_bThreadAlive)
@@ -1227,13 +1208,12 @@ void CPlugin::UpdatePresetList(bool bBackground, bool bForce, bool bTryReselectC
     assert(g_hThread != INVALID_HANDLE_VALUE);
     CloseHandle(g_hThread);
     g_hThread = INVALID_HANDLE_VALUE;
-  }
-  else {
+  } else {
     // it will just run in the background til it finishes.
     // however, we want to wait until at least ~32 presets are found (or failure) before returning,
     // so we know we have *something* in the preset list to start with.
 
-    SetThreadPriority(g_hThread, THREAD_PRIORITY_HIGHEST); //THREAD_PRIORITY_IDLE,    THREAD_PRIORITY_LOWEST,    THREAD_PRIORITY_NORMAL,    THREAD_PRIORITY_HIGHEST,
+    SetThreadPriority(g_hThread, THREAD_PRIORITY_HIGHEST);  // THREAD_PRIORITY_IDLE,    THREAD_PRIORITY_LOWEST,    THREAD_PRIORITY_NORMAL,    THREAD_PRIORITY_HIGHEST,
 
     // wait until either the thread exits, or # of presets is >32, before returning.
     // also make sure you enter the CS whenever you check on it!
@@ -1253,13 +1233,12 @@ void CPlugin::UpdatePresetList(bool bBackground, bool bForce, bool bTryReselectC
       // the load still takes a while even at THREAD_PRIORITY_ABOVE_NORMAL,
       // because it is waiting on the HDD so much...
       // but the OS is smart, and the CPU stays nice and zippy in other threads =)
-      SetThreadPriority(g_hThread, THREAD_PRIORITY_HIGHEST); //THREAD_PRIORITY_IDLE,    THREAD_PRIORITY_LOWEST,    THREAD_PRIORITY_NORMAL,    THREAD_PRIORITY_HIGHEST,
+      SetThreadPriority(g_hThread, THREAD_PRIORITY_HIGHEST);  // THREAD_PRIORITY_IDLE,    THREAD_PRIORITY_LOWEST,    THREAD_PRIORITY_NORMAL,    THREAD_PRIORITY_HIGHEST,
     }
   }
 
   return;
 }
-
 
 void CPlugin::MergeSortPresets(int left, int right) {
   // note: left..right range is inclusive
@@ -1284,8 +1263,7 @@ void CPlugin::MergeSortPresets(int left, int right) {
 
       if (nSpecial == 1) {
         bSwap = (m_presets[b].szFilename.c_str()[0] == '*');
-      }
-      else {
+      } else {
         bSwap = (mystrcmpiW(m_presets[a].szFilename.c_str(), m_presets[b].szFilename.c_str()) > 0);
       }
 
@@ -1299,8 +1277,7 @@ void CPlugin::MergeSortPresets(int left, int right) {
       }
       a++;
     }
-  }
-  else if (nItems == 2) {
+  } else if (nItems == 2) {
     // sort 2 items; give preference to 'special' strings that start with a '*' character
     int nSpecial = 0;
     if (m_presets[left].szFilename.c_str()[0] == '*') nSpecial++;
@@ -1312,15 +1289,13 @@ void CPlugin::MergeSortPresets(int left, int right) {
         m_presets[left] = m_presets[right];
         m_presets[right] = temp;
       }
-    }
-    else if (mystrcmpiW(m_presets[left].szFilename.c_str(), m_presets[right].szFilename.c_str()) > 0) {
+    } else if (mystrcmpiW(m_presets[left].szFilename.c_str(), m_presets[right].szFilename.c_str()) > 0) {
       PresetInfo temp = m_presets[left];
       m_presets[left] = m_presets[right];
       m_presets[right] = temp;
     }
   }
 }
-
 
 void CPlugin::SavePresetAs(wchar_t* szNewFile) {
   // overwrites the file if it was already there,
@@ -1330,8 +1305,7 @@ void CPlugin::SavePresetAs(wchar_t* szNewFile) {
   if (!m_pState->Export(szNewFile)) {
     // error
     AddError(wasabiApiLangString(IDS_ERROR_UNABLE_TO_SAVE_THE_FILE), 6.0f, ERR_PRESET, true);
-  }
-  else {
+  } else {
     // pop up confirmation
     AddNotification(wasabiApiLangString(IDS_SAVE_SUCCESSFUL));
 
@@ -1343,7 +1317,6 @@ void CPlugin::SavePresetAs(wchar_t* szNewFile) {
   }
 }
 
-
 void CPlugin::DeletePresetFile(wchar_t* szDelFile) {
   // NOTE: this function additionally assumes that m_nPresetListCurPos indicates
   //		 the slot that the to-be-deleted preset occupies!
@@ -1352,8 +1325,7 @@ void CPlugin::DeletePresetFile(wchar_t* szDelFile) {
   if (!DeleteFileW(szDelFile)) {
     // error
     AddError(wasabiApiLangString(IDS_ERROR_UNABLE_TO_DELETE_THE_FILE), 6.0f, ERR_MISC, true);
-  }
-  else {
+  } else {
     // pop up confirmation
     wchar_t buf[1024];
     swprintf(buf, wasabiApiLangString(IDS_PRESET_X_DELETED), m_presets[m_nPresetListCurPos].szFilename.c_str());
@@ -1366,25 +1338,22 @@ void CPlugin::DeletePresetFile(wchar_t* szDelFile) {
   }
 }
 
-
 void CPlugin::RenamePresetFile(wchar_t* szOldFile, wchar_t* szNewFile) {
   // NOTE: this function additionally assumes that m_nPresetListCurPos indicates
   //		 the slot that the to-be-renamed preset occupies!
 
-  if (GetFileAttributesW(szNewFile) != -1)		// check if file already exists
+  if (GetFileAttributesW(szNewFile) != -1)  // check if file already exists
   {
     // error
     AddError(wasabiApiLangString(IDS_ERROR_A_FILE_ALREADY_EXISTS_WITH_THAT_FILENAME), 6.0f, ERR_PRESET, true);
 
     // (user remains in UI_LOAD_RENAME mode to try another filename)
-  }
-  else {
+  } else {
     // rename
     if (!MoveFileW(szOldFile, szNewFile)) {
       // error
       AddError(wasabiApiLangString(IDS_ERROR_UNABLE_TO_RENAME_FILE), 6.0f, ERR_MISC, true);
-    }
-    else {
+    } else {
       // pop up confirmation
       AddError(wasabiApiLangString(IDS_RENAME_SUCCESSFUL), 3.0f, ERR_NOTIFY, false);
 
@@ -1467,7 +1436,6 @@ void CPlugin::UpdatePresetRatings()
 }
 */
 
-
 void CPlugin::SetCurrentPresetRating(float fNewRating) {
   if (!m_bEnableRating)
     return;
@@ -1477,10 +1445,10 @@ void CPlugin::SetCurrentPresetRating(float fNewRating) {
   float change = (fNewRating - m_pState->m_fRating);
 
   // update the file on disk:
-  //char szPresetFileNoPath[512];
-  //char szPresetFileWithPath[512];
-  //sprintf(szPresetFileNoPath,   "%s.milk", m_pState->m_szDesc);
-  //sprintf(szPresetFileWithPath, "%s%s.milk", GetPresetDir(), m_pState->m_szDesc);
+  // char szPresetFileNoPath[512];
+  // char szPresetFileWithPath[512];
+  // sprintf(szPresetFileNoPath,   "%s.milk", m_pState->m_szDesc);
+  // sprintf(szPresetFileWithPath, "%s%s.milk", GetPresetDir(), m_pState->m_szDesc);
   WritePrivateProfileFloatW(fNewRating, L"fRating", m_szCurrentPresetFile, L"preset00");
 
   // update the copy of the preset in memory
@@ -1488,7 +1456,7 @@ void CPlugin::SetCurrentPresetRating(float fNewRating) {
 
   // update the cumulative internal listing:
   m_presets[m_nCurrentPreset].fRatingThis += change;
-  if (m_nCurrentPreset != -1)// && m_nRatingReadProgress >= m_nCurrentPreset)		// (can be -1 if dir. changed but no new preset was loaded yet)
+  if (m_nCurrentPreset != -1)  // && m_nRatingReadProgress >= m_nCurrentPreset)		// (can be -1 if dir. changed but no new preset was loaded yet)
     for (int i = m_nCurrentPreset; i < m_nPresets; i++)
       m_presets[i].fRatingCum += change;
 
@@ -1508,4 +1476,3 @@ void CPlugin::SetCurrentPresetRating(float fNewRating) {
     m_fShowRatingUntilThisTime = GetTime() + 2.0f;
   }
 }
-

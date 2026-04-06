@@ -130,6 +130,12 @@
 			"type": "shell",
 			"command": "${workspaceFolder}\\Build\\copy-MDropDX12.cmd",
 			"group": "build"
+		},
+		{
+			"label": "Format Visualizer",
+			"type": "shell",
+			"command": "Get-ChildItem -Path '${workspaceFolder}\\Visualizer\\vis_milk2' -Include '*.cpp','*.h' -Recurse | ForEach-Object { & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\Llvm\\bin\\clang-format.exe' -i $_.FullName }; Write-Host 'Done.'",
+			"problemMatcher": []
 		}
 	]
 }

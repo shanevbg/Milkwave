@@ -5,7 +5,7 @@
 Milkwave::Milkwave() {}
 
 void Milkwave::Init(wchar_t* exePath) {
-  winrt::init_apartment(); // Initialize the WinRT runtime
+  winrt::init_apartment();  // Initialize the WinRT runtime
   start_time = std::chrono::steady_clock::now();
 
   // Get the executable's directory
@@ -20,7 +20,6 @@ void Milkwave::Init(wchar_t* exePath) {
 }
 
 void Milkwave::PollMediaInfo() {
-
   if (!doPoll && !doPollExplicit) return;
 
   try {
@@ -32,7 +31,6 @@ void Milkwave::PollMediaInfo() {
 
     // Check if 2 seconds have passed or manual poll requested
     if (elapsed_seconds >= 2 || doPollExplicit) {
-
       auto smtcManager = winrt::Windows::Media::Control::GlobalSystemMediaTransportControlsSessionManager::RequestAsync().get();
       auto currentSession = smtcManager.GetCurrentSession();
       updated = false;
@@ -52,8 +50,7 @@ void Milkwave::PollMediaInfo() {
             updated = true;
           }
         }
-      }
-      else {
+      } else {
         if (currentArtist.length() || currentTitle.length() || currentAlbum.length()) {
           currentArtist = L"";
           currentTitle = L"";
@@ -86,7 +83,8 @@ bool Milkwave::SaveThumbnailToFile(const winrt::Windows::Media::Control::GlobalS
     // Encode the image as a PNG and save it to the file
     auto fileStream = winrt::Windows::Storage::Streams::InMemoryRandomAccessStream();
     auto encoder = winrt::Windows::Graphics::Imaging::BitmapEncoder::CreateAsync(
-      winrt::Windows::Graphics::Imaging::BitmapEncoder::PngEncoderId(), fileStream).get();
+                       winrt::Windows::Graphics::Imaging::BitmapEncoder::PngEncoderId(), fileStream)
+                       .get();
 
     encoder.SetSoftwareBitmap(decoder.GetSoftwareBitmapAsync().get());
     encoder.FlushAsync().get();
@@ -165,14 +163,12 @@ void Milkwave::LogInfo(const wchar_t* info) {
 
     logFile << timestring << "> " << utf8info << std::endl;
     logFile.close();
-  }
-  else {
+  } else {
     std::cerr << "Failed to open log file: " << logFilePath.str() << std::endl;
   }
 }
 
 void Milkwave::LogException(const wchar_t* context, const std::exception& e, bool showMessage) {
-
   if (logLevel < 1) return;
 
   std::wstring ws(context);
@@ -182,7 +178,7 @@ void Milkwave::LogException(const wchar_t* context, const std::exception& e, boo
 
   std::string exceptionMessage = e.what();
 
-  // Ensure the "log" directory exists  
+  // Ensure the "log" directory exists
   const char* logDir = "log";
   if (_mkdir(logDir) != 0 && errno != EEXIST) {
     std::cerr << "Failed to create or access log directory: " << logDir << std::endl;
@@ -207,7 +203,8 @@ void Milkwave::LogException(const wchar_t* context, const std::exception& e, boo
     std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
     std::string utf8info = conv.to_bytes(ws);
 
-    logFile << "Exception occurred: " << utf8info << "\n" << exceptionMessage << std::endl;
+    logFile << "Exception occurred: " << utf8info << "\n"
+            << exceptionMessage << std::endl;
 
     // Capture and log the stack trace
     logFile << "\nStack trace:\n";
@@ -235,8 +232,7 @@ void Milkwave::LogException(const wchar_t* context, const std::exception& e, boo
     SymCleanup(process);
 
     logFile.close();
-  }
-  else {
+  } else {
     std::cerr << "Failed to open log file: " << logFilePath.str() << std::endl;
   }
 

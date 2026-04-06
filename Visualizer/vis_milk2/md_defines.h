@@ -41,54 +41,54 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CLASSNAME               "MilkDrop"  // window class name
 */
 // SPOUT for BeatDrop VJ console
-#define TEXT_WINDOW_CLASSNAME   "Milkwave Console"
+#define TEXT_WINDOW_CLASSNAME "Milkwave Console"
 // #define TEXT_WINDOW_CLASSNAME   "BeatDrop Console - press F1 for help"
 // #define TEXT_WINDOW_CLASSNAME   "MilkDrop Console [VJ Mode]"
-#define DEBUGFILE				"c:\\m_debug.txt"
-//#define CONFIG_INIFILE			"milkdrop_config.ini"
-//#define PRESET_INIFILE			"milkdrop_presets.ini"
-#define DEBUGFILEHEADER			"[milkdrop debug file]\n"
+#define DEBUGFILE "c:\\m_debug.txt"
+// #define CONFIG_INIFILE			"milkdrop_config.ini"
+// #define PRESET_INIFILE			"milkdrop_presets.ini"
+#define DEBUGFILEHEADER "[milkdrop debug file]\n"
 
-#define MAX_GRID_X 192//128
-#define MAX_GRID_Y 144//96
-#define NUM_WAVES  18
-#define NUM_MODES  7
-#define LINEFEED_CONTROL_CHAR 1		// note: this char should be outside the ascii range from SPACE (32) to lowercase 'z' (122)
-#define MAX_CUSTOM_MESSAGE_FONTS 16		// 0-15
-#define MAX_CUSTOM_MESSAGES 100			// 00-99
-#define MAX_CUSTOM_WAVES  16
+#define MAX_GRID_X 192  // 128
+#define MAX_GRID_Y 144  // 96
+#define NUM_WAVES 18
+#define NUM_MODES 7
+#define LINEFEED_CONTROL_CHAR 1      // note: this char should be outside the ascii range from SPACE (32) to lowercase 'z' (122)
+#define MAX_CUSTOM_MESSAGE_FONTS 16  // 0-15
+#define MAX_CUSTOM_MESSAGES 100      // 00-99
+#define MAX_CUSTOM_WAVES 16
 #define MAX_CUSTOM_SHAPES 16
 
 // aspect ratio makes the motion in the UV field [0..1] cover the screen appropriately,
-//#define ASPECT_X    1.00
-//#define ASPECT_Y    0.75     // ~h/w
-//#define ASPECT_X  ( (m_nTexSizeY > m_nTexSizeX) ? m_nTexSizeX/(float)m_nTexSizeY : 1.0f )  //0.75f
-//#define ASPECT_Y  ( (m_nTexSizeX > m_nTexSizeY) ? m_nTexSizeY/(float)m_nTexSizeX : 1.0f )  //0.75f
+// #define ASPECT_X    1.00
+// #define ASPECT_Y    0.75     // ~h/w
+// #define ASPECT_X  ( (m_nTexSizeY > m_nTexSizeX) ? m_nTexSizeX/(float)m_nTexSizeY : 1.0f )  //0.75f
+// #define ASPECT_Y  ( (m_nTexSizeX > m_nTexSizeY) ? m_nTexSizeY/(float)m_nTexSizeX : 1.0f )  //0.75f
 //  --> now stored in m_fAspectX, m_fInvAspectY, etc. <--
 
-#define WM_MILKDROP_SYSTRAY_MSG			WM_USER + 407
-#define IDC_MILKDROP_SYSTRAY_ICON			555
-#define ID_MILKDROP_SYSTRAY_CLOSE			556
+#define WM_MILKDROP_SYSTRAY_MSG WM_USER + 407
+#define IDC_MILKDROP_SYSTRAY_ICON 555
+#define ID_MILKDROP_SYSTRAY_CLOSE 556
 
 // Custom messages from Milkwave Remote
-#define WM_USER_NEXT_PRESET             WM_USER + 100
-#define WM_USER_PREV_PRESET             WM_USER + 101
-#define WM_USER_COVER_CHANGED           WM_USER + 102
-#define WM_USER_SPRITE_MODE             WM_USER + 103
-#define WM_USER_MESSAGE_MODE            WM_USER + 104
-#define WM_USER_CAPTURE_SCREENSHOT      WM_USER + 105
-#define WM_USER_SETVIDEODEVICE          WM_USER + 106
-#define WM_USER_ENABLEVIDEOMIX          WM_USER + 107
-#define WM_USER_SETSPOUTSENDER          WM_USER + 108
-#define WM_USER_ENABLESPOUTMIX          WM_USER + 109
+#define WM_USER_NEXT_PRESET WM_USER + 100
+#define WM_USER_PREV_PRESET WM_USER + 101
+#define WM_USER_COVER_CHANGED WM_USER + 102
+#define WM_USER_SPRITE_MODE WM_USER + 103
+#define WM_USER_MESSAGE_MODE WM_USER + 104
+#define WM_USER_CAPTURE_SCREENSHOT WM_USER + 105
+#define WM_USER_SETVIDEODEVICE WM_USER + 106
+#define WM_USER_ENABLEVIDEOMIX WM_USER + 107
+#define WM_USER_SETSPOUTSENDER WM_USER + 108
+#define WM_USER_ENABLESPOUTMIX WM_USER + 109
 
-#define WM_USER_SET_INPUTMIX_OPACITY    WM_USER + 150
-#define WM_USER_SET_INPUTMIX_LUMAKEY    WM_USER + 151
-#define WM_USER_SET_INPUTMIX_ONTOP      WM_USER + 152
-#define WM_USER_SET_INPUTMIX_TINT       WM_USER + 153
+#define WM_USER_SET_INPUTMIX_OPACITY WM_USER + 150
+#define WM_USER_SET_INPUTMIX_LUMAKEY WM_USER + 151
+#define WM_USER_SET_INPUTMIX_ONTOP WM_USER + 152
+#define WM_USER_SET_INPUTMIX_TINT WM_USER + 153
 
 #define NUMERIC_INPUT_MODE_CUST_MSG 0
-#define NUMERIC_INPUT_MODE_SPRITE   1
+#define NUMERIC_INPUT_MODE_SPRITE 1
 #define NUMERIC_INPUT_MODE_SPRITE_KILL 2
 
 #endif

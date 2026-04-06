@@ -28,11 +28,11 @@ void CPlugin::OverrideDefaults() {
   // m_start_fullscreen      = 0;       // 0 or 1
   // m_start_desktop         = 0;       // 0 or 1
   // m_fake_fullscreen_mode  = 0;       // 0 or 1
-  //m_max_fps_fs            = 0;      // 1-120, or 0 for 'unlimited'
-  //m_max_fps_dm            = 0;      // 1-120, or 0 for 'unlimited'
-  //m_max_fps_w             = 0;      // 1-120, or 0 for 'unlimited'
+  // m_max_fps_fs            = 0;      // 1-120, or 0 for 'unlimited'
+  // m_max_fps_dm            = 0;      // 1-120, or 0 for 'unlimited'
+  // m_max_fps_w             = 0;      // 1-120, or 0 for 'unlimited'
   // m_show_press_f1_msg     = 1;       // 0 or 1
-  m_allow_page_tearing_w = 0;       // 0 or 1
+  m_allow_page_tearing_w = 0;  // 0 or 1
   // m_allow_page_tearing_fs = 0;       // 0 or 1
   // m_allow_page_tearing_dm = 1;       // 0 or 1
   // m_minimize_winamp       = 1;       // 0 or 1
@@ -51,14 +51,14 @@ void CPlugin::OverrideDefaults() {
   // Don't override default FS mode here; shell is now smart and sets it to match
   // the current desktop display mode, by default.
 
-  //m_disp_mode_fs.Width    = 1024;             // normally 640
-  //m_disp_mode_fs.Height   = 768;              // normally 480
-  // use either D3DFMT_X8R8G8B8 or D3DFMT_R5G6B5.
-  // The former will match to any 32-bit color format available,
-  // and the latter will match to any 16-bit color available,
-  // if that exact format can't be found.
-//m_disp_mode_fs.Format   = D3DFMT_UNKNOWN; //<- this tells config panel & visualizer to use current display mode as a default!!   //D3DFMT_X8R8G8B8;
-// m_disp_mode_fs.RefreshRate = 60;
+  // m_disp_mode_fs.Width    = 1024;             // normally 640
+  // m_disp_mode_fs.Height   = 768;              // normally 480
+  //  use either D3DFMT_X8R8G8B8 or D3DFMT_R5G6B5.
+  //  The former will match to any 32-bit color format available,
+  //  and the latter will match to any 16-bit color available,
+  //  if that exact format can't be found.
+  // m_disp_mode_fs.Format   = D3DFMT_UNKNOWN; //<- this tells config panel & visualizer to use current display mode as a default!!   //D3DFMT_X8R8G8B8;
+  //  m_disp_mode_fs.RefreshRate = 60;
 }
 
 //----------------------------------------------------------------------
@@ -71,22 +71,21 @@ void CPlugin::MyPreInitialize() {
   // (If you want to change the default values for settings that are part of
   //   the plugin shell (framework), do so from OverrideDefaults() above.)
 
-
-// =========================================================
-// SPOUT initialisation
-//
+  // =========================================================
+  // SPOUT initialisation
+  //
   spoutDX9 spoutsender;
 
   // Error logging to AppData
   // EnableSpoutLogFile("SpoutBeatdrop.log");
-  // For debugging 
+  // For debugging
   // EnableSpoutLog(); // Shows Spout logs on the console
-    // OpenSpoutConsole(); // Empty console
+  // OpenSpoutConsole(); // Empty console
 
   sprintf(WinampSenderName, "Milkwave");
   bInitialized = false;
-  bSpoutOut = true; // User on/off toggle
-  bSpoutChanged = false; // set to write config on exit
+  bSpoutOut = true;       // User on/off toggle
+  bSpoutChanged = false;  // set to write config on exit
   // DirectX 11 mode uses a format that is incompatible with DirectX 9 receivers
   // DirectX9 mode can fail with some drivers. Noted on Intel/NVIDIA laptop.
   g_Width = 0;
@@ -95,12 +94,14 @@ void CPlugin::MyPreInitialize() {
   g_hdc = NULL;
 
   // seed the system's random number generator w/the current system time:
-  //srand((unsigned)time(NULL));  -don't - let winamp do it
+  // srand((unsigned)time(NULL));  -don't - let winamp do it
 
-// attempt to load a unicode F1 help message otherwise revert to the ansi version
+  // attempt to load a unicode F1 help message otherwise revert to the ansi version
   g_szHelp = (wchar_t*)GetTextResource(IDR_TEXT2, 1);
-  if (!g_szHelp) g_szHelp = (wchar_t*)GetTextResource(IDR_TEXT1, 0);
-  else g_szHelp_W = 1;
+  if (!g_szHelp)
+    g_szHelp = (wchar_t*)GetTextResource(IDR_TEXT1, 0);
+  else
+    g_szHelp_W = 1;
   g_szHelp_Page2 = (wchar_t*)GetTextResource(IDR_TEXT2_PAGE2, 1);
   if (!g_szHelp_Page2) g_szHelp_Page2 = (wchar_t*)GetTextResource(IDR_TEXT1_PAGE2, 0);
 
@@ -115,24 +116,24 @@ void CPlugin::MyPreInitialize() {
   m_bHardCutsDisabled = true;
   m_fHardCutLoudnessThresh = 2.5f;
   m_fHardCutHalflife = 60.0f;
-  //m_nWidth			= 1024;
-  //m_nHeight			= 768;
-  //m_nDispBits		= 16;
+  // m_nWidth			= 1024;
+  // m_nHeight			= 768;
+  // m_nDispBits		= 16;
   m_nCanvasStretch = 100;
-  m_nTexSizeX = -1;	// -1 means "auto"
-  m_nTexSizeY = -1;	// -1 means "auto"
+  m_nTexSizeX = -1;  // -1 means "auto"
+  m_nTexSizeY = -1;  // -1 means "auto"
   m_nTexBitsPerCh = 8;
-  m_nGridX = 64;//32;
-  m_nGridY = 48;//24;
+  m_nGridX = 64;  // 32;
+  m_nGridY = 48;  // 24;
 
   // m_bShowPressF1ForHelp = true;
-  //lstrcpy(m_szMonitorName, "[don't use multimon]");
-  m_bShowMenuToolTips = true;	// NOTE: THIS IS CURRENTLY HARDWIRED TO TRUE - NO OPTION TO CHANGE
+  // lstrcpy(m_szMonitorName, "[don't use multimon]");
+  m_bShowMenuToolTips = true;  // NOTE: THIS IS CURRENTLY HARDWIRED TO TRUE - NO OPTION TO CHANGE
   m_n16BitGamma = 2;
   m_bAutoGamma = true;
-  //m_nFpsLimit			= -1;
+  // m_nFpsLimit			= -1;
   m_bEnableRating = true;
-  //m_bInstaScan            = false;
+  // m_bInstaScan            = false;
   m_bSongTitleAnims = true;
   m_fSongTitleAnimDuration = 1.7f;
   m_fTimeBetweenRandomSongTitles = -1.0f;
@@ -160,13 +161,13 @@ void CPlugin::MyPreInitialize() {
   m_nVideoCaptureWidth = 0;
   m_nVideoCaptureHeight = 0;
 
-  //m_bAlways3D		  	    = false;
-  //m_fStereoSep            = 1.0f;
-  //m_bAlwaysOnTop		= false;
-  //m_bFixSlowText          = true;
-  //m_bWarningsDisabled     = false;
+  // m_bAlways3D		  	    = false;
+  // m_fStereoSep            = 1.0f;
+  // m_bAlwaysOnTop		= false;
+  // m_bFixSlowText          = true;
+  // m_bWarningsDisabled     = false;
   m_bWarningsDisabled2 = false;
-  //m_bAnisotropicFiltering = true;
+  // m_bAnisotropicFiltering = true;
   m_bPresetLockOnAtStartup = true;
   m_bPreventScollLockHandling = false;
   m_nMaxPSVersion_ConfigPanel = -1;  // -1 = auto, 0 = disable shaders, 2 = ps_2_0, 3 = ps_3_0
@@ -178,15 +179,15 @@ void CPlugin::MyPreInitialize() {
 #ifdef _DEBUG
   m_dwShaderFlags = D3DXSHADER_DEBUG | (1 << 16);
 #else
-  m_dwShaderFlags = (1 << 16);//D3DXSHADER_SKIPOPTIMIZATION|D3DXSHADER_NO_PRESHADER;
+  m_dwShaderFlags = (1 << 16);  // D3DXSHADER_SKIPOPTIMIZATION|D3DXSHADER_NO_PRESHADER;
 #endif
-  //m_pFragmentLinker = NULL;
-  //m_pCompiledFragments = NULL;
+  // m_pFragmentLinker = NULL;
+  // m_pCompiledFragments = NULL;
   m_pShaderCompileErrors = NULL;
-  //m_vs_warp = NULL;
-  //m_ps_warp = NULL;
-  //m_vs_comp = NULL;
-  //m_ps_comp = NULL;
+  // m_vs_warp = NULL;
+  // m_ps_warp = NULL;
+  // m_vs_comp = NULL;
+  // m_ps_comp = NULL;
   ZeroMemory(&m_shaders, sizeof(PShaderSet));
   ZeroMemory(&m_OldShaders, sizeof(PShaderSet));
   ZeroMemory(&m_NewShaders, sizeof(PShaderSet));
@@ -206,14 +207,14 @@ void CPlugin::MyPreInitialize() {
   m_d3dx_title_font_doublesize = NULL;
 
   // RUNTIME SETTINGS THAT WE'VE ADDED
-  m_prev_time = GetTime() - 0.0333f; // note: this will be updated each frame, at bottom of MyRenderFn.
+  m_prev_time = GetTime() - 0.0333f;  // note: this will be updated each frame, at bottom of MyRenderFn.
   m_bTexSizeWasAutoPow2 = false;
   m_bTexSizeWasAutoExact = false;
-  //m_bPresetLockedByUser = false;  NOW SET IN DERIVED SETTINGS
+  // m_bPresetLockedByUser = false;  NOW SET IN DERIVED SETTINGS
   m_bPresetLockedByCode = false;
   m_fStartTime = 0.0f;
   m_fPresetStartTime = 0.0f;
-  m_fNextPresetTime = -1.0f;	// negative value means no time set (...it will be auto-set on first call to UpdateTime)
+  m_fNextPresetTime = -1.0f;  // negative value means no time set (...it will be auto-set on first call to UpdateTime)
   m_nLoadingPreset = 0;
   m_nPresetsLoadedTotal = 0;
   m_fSnapPoint = 0.5f;
@@ -225,13 +226,13 @@ void CPlugin::MyPreInitialize() {
   m_UI_mode = UI_REGULAR;
   m_bShowShaderHelp = false;
 
-  m_nMashSlot = 0;    //0..MASH_SLOTS-1
+  m_nMashSlot = 0;  // 0..MASH_SLOTS-1
   for (int mash = 0; mash < MASH_SLOTS; mash++)
     m_nLastMashChangeFrame[mash] = 0;
 
-  //m_nTrackPlaying	= 0;
-//m_nSongPosMS      = 0;
-//m_nSongLenMS      = 0;
+  // m_nTrackPlaying	= 0;
+  // m_nSongPosMS      = 0;
+  // m_nSongLenMS      = 0;
   m_bUserPagedUp = false;
   m_bUserPagedDown = false;
   m_fMotionVectorsTempDx = 0.0f;
@@ -247,10 +248,10 @@ void CPlugin::MyPreInitialize() {
   m_nCurrentPreset = -1;
   m_szCurrentPresetFile[0] = 0;
   m_szLoadingPreset[0] = 0;
-  //m_szPresetDir[0] = 0; // will be set @ end of this function
+  // m_szPresetDir[0] = 0; // will be set @ end of this function
   m_bPresetListReady = false;
   m_szUpdatePresetMask[0] = 0;
-  //m_nRatingReadProgress = -1;
+  // m_nRatingReadProgress = -1;
 
   myfft.Init(576, MY_FFT_SAMPLES, -1);
   m_fftShader.Init(MY_FFT_SHADER_INPUT, MY_FFT_SHADER_BINS, 0, 1.0f);  // HannÂ¹ window: tighter main lobe vs HannÂ³, giving stable per-bin amplitude especially at high frequencies
@@ -263,8 +264,8 @@ void CPlugin::MyPreInitialize() {
   m_presetHistoryBackFence = 0;
   m_presetHistoryFwdFence = 0;
 
-  //m_nTextHeightPixels = -1;
-  //m_nTextHeightPixels_Fancy = -1;
+  // m_nTextHeightPixels = -1;
+  // m_nTextHeightPixels_Fancy = -1;
   m_bShowFPS = false;
   m_bShowRating = false;
   m_bShowPresetInfo = false;
@@ -280,7 +281,7 @@ void CPlugin::MyPreInitialize() {
 
   m_lpVS[0] = NULL;
   m_lpVS[1] = NULL;
-#if (NUM_BLUR_TEX>0)
+#if (NUM_BLUR_TEX > 0)
   for (i = 0; i < NUM_BLUR_TEX; i++)
     m_lpBlur[i] = NULL;
 #endif
@@ -306,10 +307,10 @@ void CPlugin::MyPreInitialize() {
   m_nNumericInputMode = NUMERIC_INPUT_MODE_SPRITE;
   m_nNumericInputNum = 0;
   m_nNumericInputDigits = 0;
-  //td_custom_msg_font   m_CustomMessageFont[MAX_CUSTOM_MESSAGE_FONTS];
-  //td_custom_msg        m_CustomMessage[MAX_CUSTOM_MESSAGES];
+  // td_custom_msg_font   m_CustomMessageFont[MAX_CUSTOM_MESSAGE_FONTS];
+  // td_custom_msg        m_CustomMessage[MAX_CUSTOM_MESSAGES];
 
-  texmgr      m_texmgr;		// for user sprites
+  texmgr m_texmgr;  // for user sprites
   KillAllSupertexts();
   // --------------------other init--------------------
 
@@ -323,7 +324,7 @@ void CPlugin::MyPreInitialize() {
   swprintf(m_szPresetDir, L"%spresets\\", m_szMilkdrop2Path);
 
   // note that the config dir can be under Program Files or Application Data!!
-  wchar_t szConfigDir[MAX_PATH] = { 0 };
+  wchar_t szConfigDir[MAX_PATH] = {0};
   lstrcpyW(szConfigDir, GetConfigIniFile());
   wchar_t* p = wcsrchr(szConfigDir, L'\\');
   if (p) *(p + 1) = 0;
@@ -346,7 +347,7 @@ void CPlugin::MyReadConfig() {
   // GetPrivateProfileFloat    utility.h     float
   // GetPrivateProfileString   Win32 API     string
 
-  //ex: m_fog_enabled = GetPrivateProfileInt("settings","fog_enabled"       ,m_fog_enabled       ,GetConfigIniFile());
+  // ex: m_fog_enabled = GetPrivateProfileInt("settings","fog_enabled"       ,m_fog_enabled       ,GetConfigIniFile());
 
   int n = 0;
   wchar_t* pIni = GetConfigIniFile();
@@ -365,13 +366,13 @@ void CPlugin::MyReadConfig() {
   m_bEnableRating = GetPrivateProfileBoolW(L"Settings", L"bEnableRating", m_bEnableRating, pIni);
   m_bEnableMouseInteraction = GetPrivateProfileBoolW(L"Settings", L"bEnableMouseInteraction", m_bEnableMouseInteraction, pIni);
 
-  //m_bInstaScan    = GetPrivateProfileBool("settings","bInstaScan",m_bInstaScan,pIni);
+  // m_bInstaScan    = GetPrivateProfileBool("settings","bInstaScan",m_bInstaScan,pIni);
   m_bHardCutsDisabled = GetPrivateProfileBoolW(L"Settings", L"bHardCutsDisabled", m_bHardCutsDisabled, pIni);
   g_bDebugOutput = GetPrivateProfileBoolW(L"Settings", L"bDebugOutput", g_bDebugOutput, pIni);
-  //m_bShowSongInfo = GetPrivateProfileBool("settings","bShowSongInfo",m_bShowSongInfo,pIni);
-  //m_bShowPresetInfo=GetPrivateProfileBool("settings","bShowPresetInfo",m_bShowPresetInfo,pIni);
-  // m_bShowPressF1ForHelp = GetPrivateProfileBoolW(L"Settings", L"bShowPressF1ForHelp", m_bShowPressF1ForHelp, pIni);
-  //m_bShowMenuToolTips = GetPrivateProfileBool("settings","bShowMenuToolTips",m_bShowMenuToolTips,pIni);
+  // m_bShowSongInfo = GetPrivateProfileBool("settings","bShowSongInfo",m_bShowSongInfo,pIni);
+  // m_bShowPresetInfo=GetPrivateProfileBool("settings","bShowPresetInfo",m_bShowPresetInfo,pIni);
+  //  m_bShowPressF1ForHelp = GetPrivateProfileBoolW(L"Settings", L"bShowPressF1ForHelp", m_bShowPressF1ForHelp, pIni);
+  // m_bShowMenuToolTips = GetPrivateProfileBool("settings","bShowMenuToolTips",m_bShowMenuToolTips,pIni);
   m_bSongTitleAnims = GetPrivateProfileBoolW(L"Settings", L"bSongTitleAnims", m_bSongTitleAnims, pIni);
   m_bEnablePresetStartup = GetPrivateProfileBoolW(L"Settings", L"bEnablePresetStartup", m_bEnablePresetStartup, pIni);
   m_bEnableAudioCapture = GetPrivateProfileBoolW(L"Settings", L"bEnableAudioCapture", m_bEnableAudioCapture, pIni);
@@ -383,12 +384,12 @@ void CPlugin::MyReadConfig() {
   m_bShowFPS = GetPrivateProfileBoolW(L"Settings", L"bShowFPS", m_bShowFPS, pIni);
   m_bShowRating = GetPrivateProfileBoolW(L"Settings", L"bShowRating", m_bShowRating, pIni);
   m_bShowPresetInfo = GetPrivateProfileBoolW(L"Settings", L"bShowPresetInfo", m_bShowPresetInfo, pIni);
-  //m_bShowDebugInfo	= GetPrivateProfileBool("settings","bShowDebugInfo", m_bShowDebugInfo	,pIni);
+  // m_bShowDebugInfo	= GetPrivateProfileBool("settings","bShowDebugInfo", m_bShowDebugInfo	,pIni);
   m_bShowSongTitle = GetPrivateProfileBoolW(L"Settings", L"bShowSongTitle", m_bShowSongTitle, pIni);
   m_bShowSongTime = GetPrivateProfileBoolW(L"Settings", L"bShowSongTime", m_bShowSongTime, pIni);
   m_bShowSongLen = GetPrivateProfileBoolW(L"Settings", L"bShowSongLen", m_bShowSongLen, pIni);
 
-  //m_bFixPinkBug		= GetPrivateProfileBool("settings","bFixPinkBug",m_bFixPinkBug,pIni);
+  // m_bFixPinkBug		= GetPrivateProfileBool("settings","bFixPinkBug",m_bFixPinkBug,pIni);
   int nTemp = GetPrivateProfileBoolW(L"Settings", L"bFixPinkBug", -1, pIni);
   if (nTemp == 0)
     m_n16BitGamma = 0;
@@ -396,21 +397,21 @@ void CPlugin::MyReadConfig() {
     m_n16BitGamma = 2;
   m_n16BitGamma = GetPrivateProfileIntW(L"Settings", L"n16BitGamma", m_n16BitGamma, pIni);
   m_bAutoGamma = GetPrivateProfileBoolW(L"Settings", L"bAutoGamma", m_bAutoGamma, pIni);
-  //m_bAlways3D				= GetPrivateProfileBool("settings","bAlways3D",m_bAlways3D,pIni);
-    //m_fStereoSep            = GetPrivateProfileFloat("settings","fStereoSep",m_fStereoSep,pIni);
-  //m_bFixSlowText          = GetPrivateProfileBool("settings","bFixSlowText",m_bFixSlowText,pIni);
-  //m_bAlwaysOnTop		= GetPrivateProfileBool("settings","bAlwaysOnTop",m_bAlwaysOnTop,pIni);
-  //m_bWarningsDisabled		= GetPrivateProfileBool("settings","bWarningsDisabled",m_bWarningsDisabled,pIni);
+  // m_bAlways3D				= GetPrivateProfileBool("settings","bAlways3D",m_bAlways3D,pIni);
+  // m_fStereoSep            = GetPrivateProfileFloat("settings","fStereoSep",m_fStereoSep,pIni);
+  // m_bFixSlowText          = GetPrivateProfileBool("settings","bFixSlowText",m_bFixSlowText,pIni);
+  // m_bAlwaysOnTop		= GetPrivateProfileBool("settings","bAlwaysOnTop",m_bAlwaysOnTop,pIni);
+  // m_bWarningsDisabled		= GetPrivateProfileBool("settings","bWarningsDisabled",m_bWarningsDisabled,pIni);
   m_bWarningsDisabled2 = GetPrivateProfileBoolW(L"Settings", L"bWarningsDisabled2", m_bWarningsDisabled2, pIni);
-  //m_bAnisotropicFiltering = GetPrivateProfileBool("settings","bAnisotropicFiltering",m_bAnisotropicFiltering,pIni);
+  // m_bAnisotropicFiltering = GetPrivateProfileBool("settings","bAnisotropicFiltering",m_bAnisotropicFiltering,pIni);
   m_bPresetLockOnAtStartup = GetPrivateProfileBoolW(L"Settings", L"bPresetLockOnAtStartup", m_bPresetLockOnAtStartup, pIni);
   m_bSequentialPresetOrder = GetPrivateProfileBoolW(L"Settings", L"bSequentialPresetOrder", m_bSequentialPresetOrder, pIni);
 
   m_bPreventScollLockHandling = GetPrivateProfileBoolW(L"Settings", L"m_bPreventScollLockHandling", m_bPreventScollLockHandling, pIni);
 
-  m_nCanvasStretch = 100;  //GetPrivateProfileIntW(L"Settings",L"nCanvasStretch"    ,m_nCanvasStretch,pIni);
-  m_nTexSizeX = -1; //GetPrivateProfileIntW(L"Settings",L"nTexSize"    ,m_nTexSizeX   ,pIni);
-  m_nTexSizeY = -1; //m_nTexSizeX;
+  m_nCanvasStretch = 100;  // GetPrivateProfileIntW(L"Settings",L"nCanvasStretch"    ,m_nCanvasStretch,pIni);
+  m_nTexSizeX = -1;        // GetPrivateProfileIntW(L"Settings",L"nTexSize"    ,m_nTexSizeX   ,pIni);
+  m_nTexSizeY = -1;        // m_nTexSizeX;
   m_bTexSizeWasAutoPow2 = (m_nTexSizeX == -2);
   m_bTexSizeWasAutoExact = (m_nTexSizeX == -1);
   m_nTexBitsPerCh = GetPrivateProfileIntW(L"Settings", L"nTexBitsPerCh", m_nTexBitsPerCh, pIni);
@@ -447,7 +448,7 @@ void CPlugin::MyReadConfig() {
   m_cInputMixTint = (D3DCOLOR)GetPrivateProfileIntW(L"Milkwave", L"InputMixTint", 0xFFFFFFFF, pIni);
 
   m_fFFTAttackGlobal = GetPrivateProfileFloatW(L"Milkwave", L"FFTAttack", 0.5f, pIni);
-  m_fFFTDecayGlobal  = GetPrivateProfileFloatW(L"Milkwave", L"FFTDecay",  0.7f, pIni);
+  m_fFFTDecayGlobal = GetPrivateProfileFloatW(L"Milkwave", L"FFTDecay", 0.7f, pIni);
 
   // --------
 
@@ -514,7 +515,7 @@ void CPlugin::MyReadConfig() {
 
   // DERIVED SETTINGS
   m_bPresetLockedByUser = m_bPresetLockOnAtStartup;
-  //m_bMilkdropScrollLockState = m_bPresetLockOnAtStartup;
+  // m_bMilkdropScrollLockState = m_bPresetLockOnAtStartup;
 }
 
 //----------------------------------------------------------------------
@@ -540,7 +541,7 @@ void CPlugin::MyWriteConfig() {
   // constants:
   WritePrivateProfileStringW(L"Settings", L"bConfigured", L"1", pIni);
 
-  //note: m_szPresetDir is not written here; it is written manually, whenever it changes.
+  // note: m_szPresetDir is not written here; it is written manually, whenever it changes.
 
   wchar_t szSectionName[] = L"Settings";
 
@@ -559,25 +560,25 @@ void CPlugin::MyWriteConfig() {
   WritePrivateProfileIntW(m_bEnableRating, L"bEnableRating", pIni, L"Settings");
   WritePrivateProfileIntW(m_bEnableMouseInteraction, L"bEnableMouseInteraction", pIni, L"Settings");
 
-  //WritePrivateProfileIntW(m_bInstaScan,            "bInstaScan",		    pIni, "settings");
+  // WritePrivateProfileIntW(m_bInstaScan,            "bInstaScan",		    pIni, "settings");
   WritePrivateProfileIntW(g_bDebugOutput, L"bDebugOutput", pIni, L"Settings");
 
-  //itePrivateProfileInt(m_bShowPresetInfo, 	    "bShowPresetInfo",		pIni, "settings");
-  //itePrivateProfileInt(m_bShowSongInfo, 		"bShowSongInfo",        pIni, "settings");
-  //itePrivateProfileInt(m_bFixPinkBug, 		    "bFixPinkBug",			pIni, "settings");
+  // itePrivateProfileInt(m_bShowPresetInfo, 	    "bShowPresetInfo",		pIni, "settings");
+  // itePrivateProfileInt(m_bShowSongInfo, 		"bShowSongInfo",        pIni, "settings");
+  // itePrivateProfileInt(m_bFixPinkBug, 		    "bFixPinkBug",			pIni, "settings");
 
-  //WritePrivateProfileIntW(m_bShowPressF1ForHelp, L"bShowPressF1ForHelp", pIni, L"Settings");
-  //itePrivateProfileInt(m_bShowMenuToolTips, 	"bShowMenuToolTips",    pIni, "settings");
+  // WritePrivateProfileIntW(m_bShowPressF1ForHelp, L"bShowPressF1ForHelp", pIni, L"Settings");
+  // itePrivateProfileInt(m_bShowMenuToolTips, 	"bShowMenuToolTips",    pIni, "settings");
   WritePrivateProfileIntW(m_n16BitGamma, L"n16BitGamma", pIni, L"Settings");
   WritePrivateProfileIntW(m_bAutoGamma, L"bAutoGamma", pIni, L"Settings");
 
-  //WritePrivateProfileIntW(m_bAlways3D, 			"bAlways3D",			pIni, "settings");
-    //WritePrivateProfileFloat(m_fStereoSep,          "fStereoSep",           pIni, "settings");
-  //WritePrivateProfileIntW(m_bFixSlowText,		    "bFixSlowText",			pIni, "settings");
-  //itePrivateProfileInt(m_bAlwaysOnTop,		    "bAlwaysOnTop",			pIni, "settings");
-  //WritePrivateProfileIntW(m_bWarningsDisabled,	    "bWarningsDisabled",	pIni, "settings");
+  // WritePrivateProfileIntW(m_bAlways3D, 			"bAlways3D",			pIni, "settings");
+  // WritePrivateProfileFloat(m_fStereoSep,          "fStereoSep",           pIni, "settings");
+  // WritePrivateProfileIntW(m_bFixSlowText,		    "bFixSlowText",			pIni, "settings");
+  // itePrivateProfileInt(m_bAlwaysOnTop,		    "bAlwaysOnTop",			pIni, "settings");
+  // WritePrivateProfileIntW(m_bWarningsDisabled,	    "bWarningsDisabled",	pIni, "settings");
   WritePrivateProfileIntW(m_bWarningsDisabled2, L"bWarningsDisabled2", pIni, L"Settings");
-  //WritePrivateProfileIntW(m_bAnisotropicFiltering,	"bAnisotropicFiltering",pIni, "settings");
+  // WritePrivateProfileIntW(m_bAnisotropicFiltering,	"bAnisotropicFiltering",pIni, "settings");
   WritePrivateProfileIntW(m_bPresetLockOnAtStartup, L"bPresetLockOnAtStartup", pIni, L"Settings");
   WritePrivateProfileIntW(m_bSequentialPresetOrder, L"bSequentialPresetOrder", pIni, L"Settings");
 
@@ -588,7 +589,7 @@ void CPlugin::MyWriteConfig() {
   WritePrivateProfileIntW(m_bScreenDependentRenderMode, L"bScreenDependentRenderMode", pIni, L"Settings");
 
   WritePrivateProfileIntW(m_nCanvasStretch, L"nCanvasStretch", pIni, L"Settings");
-  //WritePrivateProfileIntW(m_nTexSizeX,			    L"nTexSize",				pIni, L"Settings");
+  // WritePrivateProfileIntW(m_nTexSizeX,			    L"nTexSize",				pIni, L"Settings");
   WritePrivateProfileIntW(m_nTexBitsPerCh, L"nTexBitsPerCh", pIni, L"Settings");
   WritePrivateProfileIntW(m_nGridX, L"nMeshSize", pIni, L"Settings");
   WritePrivateProfileIntW(m_nMaxPSVersion_ConfigPanel, L"MaxPSVersion", pIni, L"Settings");
@@ -628,7 +629,7 @@ void CPlugin::MyWriteConfig() {
   WritePrivateProfileIntW(m_SongInfoDisplayCorner, L"SongInfoDisplayCorner", pIni, L"Milkwave");
   WritePrivateProfileIntW(m_ChangePresetWithSong, L"ChangePresetWithSong", pIni, L"Milkwave");
   WritePrivateProfileIntW(m_DisplayCover, L"DisplayCover", pIni, L"Milkwave");
-  //WritePrivateProfileIntW(m_DisplayCoverWhenPressingB, L"mDisplayCoverWhenPressingB", pIni, L"Milkwave");
+  // WritePrivateProfileIntW(m_DisplayCoverWhenPressingB, L"mDisplayCoverWhenPressingB", pIni, L"Milkwave");
   WritePrivateProfileIntW(m_blackmode, L"BlackMode", pIni, L"Milkwave");
   WritePrivateProfileIntW(m_CheckDirectXOnStartup, L"CheckDirectXOnStartup", pIni, L"Milkwave");
 
@@ -666,15 +667,15 @@ void CPlugin::SaveWindowSizeAndPosition(HWND hwnd) {
 
 void CPlugin::Randomize() {
   srand((int)(GetTime() * 100));
-  //m_fAnimTime		= (rand() % 51234L)*0.01f;
+  // m_fAnimTime		= (rand() % 51234L)*0.01f;
   m_fRandStart[0] = (rand() % 64841L) * 0.01f;
   m_fRandStart[1] = (rand() % 53751L) * 0.01f;
   m_fRandStart[2] = (rand() % 42661L) * 0.01f;
   m_fRandStart[3] = (rand() % 31571L) * 0.01f;
 
-  //CState temp;
-  //temp.Randomize(rand() % NUM_MODES);
-  //m_pState->StartBlend(&temp, m_fAnimTime, m_fBlendTimeUser);
+  // CState temp;
+  // temp.Randomize(rand() % NUM_MODES);
+  // m_pState->StartBlend(&temp, m_fAnimTime, m_fBlendTimeUser);
 }
 
 //----------------------------------------------------------------------
@@ -707,7 +708,7 @@ void CPlugin::SetMenusForPresetVersion(int WarpPSVersion, int CompPSVersion) {
 void CPlugin::BuildMenus() {
   wchar_t buf[1024];
 
-  m_pCurMenu = &m_menuPreset;//&m_menuMain;
+  m_pCurMenu = &m_menuPreset;  //&m_menuMain;
 
   m_menuPreset.Init(wasabiApiLangString(IDS_EDIT_CURRENT_PRESET));
   m_menuMotion.Init(wasabiApiLangString(IDS_MOTION));
@@ -744,39 +745,39 @@ void CPlugin::BuildMenus() {
 
   // NOTE: all of the eval menuitems use a CALLBACK function to register the user's changes (see last param)
   m_menuPreset.AddItem(wasabiApiLangString(IDS_MENU_EDIT_PRESET_INIT_CODE),
-    &m_pState->m_szPerFrameInit, MENUITEMTYPE_STRING,
-    wasabiApiLangString(IDS_MENU_EDIT_PRESET_INIT_CODE_TT, buf, 1024),
-    256, 0, &OnUserEditedPresetInit, sizeof(m_pState->m_szPerFrameInit), 0);
+                       &m_pState->m_szPerFrameInit, MENUITEMTYPE_STRING,
+                       wasabiApiLangString(IDS_MENU_EDIT_PRESET_INIT_CODE_TT, buf, 1024),
+                       256, 0, &OnUserEditedPresetInit, sizeof(m_pState->m_szPerFrameInit), 0);
 
   m_menuPreset.AddItem(wasabiApiLangString(IDS_MENU_EDIT_PER_FRAME_EQUATIONS),
-    &m_pState->m_szPerFrameExpr, MENUITEMTYPE_STRING,
-    wasabiApiLangString(IDS_MENU_EDIT_PER_FRAME_EQUATIONS_TT, buf, 1024),
-    256, 0, &OnUserEditedPerFrame, sizeof(m_pState->m_szPerFrameExpr), 0);
+                       &m_pState->m_szPerFrameExpr, MENUITEMTYPE_STRING,
+                       wasabiApiLangString(IDS_MENU_EDIT_PER_FRAME_EQUATIONS_TT, buf, 1024),
+                       256, 0, &OnUserEditedPerFrame, sizeof(m_pState->m_szPerFrameExpr), 0);
 
   m_menuPreset.AddItem(wasabiApiLangString(IDS_MENU_EDIT_PER_VERTEX_EQUATIONS),
-    &m_pState->m_szPerPixelExpr, MENUITEMTYPE_STRING,
-    wasabiApiLangString(IDS_MENU_EDIT_PER_VERTEX_EQUATIONS_TT, buf, 1024),
-    256, 0, &OnUserEditedPerPixel, sizeof(m_pState->m_szPerPixelExpr), 0);
+                       &m_pState->m_szPerPixelExpr, MENUITEMTYPE_STRING,
+                       wasabiApiLangString(IDS_MENU_EDIT_PER_VERTEX_EQUATIONS_TT, buf, 1024),
+                       256, 0, &OnUserEditedPerPixel, sizeof(m_pState->m_szPerPixelExpr), 0);
 
   m_menuPreset.AddItem(wasabiApiLangString(IDS_MENU_EDIT_WARP_SHADER),
-    &m_pState->m_szWarpShadersText, MENUITEMTYPE_STRING,
-    wasabiApiLangString(IDS_MENU_EDIT_WARP_SHADER_TT, buf, 1024),
-    256, 0, &OnUserEditedWarpShaders, sizeof(m_pState->m_szWarpShadersText), 0);
+                       &m_pState->m_szWarpShadersText, MENUITEMTYPE_STRING,
+                       wasabiApiLangString(IDS_MENU_EDIT_WARP_SHADER_TT, buf, 1024),
+                       256, 0, &OnUserEditedWarpShaders, sizeof(m_pState->m_szWarpShadersText), 0);
 
   m_menuPreset.AddItem(wasabiApiLangString(IDS_MENU_EDIT_COMPOSITE_SHADER),
-    &m_pState->m_szCompShadersText, MENUITEMTYPE_STRING,
-    wasabiApiLangString(IDS_MENU_EDIT_COMPOSITE_SHADER_TT, buf, 1024),
-    256, 0, &OnUserEditedCompShaders, sizeof(m_pState->m_szCompShadersText), 0);
+                       &m_pState->m_szCompShadersText, MENUITEMTYPE_STRING,
+                       wasabiApiLangString(IDS_MENU_EDIT_COMPOSITE_SHADER_TT, buf, 1024),
+                       256, 0, &OnUserEditedCompShaders, sizeof(m_pState->m_szCompShadersText), 0);
 
   m_menuPreset.AddItem(wasabiApiLangString(IDS_MENU_EDIT_UPGRADE_PRESET_PS_VERSION),
-    (void*)UI_UPGRADE_PIXEL_SHADER, MENUITEMTYPE_UIMODE,
-    wasabiApiLangString(IDS_MENU_EDIT_UPGRADE_PRESET_PS_VERSION_TT, buf, 1024),
-    0, 0, NULL, UI_UPGRADE_PIXEL_SHADER, 0);
+                       (void*)UI_UPGRADE_PIXEL_SHADER, MENUITEMTYPE_UIMODE,
+                       wasabiApiLangString(IDS_MENU_EDIT_UPGRADE_PRESET_PS_VERSION_TT, buf, 1024),
+                       0, 0, NULL, UI_UPGRADE_PIXEL_SHADER, 0);
 
   m_menuPreset.AddItem(wasabiApiLangString(IDS_MENU_EDIT_DO_A_PRESET_MASH_UP),
-    (void*)UI_MASHUP, MENUITEMTYPE_UIMODE,
-    wasabiApiLangString(IDS_MENU_EDIT_DO_A_PRESET_MASH_UP_TT, buf, 1024),
-    0, 0, NULL, UI_MASHUP, 0);
+                       (void*)UI_MASHUP, MENUITEMTYPE_UIMODE,
+                       wasabiApiLangString(IDS_MENU_EDIT_DO_A_PRESET_MASH_UP_TT, buf, 1024),
+                       0, 0, NULL, UI_MASHUP, 0);
 
   //-------------------------------------------
 
@@ -843,7 +844,7 @@ void CPlugin::BuildMenus() {
   m_menuPost.AddItem(MEN_T(IDS_MENU_VIDEO_ECHO_ZOOM), &m_pState->m_fVideoEchoZoom, MENUITEMTYPE_LOGBLENDABLE, MEN_TT(IDS_MENU_VIDEO_ECHO_ZOOM_TT));
   m_menuPost.AddItem(MEN_T(IDS_MENU_VIDEO_ECHO_ORIENTATION), &m_pState->m_nVideoEchoOrientation, MENUITEMTYPE_INT, MEN_TT(IDS_MENU_VIDEO_ECHO_ORIENTATION_TT), 0.0f, 3.0f);
   m_menuPost.AddItem(MEN_T(IDS_MENU_TEXTURE_WRAP), &m_pState->m_bTexWrap, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_TEXTURE_WRAP_TT));
-  //m_menuPost.AddItem("stereo 3D",               &m_pState->m_bRedBlueStereo,        MENUITEMTYPE_BOOL, "displays the image in stereo 3D; you need 3D glasses (with red and blue lenses) for this.");
+  // m_menuPost.AddItem("stereo 3D",               &m_pState->m_bRedBlueStereo,        MENUITEMTYPE_BOOL, "displays the image in stereo 3D; you need 3D glasses (with red and blue lenses) for this.");
   m_menuPost.AddItem(MEN_T(IDS_MENU_FILTER_INVERT), &m_pState->m_bInvert, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_FILTER_INVERT_TT));
   m_menuPost.AddItem(MEN_T(IDS_MENU_FILTER_BRIGHTEN), &m_pState->m_bBrighten, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_FILTER_BRIGHTEN_TT));
   m_menuPost.AddItem(MEN_T(IDS_MENU_FILTER_DARKEN), &m_pState->m_bDarken, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_FILTER_DARKEN_TT));
@@ -858,19 +859,19 @@ void CPlugin::BuildMenus() {
 
   for (i = 0; i < MAX_CUSTOM_WAVES; i++) {
     // blending: do both; fade opacities in/out (w/exagerrated weighting)
-    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_ENABLED), &m_pState->m_wave[i].enabled, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ENABLED_TT)); // bool
-    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_NUMBER_OF_SAMPLES), &m_pState->m_wave[i].samples, MENUITEMTYPE_INT, MEN_TT(IDS_MENU_NUMBER_OF_SAMPLES_TT), 2, 512);        // 0-512
-    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_L_R_SEPARATION), &m_pState->m_wave[i].sep, MENUITEMTYPE_INT, MEN_TT(IDS_MENU_L_R_SEPARATION_TT), 0, 256);        // 0-512
+    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_ENABLED), &m_pState->m_wave[i].enabled, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ENABLED_TT));                             // bool
+    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_NUMBER_OF_SAMPLES), &m_pState->m_wave[i].samples, MENUITEMTYPE_INT, MEN_TT(IDS_MENU_NUMBER_OF_SAMPLES_TT), 2, 512);  // 0-512
+    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_L_R_SEPARATION), &m_pState->m_wave[i].sep, MENUITEMTYPE_INT, MEN_TT(IDS_MENU_L_R_SEPARATION_TT), 0, 256);            // 0-512
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_SCALING), &m_pState->m_wave[i].scaling, MENUITEMTYPE_LOGFLOAT, MEN_TT(IDS_MENU_SCALING_TT));
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_SMOOTH), &m_pState->m_wave[i].smoothing, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_SMOOTHING_TT), 0, 1);
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_COLOR_RED), &m_pState->m_wave[i].r, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_COLOR_RED_TT), 0, 1);
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_COLOR_GREEN), &m_pState->m_wave[i].g, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_COLOR_GREEN_TT), 0, 1);
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_COLOR_BLUE), &m_pState->m_wave[i].b, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_COLOR_BLUE_TT), 0, 1);
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_OPACITY), &m_pState->m_wave[i].a, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_OPACITY_WAVE_TT), 0, 1);
-    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_USE_SPECTRUM), &m_pState->m_wave[i].bSpectrum, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_USE_SPECTRUM_TT));        // 0-5 [0=wave left, 1=wave center, 2=wave right; 3=spectrum left, 4=spec center, 5=spec right]
-    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_USE_DOTS), &m_pState->m_wave[i].bUseDots, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_USE_DOTS_WAVE_TT)); // bool
-    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_DRAW_THICK), &m_pState->m_wave[i].bDrawThick, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_DRAW_THICK_WAVE_TT)); // bool
-    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_ADDITIVE_DRAWING), &m_pState->m_wave[i].bAdditive, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ADDITIVE_DRAWING_WAVE_TT)); // bool
+    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_USE_SPECTRUM), &m_pState->m_wave[i].bSpectrum, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_USE_SPECTRUM_TT));               // 0-5 [0=wave left, 1=wave center, 2=wave right; 3=spectrum left, 4=spec center, 5=spec right]
+    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_USE_DOTS), &m_pState->m_wave[i].bUseDots, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_USE_DOTS_WAVE_TT));                   // bool
+    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_DRAW_THICK), &m_pState->m_wave[i].bDrawThick, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_DRAW_THICK_WAVE_TT));             // bool
+    m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_ADDITIVE_DRAWING), &m_pState->m_wave[i].bAdditive, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ADDITIVE_DRAWING_WAVE_TT));  // bool
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_EXPORT_TO_FILE), (void*)UI_EXPORT_WAVE, MENUITEMTYPE_UIMODE, MEN_TT(IDS_MENU_EXPORT_TO_FILE_TT), 0, 0, NULL, UI_EXPORT_WAVE, i);
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_IMPORT_FROM_FILE), (void*)UI_IMPORT_WAVE, MENUITEMTYPE_UIMODE, MEN_TT(IDS_MENU_IMPORT_FROM_FILE_TT), 0, 0, NULL, UI_IMPORT_WAVE, i);
     m_menuWavecode[i].AddItem(MEN_T(IDS_MENU_EDIT_INIT_CODE), &m_pState->m_wave[i].m_szInit, MENUITEMTYPE_STRING, MEN_TT(IDS_MENU_EDIT_INIT_CODE_TT), 256, 0, &OnUserEditedWavecodeInit, sizeof(m_pState->m_wave[i].m_szInit), 0);
@@ -880,18 +881,18 @@ void CPlugin::BuildMenus() {
 
   for (i = 0; i < MAX_CUSTOM_SHAPES; i++) {
     // blending: do both; fade opacities in/out (w/exagerrated weighting)
-    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_ENABLED), &m_pState->m_shape[i].enabled, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ENABLED_SHAPE_TT)); // bool
+    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_ENABLED), &m_pState->m_shape[i].enabled, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ENABLED_SHAPE_TT));  // bool
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_NUMBER_OF_INSTANCES), &m_pState->m_shape[i].instances, MENUITEMTYPE_INT, MEN_TT(IDS_MENU_NUMBER_OF_INSTANCES_TT), 1, 1024);
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_NUMBER_OF_SIDES), &m_pState->m_shape[i].sides, MENUITEMTYPE_INT, MEN_TT(IDS_MENU_NUMBER_OF_SIDES_TT), 3, 100);
-    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_DRAW_THICK), &m_pState->m_shape[i].thickOutline, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_DRAW_THICK_SHAPE_TT)); // bool
-    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_ADDITIVE_DRAWING), &m_pState->m_shape[i].additive, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ADDITIVE_DRAWING_SHAPE_TT)); // bool
+    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_DRAW_THICK), &m_pState->m_shape[i].thickOutline, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_DRAW_THICK_SHAPE_TT));          // bool
+    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_ADDITIVE_DRAWING), &m_pState->m_shape[i].additive, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_ADDITIVE_DRAWING_SHAPE_TT));  // bool
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_X_POSITION), &m_pState->m_shape[i].x, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_X_POSITION_TT), 0, 1);
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_Y_POSITION), &m_pState->m_shape[i].y, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_Y_POSITION_TT), 0, 1);
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_RADIUS), &m_pState->m_shape[i].rad, MENUITEMTYPE_LOGFLOAT, MEN_TT(IDS_MENU_RADIUS_TT));
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_ANGLE), &m_pState->m_shape[i].ang, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_ANGLE_TT), 0, 3.1415927f * 2.0f);
-    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_TEXTURED), &m_pState->m_shape[i].textured, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_TEXTURED_TT)); // bool
-    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_TEXTURE_ZOOM), &m_pState->m_shape[i].tex_zoom, MENUITEMTYPE_LOGFLOAT, MEN_TT(IDS_MENU_TEXTURE_ZOOM_TT)); // bool
-    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_TEXTURE_ANGLE), &m_pState->m_shape[i].tex_ang, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_TEXTURE_ANGLE_TT), 0, 3.1415927f * 2.0f); // bool
+    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_TEXTURED), &m_pState->m_shape[i].textured, MENUITEMTYPE_BOOL, MEN_TT(IDS_MENU_TEXTURED_TT));                                  // bool
+    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_TEXTURE_ZOOM), &m_pState->m_shape[i].tex_zoom, MENUITEMTYPE_LOGFLOAT, MEN_TT(IDS_MENU_TEXTURE_ZOOM_TT));                      // bool
+    m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_TEXTURE_ANGLE), &m_pState->m_shape[i].tex_ang, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_TEXTURE_ANGLE_TT), 0, 3.1415927f * 2.0f);  // bool
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_INNER_COLOR_RED), &m_pState->m_shape[i].r, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_INNER_COLOR_RED_TT), 0, 1);
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_INNER_COLOR_GREEN), &m_pState->m_shape[i].g, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_INNER_COLOR_GREEN_TT), 0, 1);
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_INNER_COLOR_BLUE), &m_pState->m_shape[i].b, MENUITEMTYPE_FLOAT, MEN_TT(IDS_MENU_INNER_COLOR_BLUE_TT), 0, 1);
@@ -908,7 +909,7 @@ void CPlugin::BuildMenus() {
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_IMPORT_FROM_FILE), NULL, MENUITEMTYPE_UIMODE, MEN_TT(IDS_MENU_IMPORT_FROM_FILE_SHAPE_TT), 0, 0, NULL, UI_IMPORT_SHAPE, i);
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_EDIT_INIT_CODE), &m_pState->m_shape[i].m_szInit, MENUITEMTYPE_STRING, MEN_TT(IDS_MENU_EDIT_INIT_CODE_SHAPE_TT), 256, 0, &OnUserEditedShapecodeInit, sizeof(m_pState->m_shape[i].m_szInit), 0);
     m_menuShapecode[i].AddItem(MEN_T(IDS_MENU_EDIT_PER_FRAME_INSTANCE_CODE), &m_pState->m_shape[i].m_szPerFrame, MENUITEMTYPE_STRING, MEN_TT(IDS_MENU_EDIT_PER_FRAME_INSTANCE_CODE_TT), 256, 0, &OnUserEditedShapecode, sizeof(m_pState->m_shape[i].m_szPerFrame), 0);
-    //m_menuShapecode[i].AddItem("[ edit per-point code ]",&m_pState->m_shape[i].m_szPerPoint,  MENUITEMTYPE_STRING, "IN: sample [0..1]; value1 [left ch], value2 [right ch], plus all vars for per-frame code / OUT: x,y; r,g,b,a; t1-t8", 256, 0, &OnUserEditedWavecode);
+    // m_menuShapecode[i].AddItem("[ edit per-point code ]",&m_pState->m_shape[i].m_szPerPoint,  MENUITEMTYPE_STRING, "IN: sample [0..1]; value1 [left ch], value2 [right ch], plus all vars for per-frame code / OUT: x,y; r,g,b,a; t1-t8", 256, 0, &OnUserEditedWavecode);
   }
 }
 
@@ -928,4 +929,3 @@ void CPlugin::dumpmsg(wchar_t* s) {
   }
 #endif
 }
-

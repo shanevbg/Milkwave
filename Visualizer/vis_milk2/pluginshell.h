@@ -38,10 +38,10 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 
 // SPOUT
-#include <string> // For std::string
-#include "io.h" // for _access
+#include <string>  // For std::string
+#include "io.h"    // for _access
 
-#define TIME_HIST_SLOTS 128     // # of slots used if fps > 60.  half this many if fps==30.
+#define TIME_HIST_SLOTS 128  // # of slots used if fps > 60.  half this many if fps==30.
 #define MAX_SONGS_PER_PAGE 40
 
 typedef struct td_fontinfo {
@@ -56,25 +56,25 @@ typedef struct td_fontinfo {
 } td_fontinfo;
 
 typedef struct {
-  float imm[2][3];                        // bass, mids, treble, no damping, for each channel (long-term average is 1)
-  float avg[2][3];                        // bass, mids, treble, some damping, for each channel (long-term average is 1)
-  float med_avg[2][3];                    // bass, mids, treble, more damping, for each channel (long-term average is 1)
-  float long_avg[2][3];                   // bass, mids, treble, heavy damping, for each channel (long-term average is 1)
-  float infinite_avg[2][3];               // bass, mids, treble: winamp's average output levels. (1)
-  float fWaveform[2][576];                // Not all 576 are valid! - only NUM_WAVEFORM_SAMPLES samples are valid for each channel (note: NUM_WAVEFORM_SAMPLES is declared in shell_defines.h)
-  float fSpectrum[2][NUM_FREQUENCIES];    // NUM_FREQUENCIES samples for each channel (note: NUM_FREQUENCIES is declared in shell_defines.h)
-} td_soundinfo;                             // ...range is 0 Hz to 22050 Hz, evenly spaced.
+  float imm[2][3];                      // bass, mids, treble, no damping, for each channel (long-term average is 1)
+  float avg[2][3];                      // bass, mids, treble, some damping, for each channel (long-term average is 1)
+  float med_avg[2][3];                  // bass, mids, treble, more damping, for each channel (long-term average is 1)
+  float long_avg[2][3];                 // bass, mids, treble, heavy damping, for each channel (long-term average is 1)
+  float infinite_avg[2][3];             // bass, mids, treble: winamp's average output levels. (1)
+  float fWaveform[2][576];              // Not all 576 are valid! - only NUM_WAVEFORM_SAMPLES samples are valid for each channel (note: NUM_WAVEFORM_SAMPLES is declared in shell_defines.h)
+  float fSpectrum[2][NUM_FREQUENCIES];  // NUM_FREQUENCIES samples for each channel (note: NUM_FREQUENCIES is declared in shell_defines.h)
+} td_soundinfo;                         // ...range is 0 Hz to 22050 Hz, evenly spaced.
 
 class CPluginShell {
-public:
+ public:
   // GET METHODS
   // ------------------------------------------------------------
-  int       GetFrame();          // returns current frame # (starts at zero)
-  float     GetTime();           // returns current animation time (in seconds) (starts at zero) (updated once per frame)
-  float     GetFps();            // returns current estimate of framerate (frames per second)
+  int GetFrame();                // returns current frame # (starts at zero)
+  float GetTime();               // returns current animation time (in seconds) (starts at zero) (updated once per frame)
+  float GetFps();                // returns current estimate of framerate (frames per second)
   HINSTANCE GetInstance();       // returns handle to the plugin DLL module; used for things like loading resources (dialogs, bitmaps, icons...) that are built into the plugin.
-  wchar_t* GetPluginsDirPath(); // usually returns 'c:\\program files\\winamp\\plugins\\'
-  wchar_t* GetConfigIniFile();  // usually returns 'c:\\program files\\winamp\\plugins\\something.ini' - filename is determined from identifiers in 'defines.h'
+  wchar_t* GetPluginsDirPath();  // usually returns 'c:\\program files\\winamp\\plugins\\'
+  wchar_t* GetConfigIniFile();   // usually returns 'c:\\program files\\winamp\\plugins\\something.ini' - filename is determined from identifiers in 'defines.h'
   char* GetConfigIniFileA();
   void SetVariableBackBuffer(int width, int height);
 
@@ -84,70 +84,68 @@ public:
   void UpdateBackBufferTracking(int width, int height);
 
   D3DPRESENT_PARAMETERS d3dPp;
-  DXContext* m_lpDX;            // pointer to DXContext object
+  DXContext* m_lpDX;  // pointer to DXContext object
 
-protected:
-
+ protected:
   // GET METHODS THAT ONLY WORK ONCE DIRECTX IS READY
   // ------------------------------------------------------------
   //  The following 'Get' methods are only available after DirectX has been initialized.
   //  If you call these from OverrideDefaults, MyPreInitialize, or MyReadConfig,
   //    they will return NULL (zero).
   // ------------------------------------------------------------
-  HWND         GetPluginWindow();      // returns handle to the plugin window.  NOT persistent; can change!
-  int          GetWidth();             // returns width of plugin window interior, in pixels.  Note: in windowed mode, this is a fudged, larger, aligned value, and on final display, it gets cropped.
-  int          GetHeight();            // returns height of plugin window interior, in pixels. Note: in windowed mode, this is a fudged, larger, aligned value, and on final display, it gets cropped.
-  int          GetBitDepth();          // returns 8, 16, 24 (rare), or 32
-  LPDIRECT3DDEVICE9EX  GetDevice();    // returns a pointer to the DirectX 8 Device.  NOT persistent; can change!
+  HWND GetPluginWindow();           // returns handle to the plugin window.  NOT persistent; can change!
+  int GetWidth();                   // returns width of plugin window interior, in pixels.  Note: in windowed mode, this is a fudged, larger, aligned value, and on final display, it gets cropped.
+  int GetHeight();                  // returns height of plugin window interior, in pixels. Note: in windowed mode, this is a fudged, larger, aligned value, and on final display, it gets cropped.
+  int GetBitDepth();                // returns 8, 16, 24 (rare), or 32
+  LPDIRECT3DDEVICE9EX GetDevice();  // returns a pointer to the DirectX 8 Device.  NOT persistent; can change!
   D3DCAPS9* GetCaps();              // returns a pointer to the D3DCAPS9 structer for the device.  NOT persistent; can change.
-  D3DFORMAT    GetBackBufFormat();     // returns the pixelformat of the back buffer (probably D3DFMT_R8G8B8, D3DFMT_A8R8G8B8, D3DFMT_X8R8G8B8, D3DFMT_R5G6B5, D3DFMT_X1R5G5B5, D3DFMT_A1R5G5B5, D3DFMT_A4R4G4B4, D3DFMT_R3G3B2, D3DFMT_A8R3G3B2, D3DFMT_X4R4G4B4, or D3DFMT_UNKNOWN)
-  D3DFORMAT    GetBackBufZFormat();    // returns the pixelformat of the back buffer's Z buffer (probably D3DFMT_D16_LOCKABLE, D3DFMT_D32, D3DFMT_D15S1, D3DFMT_D24S8, D3DFMT_D16, D3DFMT_D24X8, D3DFMT_D24X4S4, or D3DFMT_UNKNOWN)
-  char* GetDriverFilename();    // returns a text string with the filename of the current display adapter driver, such as "nv4_disp.dll"
-  char* GetDriverDescription(); // returns a text string describing the current display adapter, such as "NVIDIA GeForce4 Ti 4200"
+  D3DFORMAT GetBackBufFormat();     // returns the pixelformat of the back buffer (probably D3DFMT_R8G8B8, D3DFMT_A8R8G8B8, D3DFMT_X8R8G8B8, D3DFMT_R5G6B5, D3DFMT_X1R5G5B5, D3DFMT_A1R5G5B5, D3DFMT_A4R4G4B4, D3DFMT_R3G3B2, D3DFMT_A8R3G3B2, D3DFMT_X4R4G4B4, or D3DFMT_UNKNOWN)
+  D3DFORMAT GetBackBufZFormat();    // returns the pixelformat of the back buffer's Z buffer (probably D3DFMT_D16_LOCKABLE, D3DFMT_D32, D3DFMT_D15S1, D3DFMT_D24S8, D3DFMT_D16, D3DFMT_D24X8, D3DFMT_D24X4S4, or D3DFMT_UNKNOWN)
+  char* GetDriverFilename();        // returns a text string with the filename of the current display adapter driver, such as "nv4_disp.dll"
+  char* GetDriverDescription();     // returns a text string describing the current display adapter, such as "NVIDIA GeForce4 Ti 4200"
 
   // FONTS & TEXT
   // ------------------------------------------------------------
-public:
-  LPD3DXFONT   GetFont(eFontIndex idx);       // returns a D3DX font handle for drawing text; see shell_defines.h for the definition of the 'eFontIndex' enum.
-  int          GetFontHeight(eFontIndex idx); // returns the height of the font, in pixels; see shell_defines.h for the definition of the 'eFontIndex' enum.
+ public:
+  LPD3DXFONT GetFont(eFontIndex idx);  // returns a D3DX font handle for drawing text; see shell_defines.h for the definition of the 'eFontIndex' enum.
+  int GetFontHeight(eFontIndex idx);   // returns the height of the font, in pixels; see shell_defines.h for the definition of the 'eFontIndex' enum.
   CTextManager m_text;
-  
-  wchar_t      m_szBaseDir[MAX_PATH]; 
 
-protected:
+  wchar_t m_szBaseDir[MAX_PATH];
 
+ protected:
   // MISC
   // ------------------------------------------------------------
-  td_soundinfo m_sound;                   // a structure always containing the most recent sound analysis information; defined in pluginshell.h.
-  void         SuggestHowToFreeSomeMem(); // gives the user a 'smart' messagebox that suggests how they can free up some video memory.
+  td_soundinfo m_sound;            // a structure always containing the most recent sound analysis information; defined in pluginshell.h.
+  void SuggestHowToFreeSomeMem();  // gives the user a 'smart' messagebox that suggests how they can free up some video memory.
 
   // CONFIG PANEL SETTINGS
   // ------------------------------------------------------------
   // *** only read/write these values during CPlugin::OverrideDefaults! ***
-  int          m_start_fullscreen;        // 0 or 1
-  int          m_start_desktop;           // 0 or 1
-  int          m_fake_fullscreen_mode;    // 0 or 1
-  int          m_max_fps_fs;              // 1-120, or 0 for 'unlimited'
-  int          m_max_fps_dm;              // 1-120, or 0 for 'unlimited'
-  int          m_max_fps_w;               // 1-120, or 0 for 'unlimited'
-  int          m_show_press_f1_msg;       // 0 or 1
-  int          m_allow_page_tearing_w;    // 0 or 1
-  int          m_allow_page_tearing_fs;   // 0 or 1
-  int          m_allow_page_tearing_dm;   // 0 or 1
-  int          m_minimize_winamp;         // 0 or 1
-  int          m_desktop_show_icons;      // 0 or 1
-  int          m_desktop_textlabel_boxes; // 0 or 1
-  int          m_desktop_manual_icon_scoot; // 0 or 1
-  int          m_desktop_555_fix;         // 0 = 555, 1 = 565, 2 = 888
-  int          m_dualhead_horz;           // 0 = both, 1 = left, 2 = right
-  int          m_dualhead_vert;           // 0 = both, 1 = top, 2 = bottom
-  int          m_save_cpu;                // 0 or 1
-  int          m_skin;                    // 0 or 1
-  int          m_fix_slow_text;           // 0 or 1
-  td_fontinfo  m_fontinfo[NUM_BASIC_FONTS + NUM_EXTRA_FONTS];
+  int m_start_fullscreen;           // 0 or 1
+  int m_start_desktop;              // 0 or 1
+  int m_fake_fullscreen_mode;       // 0 or 1
+  int m_max_fps_fs;                 // 1-120, or 0 for 'unlimited'
+  int m_max_fps_dm;                 // 1-120, or 0 for 'unlimited'
+  int m_max_fps_w;                  // 1-120, or 0 for 'unlimited'
+  int m_show_press_f1_msg;          // 0 or 1
+  int m_allow_page_tearing_w;       // 0 or 1
+  int m_allow_page_tearing_fs;      // 0 or 1
+  int m_allow_page_tearing_dm;      // 0 or 1
+  int m_minimize_winamp;            // 0 or 1
+  int m_desktop_show_icons;         // 0 or 1
+  int m_desktop_textlabel_boxes;    // 0 or 1
+  int m_desktop_manual_icon_scoot;  // 0 or 1
+  int m_desktop_555_fix;            // 0 = 555, 1 = 565, 2 = 888
+  int m_dualhead_horz;              // 0 = both, 1 = left, 2 = right
+  int m_dualhead_vert;              // 0 = both, 1 = top, 2 = bottom
+  int m_save_cpu;                   // 0 or 1
+  int m_skin;                       // 0 or 1
+  int m_fix_slow_text;              // 0 or 1
+  td_fontinfo m_fontinfo[NUM_BASIC_FONTS + NUM_EXTRA_FONTS];
 
   // SPOUT - DX9EX
-  D3DDISPLAYMODEEX m_disp_mode_fs;          // a D3DDISPLAYMODE struct that specifies the width, height, refresh rate, and color format to use when the plugin goes fullscreen.
+  D3DDISPLAYMODEEX m_disp_mode_fs;  // a D3DDISPLAYMODE struct that specifies the width, height, refresh rate, and color format to use when the plugin goes fullscreen.
 
   // PURE VIRTUAL FUNCTIONS (...must be implemented by derived classes)
   // ------------------------------------------------------------
@@ -155,14 +153,14 @@ protected:
   virtual void MyPreInitialize() = 0;
   virtual void MyReadConfig() = 0;
   virtual void MyWriteConfig() = 0;
-  virtual int  AllocateMyNonDx9Stuff() = 0;
-  virtual void  CleanUpMyNonDx9Stuff() = 0;
-  virtual int  AllocateMyDX9Stuff() = 0;
-  virtual void  CleanUpMyDX9Stuff(int final_cleanup) = 0;
+  virtual int AllocateMyNonDx9Stuff() = 0;
+  virtual void CleanUpMyNonDx9Stuff() = 0;
+  virtual int AllocateMyDX9Stuff() = 0;
+  virtual void CleanUpMyDX9Stuff(int final_cleanup) = 0;
   virtual void MyRenderFn(int redraw) = 0;
   virtual void MyRenderUI(int* upper_left_corner_y, int* upper_right_corner_y, int* lower_left_corner_y, int* lower_right_corner_y, int xL, int xR) = 0;
   virtual LRESULT MyWindowProc(HWND hWnd, unsigned uMsg, WPARAM wParam, LPARAM lParam) = 0;
-  virtual void OnAltK() {}; // doesn't *have* to be implemented
+  virtual void OnAltK() {};  // doesn't *have* to be implemented
   virtual void SetAMDFlag() = 0;
 
   int m_show_help;
@@ -180,7 +178,7 @@ protected:
   float m_ColShiftBrightness = 0.0f;
 
   float m_fFFTAttackGlobal = 0.5f;  // global FFT attack (0..1), controlled by Remote
-  float m_fFFTDecayGlobal  = 0.7f;  // global FFT decay  (0..1), controlled by Remote
+  float m_fFFTDecayGlobal = 0.7f;   // global FFT decay  (0..1), controlled by Remote
 
   bool m_AutoHue = false;
   float m_AutoHueSeconds = 0.02f;
@@ -188,23 +186,22 @@ protected:
 
   float m_fRenderQuality = 1.0f;
   //=====================================================================================================================
-private:
-
+ private:
   // GENERAL PRIVATE STUFF
-  int          m_frame;           // current frame #, starting at zero
-  double        m_time;            // current animation time in seconds; starts at zero.
-  float        m_fps;             // current estimate of frames per second
-  HINSTANCE    m_hInstance;       // handle to application instance
-  wchar_t      m_szPluginsDirPath[MAX_PATH];  // usually 'c:\\program files\\winamp\\plugins\\'
-  wchar_t      m_szConfigIniFile[MAX_PATH];   // usually 'c:\\program files\\winamp\\plugins\\something.ini' - filename is determined from identifiers in 'defines.h'
-  char         m_szConfigIniFileA[MAX_PATH];   // usually 'c:\\program files\\winamp\\plugins\\something.ini' - filename is determined from identifiers in 'defines.h'
+  int m_frame;                           // current frame #, starting at zero
+  double m_time;                         // current animation time in seconds; starts at zero.
+  float m_fps;                           // current estimate of frames per second
+  HINSTANCE m_hInstance;                 // handle to application instance
+  wchar_t m_szPluginsDirPath[MAX_PATH];  // usually 'c:\\program files\\winamp\\plugins\\'
+  wchar_t m_szConfigIniFile[MAX_PATH];   // usually 'c:\\program files\\winamp\\plugins\\something.ini' - filename is determined from identifiers in 'defines.h'
+  char m_szConfigIniFileA[MAX_PATH];     // usually 'c:\\program files\\winamp\\plugins\\something.ini' - filename is determined from identifiers in 'defines.h'
 
   // FONTS
   IDirect3DTexture9* m_lpDDSText;
-  LPD3DXFONT   m_d3dx_font[NUM_BASIC_FONTS + NUM_EXTRA_FONTS];
-  LPD3DXFONT   m_d3dx_desktop_font;
-  HFONT        m_font[NUM_BASIC_FONTS + NUM_EXTRA_FONTS];
-  HFONT        m_font_desktop;
+  LPD3DXFONT m_d3dx_font[NUM_BASIC_FONTS + NUM_EXTRA_FONTS];
+  LPD3DXFONT m_d3dx_desktop_font;
+  HFONT m_font[NUM_BASIC_FONTS + NUM_EXTRA_FONTS];
+  HFONT m_font_desktop;
 
   // PRIVATE CONFIG PANEL SETTINGS
   D3DMULTISAMPLE_TYPE m_multisample_fullscreen;
@@ -218,16 +215,16 @@ private:
   char m_adapter_devicename_windowed[256];    //  drives two displays!  DeviceName will be \\.\Display1 and \\.\Display2 or something.
 
   // PRIVATE RUNTIME SETTINGS
-  int m_lost_focus;     // ~mostly for fullscreen mode
-  int m_hidden;         // ~mostly for windowed mode
-  int m_resizing;       // ~mostly for windowed mode
+  int m_lost_focus;  // ~mostly for fullscreen mode
+  int m_hidden;      // ~mostly for windowed mode
+  int m_resizing;    // ~mostly for windowed mode
   int m_show_playlist;
-  int  m_playlist_pos;            // current selection on (plugin's) playlist menu
-  int  m_playlist_pageups;        // can be + or -
-  int  m_playlist_top_idx;        // used to track when our little playlist cache (m_playlist) needs updated.
-  int  m_playlist_btm_idx;        // used to track when our little playlist cache (m_playlist) needs updated.
-  int  m_playlist_width_pixels;   // considered invalid whenever 'm_playlist_top_idx' is -1.
-  wchar_t m_playlist[MAX_SONGS_PER_PAGE][256];   // considered invalid whenever 'm_playlist_top_idx' is -1.
+  int m_playlist_pos;                           // current selection on (plugin's) playlist menu
+  int m_playlist_pageups;                       // can be + or -
+  int m_playlist_top_idx;                       // used to track when our little playlist cache (m_playlist) needs updated.
+  int m_playlist_btm_idx;                       // used to track when our little playlist cache (m_playlist) needs updated.
+  int m_playlist_width_pixels;                  // considered invalid whenever 'm_playlist_top_idx' is -1.
+  wchar_t m_playlist[MAX_SONGS_PER_PAGE][256];  // considered invalid whenever 'm_playlist_top_idx' is -1.
   int m_exiting;
   int m_upper_left_corner_y;
   int m_lower_left_corner_y;
@@ -239,34 +236,34 @@ private:
   int m_screen_pixels = -1;
 
   // PRIVATE - DESKTOP MODE STUFF
-  bool                m_bClearVJWindow;
+  bool m_bClearVJWindow;
 
   // PRIVATE - MORE TIMEKEEPING
-protected:
+ protected:
   double m_last_raw_time;
   LARGE_INTEGER m_high_perf_timer_freq;  // 0 if high-precision timer not available
-private:
-  float  m_time_hist[TIME_HIST_SLOTS];		// cumulative
-  int    m_time_hist_pos;
+ private:
+  float m_time_hist[TIME_HIST_SLOTS];  // cumulative
+  int m_time_hist_pos;
   LARGE_INTEGER m_prev_end_of_frame;
 
   // PRIVATE AUDIO PROCESSING DATA
-  FFT   m_fftobj;
-  float m_oldwave[2][576];        // for wave alignment
-  int   m_prev_align_offset[2];   // for wave alignment
-  int   m_align_weights_ready;
+  FFT m_fftobj;
+  float m_oldwave[2][576];     // for wave alignment
+  int m_prev_align_offset[2];  // for wave alignment
+  int m_align_weights_ready;
 
-public:
+ public:
   CPluginShell();
   ~CPluginShell();
 
   // called by vis.cpp, on behalf of Winamp:
-  int  PluginPreInitialize(HWND hWinampWnd, HINSTANCE hWinampInstance);
+  int PluginPreInitialize(HWND hWinampWnd, HINSTANCE hWinampInstance);
 
   // SPOUT - DX9EX
   int PluginInitialize(LPDIRECT3DDEVICE9EX device, D3DPRESENT_PARAMETERS* d3dpp, HWND hwnd, int iWidth, int iHeight);
 
-  int  PluginRender(unsigned char* pWaveL, unsigned char* pWaveR);
+  int PluginRender(unsigned char* pWaveL, unsigned char* pWaveR);
   void PluginQuit();
 
   void ToggleHelp();
@@ -277,13 +274,13 @@ public:
   void ReadConfig();
   void WriteConfig();
 
-  int  AllocateDX9Stuff();
+  int AllocateDX9Stuff();
   DWORD GetFontColor(int fontIndex);
 
   bool IsSpoutActiveAndFixed();
   void OnUserResizeWindow();
   void CleanUpFonts();
-  int  AllocateFonts(IDirect3DDevice9* pDevice);
+  int AllocateFonts(IDirect3DDevice9* pDevice);
 
   // config panel / windows messaging processes:
   static LRESULT CALLBACK WindowProc(HWND hWnd, unsigned uMsg, WPARAM wParam, LPARAM lParam);
@@ -295,90 +292,92 @@ public:
   static INT_PTR CALLBACK DesktopOptionsDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
   static INT_PTR CALLBACK DualheadDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-private:
+ private:
   void DrawAndDisplay(int redraw);
   void DoTime();
   void AnalyzeNewSound(unsigned char* pWaveL, unsigned char* pWaveR);
   void AlignWaves();
 
   // SPOUT - DX9EX
-  int  InitDirectX(LPDIRECT3DDEVICE9EX device, D3DPRESENT_PARAMETERS* d3dpp, HWND hwnd);
+  int InitDirectX(LPDIRECT3DDEVICE9EX device, D3DPRESENT_PARAMETERS* d3dpp, HWND hwnd);
 
   void CleanUpDirectX();
-  int  InitGDIStuff();
+  int InitGDIStuff();
   void CleanUpGDIStuff();
   void CleanUpDX9Stuff(int final_cleanup);
-  int  InitNondx9Stuff();
+  int InitNondx9Stuff();
   void CleanUpNondx9Stuff();
-  int  InitVJStuff(RECT* pClientRect = NULL);
+  int InitVJStuff(RECT* pClientRect = NULL);
   void CleanUpVJStuff();
   void AllocateTextSurface();
   void OnUserResizeTextWindow();
   void PrepareFor2DDrawing_B(IDirect3DDevice9* pDevice, int w, int h);
   void RenderBuiltInTextMsgs();
-  int  GetCanvasMarginX();     // returns the # of pixels that exist on the canvas, on each side, that the user will never see.  Mainly here for windowed mode, where sometimes, up to 15 pixels get cropped at edges of the screen.
-  int  GetCanvasMarginY();     // returns the # of pixels that exist on the canvas, on each side, that the user will never see.  Mainly here for windowed mode, where sometimes, up to 15 pixels get cropped at edges of the screen.
-public:
+  int GetCanvasMarginX();  // returns the # of pixels that exist on the canvas, on each side, that the user will never see.  Mainly here for windowed mode, where sometimes, up to 15 pixels get cropped at edges of the screen.
+  int GetCanvasMarginY();  // returns the # of pixels that exist on the canvas, on each side, that the user will never see.  Mainly here for windowed mode, where sometimes, up to 15 pixels get cropped at edges of the screen.
+ public:
   void DrawDarkTranslucentBox(RECT* pr);
 
   void DrawDarkTranslucentBoxFullWindow();
 
-protected:
+ protected:
   void RenderPlaylist();
   void StuffParams(DXCONTEXT_PARAMS* pParams);
   void EnforceMaxFPS();
 
   // SEPARATE TEXT WINDOW (FOR VJ MODE)
-  int 		m_vj_mode;
-  int       m_hidden_textwnd;
-  int       m_resizing_textwnd;
-protected:
-  HWND		m_hTextWnd;
+  int m_vj_mode;
+  int m_hidden_textwnd;
+  int m_resizing_textwnd;
+
+ protected:
+  HWND m_hTextWnd;
   // SPOUT
-  HWND		m_hRenderWnd;
-private:
-  int		m_nTextWndWidth;
-  int		m_nTextWndHeight;
-  bool		m_bTextWindowClassRegistered;
+  HWND m_hRenderWnd;
+
+ private:
+  int m_nTextWndWidth;
+  int m_nTextWndHeight;
+  bool m_bTextWindowClassRegistered;
   LPDIRECT3D9 m_vjd3d9;
   LPDIRECT3DDEVICE9 m_vjd3d9_device;
-  //HDC		m_memDC;		// memory device context
-  //HBITMAP m_memBM, m_oldBM;
-  //HBRUSH  m_hBlackBrush;
+  // HDC		m_memDC;		// memory device context
+  // HBITMAP m_memBM, m_oldBM;
+  // HBRUSH  m_hBlackBrush;
 
   // WINDOWPROC FUNCTIONS
-public:
-  LRESULT PluginShellWindowProc(HWND hWnd, unsigned uMsg, WPARAM wParam, LPARAM lParam);   // in windowproc.cpp
+ public:
+  LRESULT PluginShellWindowProc(HWND hWnd, unsigned uMsg, WPARAM wParam, LPARAM lParam);  // in windowproc.cpp
   LRESULT PluginShellDesktopWndProc(HWND hWnd, unsigned uMsg, WPARAM wParam, LPARAM lParam);
   LRESULT PluginShellVJModeWndProc(HWND hWnd, unsigned uMsg, WPARAM wParam, LPARAM lParam);
 
-protected:
+ protected:
   // CONFIG PANEL FUNCTIONS:
-  BOOL    PluginShellConfigDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-  BOOL    PluginShellConfigTab1Proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-  BOOL    PluginShellFontDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-  BOOL    PluginShellDesktopOptionsDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-  BOOL    PluginShellDualheadDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-  bool    InitConfig(HWND hDialogWnd);
-  void    EndConfig();
-  void    UpdateAdapters(int screenmode);
-  void    UpdateFSAdapterDispModes();   // (fullscreen only)
-  void    UpdateDispModeMultiSampling(int screenmode);
-  void    UpdateMaxFps(int screenmode);
-  int     GetCurrentlySelectedAdapter(int screenmode);
-  void    SaveDisplayMode();
-  void    SaveMultiSamp(int screenmode);
-  void    SaveAdapter(int screenmode);
-  void    SaveMaxFps(int screenmode);
-  void    OnTabChanged(int nNewTab);
+  BOOL PluginShellConfigDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+  BOOL PluginShellConfigTab1Proc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+  BOOL PluginShellFontDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+  BOOL PluginShellDesktopOptionsDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+  BOOL PluginShellDualheadDialogProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+  bool InitConfig(HWND hDialogWnd);
+  void EndConfig();
+  void UpdateAdapters(int screenmode);
+  void UpdateFSAdapterDispModes();  // (fullscreen only)
+  void UpdateDispModeMultiSampling(int screenmode);
+  void UpdateMaxFps(int screenmode);
+  int GetCurrentlySelectedAdapter(int screenmode);
+  void SaveDisplayMode();
+  void SaveMultiSamp(int screenmode);
+  void SaveAdapter(int screenmode);
+  void SaveMaxFps(int screenmode);
+  void OnTabChanged(int nNewTab);
   LPDIRECT3DDEVICE9 GetTextDevice() { return (m_vjd3d9_device) ? m_vjd3d9_device : m_lpDX->m_lpDevice; }
 
   // CHANGES:
   friend class CShaderParams;
 
-public:
-  bool bSpoutOut; // Spout output on or off
-  bool bSpoutFixedSize; // Use Spout output fixed size
+ public:
+  bool bSpoutOut;        // Spout output on or off
+  bool bSpoutFixedSize;  // Use Spout output fixed size
   int nSpoutFixedWidth = 1280;
   int nSpoutFixedHeight = 720;
   bool bQualityAuto = false;

@@ -10,7 +10,7 @@
 // =====================================================================
 // Macros
 // =====================================================================
-#define FRAND ((rand() % 7381)/7380.0f)
+#define FRAND ((rand() % 7381) / 7380.0f)
 
 #ifndef clamp
 #define clamp(value, min, max) ((value) < (min) ? (min) : ((value) > (max) ? (max) : (value)))
@@ -34,9 +34,9 @@ extern int NumTotalPresetsLoaded;
 extern bool AutoLockedPreset;
 extern uint64_t LastSentMilkwaveMessage;
 
-extern CPlugin g_plugin;          // defined in main.cpp
-extern bool g_bDebugOutput;       // defined in support.cpp
-extern bool g_bDumpFileCleared;   // defined in support.cpp
+extern CPlugin g_plugin;         // defined in main.cpp
+extern bool g_bDebugOutput;      // defined in support.cpp
+extern bool g_bDumpFileCleared;  // defined in support.cpp
 
 // Vertex declarations (defined in plugin.cpp)
 extern D3DVERTEXELEMENT9 g_MyVertDecl[];

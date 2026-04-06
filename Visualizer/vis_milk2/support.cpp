@@ -35,16 +35,15 @@ bool g_bDumpFileCleared = false;
 
 //---------------------------------------------------
 void PrepareFor3DDrawing(
-  IDirect3DDevice9* pDevice,
-  int viewport_width,
-  int viewport_height,
-  float fov_in_degrees,
-  float near_clip,
-  float far_clip,
-  D3DXVECTOR3* pvEye,
-  D3DXVECTOR3* pvLookat,
-  D3DXVECTOR3* pvUp
-) {
+    IDirect3DDevice9* pDevice,
+    int viewport_width,
+    int viewport_height,
+    float fov_in_degrees,
+    float near_clip,
+    float far_clip,
+    D3DXVECTOR3* pvEye,
+    D3DXVECTOR3* pvLookat,
+    D3DXVECTOR3* pvUp) {
   // This function sets up DirectX up for 3D rendering.
   // Only call it once per frame, as it is VERY slow.
   // INPUTS:
@@ -63,7 +62,6 @@ void PrepareFor3DDrawing(
   //    2. set up the texture stages for texturing (SetTextureStageState)
   //    3. set the current vertex format (SetVertexShader)
   //    4. set up the world matrix (SetTransform(D3DTS_WORLD, &my_world_matrix))
-
 
   // set up render state to some nice defaults:
   {
@@ -122,8 +120,8 @@ void PrepareFor3DDrawing(
     // by concatenating your world and view matrices into a world-view matrix
     // that you set as the world matrix, and then setting the view matrix
     // to the identity."
-    //D3DXMatrixMultiply(&world, &world, &view);
-    //D3DXMatrixIdentity(&view);
+    // D3DXMatrixMultiply(&world, &world, &view);
+    // D3DXMatrixIdentity(&view);
   }
 }
 
@@ -154,8 +152,8 @@ void PrepareFor2DDrawing(IDirect3DDevice9* pDevice) {
 
   pDevice->SetTexture(0, NULL);
   pDevice->SetTexture(1, NULL);
-  pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);//D3DTEXF_LINEAR);
-  pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);//D3DTEXF_LINEAR);
+  pDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);  // D3DTEXF_LINEAR);
+  pDevice->SetSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);  // D3DTEXF_LINEAR);
   pDevice->SetTextureStageState(0, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
   pDevice->SetTextureStageState(1, D3DTSS_TEXTURETRANSFORMFLAGS, D3DTTFF_DISABLE);
   pDevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_MODULATE);
@@ -186,9 +184,9 @@ void PrepareFor2DDrawing(IDirect3DDevice9* pDevice) {
 //---------------------------------------------------
 
 void MakeWorldMatrix(D3DXMATRIX* pOut,
-  float xpos, float ypos, float zpos,
-  float sx, float sy, float sz,
-  float pitch, float yaw, float roll) {
+                     float xpos, float ypos, float zpos,
+                     float sx, float sy, float sz,
+                     float pitch, float yaw, float roll) {
   /*
    * The m_xPos, m_yPos, m_zPos variables contain the model's
    * location in world coordinates.
@@ -205,11 +203,11 @@ void MakeWorldMatrix(D3DXMATRIX* pOut,
     D3DXMATRIX MatRot;
     D3DXMatrixIdentity(&MatRot);
 
-    D3DXMatrixRotationX(&MatTemp, pitch);         // Pitch
+    D3DXMatrixRotationX(&MatTemp, pitch);  // Pitch
     D3DXMatrixMultiply(&MatRot, &MatRot, &MatTemp);
-    D3DXMatrixRotationY(&MatTemp, yaw);           // Yaw
+    D3DXMatrixRotationY(&MatTemp, yaw);  // Yaw
     D3DXMatrixMultiply(&MatRot, &MatRot, &MatTemp);
-    D3DXMatrixRotationZ(&MatTemp, roll);          // Roll
+    D3DXMatrixRotationZ(&MatTemp, roll);  // Roll
     D3DXMatrixMultiply(&MatRot, &MatRot, &MatTemp);
 
     D3DXMatrixMultiply(pOut, pOut, &MatRot);
@@ -225,10 +223,10 @@ void MakeWorldMatrix(D3DXMATRIX* pOut,
 }
 
 void MakeProjectionMatrix(D3DXMATRIX* pOut,
-  const float near_plane, // Distance to near clipping plane
-  const float far_plane,  // Distance to far clipping plane
-  const float fov_horiz,  // Horizontal field of view angle, in radians
-  const float fov_vert)   // Vertical field of view angle, in radians
+                          const float near_plane,  // Distance to near clipping plane
+                          const float far_plane,   // Distance to far clipping plane
+                          const float fov_horiz,   // Horizontal field of view angle, in radians
+                          const float fov_vert)    // Vertical field of view angle, in radians
 {
   float w = (float)1 / tanf(fov_horiz * 0.5f);  // 1/tan(x) == cot(x)
   float h = (float)1 / tanf(fov_vert * 0.5f);   // 1/tan(x) == cot(x)
@@ -256,57 +254,57 @@ void FormatSongTime(double seconds, wchar_t* dst) {
 
 int GetDX9TexFormatBitsPerPixel(D3DFORMAT fmt) {
   switch (fmt) {
-  case D3DFMT_DXT1:   // 64 bits for each 4x4 pixels = 4 bits per pixel.  No Alpha channel.
-    return 4; // bytes per pixel
+    case D3DFMT_DXT1:  // 64 bits for each 4x4 pixels = 4 bits per pixel.  No Alpha channel.
+      return 4;        // bytes per pixel
 
-  case D3DFMT_DXT2:   // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
-  case D3DFMT_DXT3:   // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
-  case D3DFMT_DXT4:   // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
-  case D3DFMT_DXT5:   // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
-  case D3DFMT_R3G3B2: // 8-bit RGB texture format using 3 bits for red, 3 bits for green, and 2 bits for blue.
-  case D3DFMT_A8:   // 8-bit alpha only.
-  case D3DFMT_A8P8: // 8-bit color indexed with 8 bits of alpha.
-  case D3DFMT_P8:   // 8-bit color indexed.
-  case D3DFMT_L8:   // 8-bit luminance only.
-  case D3DFMT_A4L4: // 8-bit using 4 bits each for alpha and luminance.
-    return 8;
+    case D3DFMT_DXT2:    // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
+    case D3DFMT_DXT3:    // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
+    case D3DFMT_DXT4:    // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
+    case D3DFMT_DXT5:    // 128 bits for each 4x4 pixels = 8 bits per pixel.  RGB+A.
+    case D3DFMT_R3G3B2:  // 8-bit RGB texture format using 3 bits for red, 3 bits for green, and 2 bits for blue.
+    case D3DFMT_A8:      // 8-bit alpha only.
+    case D3DFMT_A8P8:    // 8-bit color indexed with 8 bits of alpha.
+    case D3DFMT_P8:      // 8-bit color indexed.
+    case D3DFMT_L8:      // 8-bit luminance only.
+    case D3DFMT_A4L4:    // 8-bit using 4 bits each for alpha and luminance.
+      return 8;
 
-  case D3DFMT_R5G6B5:   // 16-bit RGB pixel format with 5 bits for red, 6 bits for green, and 5 bits for blue.
-  case D3DFMT_X1R5G5B5: // 16-bit pixel format where 5 bits are reserved for each color.
-  case D3DFMT_A1R5G5B5: // 16-bit pixel format where 5 bits are reserved for each color and 1 bit is reserved for alpha.
-  case D3DFMT_A4R4G4B4: // 16-bit ARGB pixel format with 4 bits for each channel.
-  case D3DFMT_R16F:
-  case D3DFMT_A8R3G3B2: // 16-bit ARGB texture format using 8 bits for alpha, 3 bits each for red and green, and 2 bits for blue.
-  case D3DFMT_X4R4G4B4: // 16-bit RGB pixel format using 4 bits for each color.
-  case D3DFMT_L16:      // 16-bit luminance only.
-  case D3DFMT_A8L8:     // 16-bit using 8 bits each for alpha and luminance.
-  case D3DFMT_CxV8U8:
-  case D3DFMT_V8U8:
-  case D3DFMT_L6V5U5:
-    return 16;
+    case D3DFMT_R5G6B5:    // 16-bit RGB pixel format with 5 bits for red, 6 bits for green, and 5 bits for blue.
+    case D3DFMT_X1R5G5B5:  // 16-bit pixel format where 5 bits are reserved for each color.
+    case D3DFMT_A1R5G5B5:  // 16-bit pixel format where 5 bits are reserved for each color and 1 bit is reserved for alpha.
+    case D3DFMT_A4R4G4B4:  // 16-bit ARGB pixel format with 4 bits for each channel.
+    case D3DFMT_R16F:
+    case D3DFMT_A8R3G3B2:  // 16-bit ARGB texture format using 8 bits for alpha, 3 bits each for red and green, and 2 bits for blue.
+    case D3DFMT_X4R4G4B4:  // 16-bit RGB pixel format using 4 bits for each color.
+    case D3DFMT_L16:       // 16-bit luminance only.
+    case D3DFMT_A8L8:      // 16-bit using 8 bits each for alpha and luminance.
+    case D3DFMT_CxV8U8:
+    case D3DFMT_V8U8:
+    case D3DFMT_L6V5U5:
+      return 16;
 
-  case D3DFMT_G16R16F:
-  case D3DFMT_R32F:          // 32-bit float format using 32 bits for the red channel.
-  case D3DFMT_A8R8G8B8:      // 32-bit ARGB pixel format with alpha, using 8 bits per channel.
-  case D3DFMT_X8R8G8B8:      // 32-bit RGB pixel format, where 8 bits are reserved for each color.
-  case D3DFMT_A8B8G8R8:      // 32-bit ARGB pixel format with alpha, using 8 bits per channel.
-  case D3DFMT_X8B8G8R8:      // 32-bit RGB pixel format, where 8 bits are reserved for each color.
-  case D3DFMT_G16R16:        // 32-bit pixel format using 16 bits each for green and red.
-  case D3DFMT_A2R10G10B10:   // 32-bit pixel format using 10 bits each for red, green, and blue, and 2 bits for alpha.
-  case D3DFMT_A2B10G10R10:   // 32-bit pixel format using 10 bits for each color and 2 bits for alpha.
-  case D3DFMT_R8G8B8:        // 24-bit RGB pixel format with 8 bits per channel.
-  case D3DFMT_X8L8V8U8:
-  case D3DFMT_Q8W8V8U8:
-  case D3DFMT_V16U16:
-    return 32;
+    case D3DFMT_G16R16F:
+    case D3DFMT_R32F:         // 32-bit float format using 32 bits for the red channel.
+    case D3DFMT_A8R8G8B8:     // 32-bit ARGB pixel format with alpha, using 8 bits per channel.
+    case D3DFMT_X8R8G8B8:     // 32-bit RGB pixel format, where 8 bits are reserved for each color.
+    case D3DFMT_A8B8G8R8:     // 32-bit ARGB pixel format with alpha, using 8 bits per channel.
+    case D3DFMT_X8B8G8R8:     // 32-bit RGB pixel format, where 8 bits are reserved for each color.
+    case D3DFMT_G16R16:       // 32-bit pixel format using 16 bits each for green and red.
+    case D3DFMT_A2R10G10B10:  // 32-bit pixel format using 10 bits each for red, green, and blue, and 2 bits for alpha.
+    case D3DFMT_A2B10G10R10:  // 32-bit pixel format using 10 bits for each color and 2 bits for alpha.
+    case D3DFMT_R8G8B8:       // 24-bit RGB pixel format with 8 bits per channel.
+    case D3DFMT_X8L8V8U8:
+    case D3DFMT_Q8W8V8U8:
+    case D3DFMT_V16U16:
+      return 32;
 
-  case D3DFMT_A16B16G16R16F:
-  case D3DFMT_A16B16G16R16:  // 64-bit pixel format using 16 bits for each component.
-  case D3DFMT_G32R32F:       // 64-bit float format using 32 bits for the red channel and 32 bits for the green channel.
-    return 64;
+    case D3DFMT_A16B16G16R16F:
+    case D3DFMT_A16B16G16R16:  // 64-bit pixel format using 16 bits for each component.
+    case D3DFMT_G32R32F:       // 64-bit float format using 32 bits for the red channel and 32 bits for the green channel.
+      return 64;
 
-  case D3DFMT_A32B32G32R32F:
-    return 128;
+    case D3DFMT_A32B32G32R32F:
+      return 128;
   }
 
   return 32;

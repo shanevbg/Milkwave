@@ -39,11 +39,9 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <assert.h>
 #include "wasabi.h"
 
-extern CPlugin g_plugin;		// declared in main.cpp
+extern CPlugin g_plugin;  // declared in main.cpp
 
-#define FRAND ((rand() % 7381)/7380.0f)
-
-
+#define FRAND ((rand() % 7381) / 7380.0f)
 
 // These are intended to replace GetPrivateProfileInt/FloatString, which are very slow
 //  for large files (they always start from the top).  (really slow - some preset loads
@@ -55,7 +53,6 @@ extern CPlugin g_plugin;		// declared in main.cpp
 typedef std::vector<std::string> VarNameList;
 typedef std::vector<int> IntList;
 
-
 FILE* fLastFilePtr = NULL;
 void GetFast_CLEAR() { fLastFilePtr = NULL; }
 bool _GetLineByName(FILE* f, const char* szVarName, char* szRet, int nMaxRetChars) {
@@ -66,7 +63,7 @@ bool _GetLineByName(FILE* f, const char* szVarName, char* szRet, int nMaxRetChar
 
   static int MyLineNum = 0;
   static VarNameList line_varName;
-  static IntList     line_value_bytepos;
+  static IntList line_value_bytepos;
 
   if (f != fLastFilePtr) {
     fLastFilePtr = f;
@@ -88,10 +85,10 @@ bool _GetLineByName(FILE* f, const char* szVarName, char* szRet, int nMaxRetChar
         if (pos < MAX_VARNAME_LEN - 3)
           szThisLineVarName[pos++] = ch;
       } while (ch != '\r' &&
-        ch != '\n' &&
-        ch != ' ' &&
-        ch != '=' &&
-        ch != EOF);
+               ch != '\n' &&
+               ch != ' ' &&
+               ch != '=' &&
+               ch != EOF);
       if (ch == EOF)
         break;
 
@@ -99,7 +96,7 @@ bool _GetLineByName(FILE* f, const char* szVarName, char* szRet, int nMaxRetChar
         szThisLineVarName[pos - 1] = 0;  // replace '=' with a null char.
         int bytepos = ftell(f);
 
-        //add an entry
+        // add an entry
         line_varName.push_back(szThisLineVarName);
         line_value_bytepos.push_back(bytepos);
 
@@ -157,16 +154,16 @@ bool _GetLineByName(FILE* f, const char* szVarName, char* szRet, int nMaxRetChar
     szRet[pos++] = ch;
   };
   szRet[pos] = 0;
-  //fgets(szRet, nMaxRetChars-3, f);  // reads chars up til the next linefeed.  NAH - it also copies in the linefeed char...
+  // fgets(szRet, nMaxRetChars-3, f);  // reads chars up til the next linefeed.  NAH - it also copies in the linefeed char...
 
   // move to next line
   MyLineNum++;
-  //fseek(f, line_value_bytepos[MyLineNum], SEEK_SET);
+  // fseek(f, line_value_bytepos[MyLineNum], SEEK_SET);
 
   return true;
 }
 
-int GetFastInt(const char* szVarName, int   def, FILE* f) {
+int GetFastInt(const char* szVarName, int def, FILE* f) {
   char buf[256];
   if (!_GetLineByName(f, szVarName, buf, 255))
     return def;
@@ -201,7 +198,7 @@ void GetFastString(const char* szVarName, const char* szDef, char* szRetLine, in
 }
 
 CState::CState() {
-  //Default();
+  // Default();
 
   // this is the list of variables that can be used for a PER-FRAME calculation;
   // it is a SUBSET of the per-vertex calculation variable list.
@@ -220,9 +217,9 @@ CState::CState() {
   for (i = 0; i < MAX_CUSTOM_SHAPES; i++) {
     m_shape[i].m_pf_codehandle = NULL;
     m_shape[i].m_pf_eel = NSEEL_VM_alloc();
-    //m_shape[i].m_pp_codehandle = NULL;
+    // m_shape[i].m_pp_codehandle = NULL;
   }
-  //RegisterBuiltInVariables();
+  // RegisterBuiltInVariables();
 }
 
 CState::~CState() {
@@ -244,31 +241,29 @@ CState::~CState() {
 void CState::RegisterBuiltInVariables(int flags) {
   if (flags & RECOMPILE_PRESET_CODE) {
     NSEEL_VM_resetvars(m_pf_eel);
-    var_pf_zoom = NSEEL_VM_regvar(m_pf_eel, "zoom");		// i/o
-    var_pf_zoomexp = NSEEL_VM_regvar(m_pf_eel, "zoomexp");	// i/o
-    var_pf_rot = NSEEL_VM_regvar(m_pf_eel, "rot");		// i/o
-    var_pf_warp = NSEEL_VM_regvar(m_pf_eel, "warp");		// i/o
-    var_pf_cx = NSEEL_VM_regvar(m_pf_eel, "cx");		// i/o
-    var_pf_cy = NSEEL_VM_regvar(m_pf_eel, "cy");		// i/o
-    var_pf_dx = NSEEL_VM_regvar(m_pf_eel, "dx");		// i/o
-    var_pf_dy = NSEEL_VM_regvar(m_pf_eel, "dy");		// i/o
-    var_pf_sx = NSEEL_VM_regvar(m_pf_eel, "sx");		// i/o
-    var_pf_sy = NSEEL_VM_regvar(m_pf_eel, "sy");		// i/o
-    var_pf_time = NSEEL_VM_regvar(m_pf_eel, "time");		// i
-    var_pf_fps = NSEEL_VM_regvar(m_pf_eel, "fps");       // i
-    var_pf_bass = NSEEL_VM_regvar(m_pf_eel, "bass");		// i
-    var_pf_mid = NSEEL_VM_regvar(m_pf_eel, "mid");		// i
-    var_pf_treb = NSEEL_VM_regvar(m_pf_eel, "treb");		// i
-    
-    var_pf_bass_att = NSEEL_VM_regvar(m_pf_eel, "bass_att");	// i
-    var_pf_mid_att = NSEEL_VM_regvar(m_pf_eel, "mid_att");	// i
-    var_pf_treb_att = NSEEL_VM_regvar(m_pf_eel, "treb_att");	// i
-    
-    var_pf_bass_smooth = NSEEL_VM_regvar(m_pf_eel, "bass_smooth");	// i
-    var_pf_mid_smooth = NSEEL_VM_regvar(m_pf_eel, "mid_smooth");	// i
-    var_pf_treb_smooth = NSEEL_VM_regvar(m_pf_eel, "treb_smooth");	// i
-    
-    
+    var_pf_zoom = NSEEL_VM_regvar(m_pf_eel, "zoom");        // i/o
+    var_pf_zoomexp = NSEEL_VM_regvar(m_pf_eel, "zoomexp");  // i/o
+    var_pf_rot = NSEEL_VM_regvar(m_pf_eel, "rot");          // i/o
+    var_pf_warp = NSEEL_VM_regvar(m_pf_eel, "warp");        // i/o
+    var_pf_cx = NSEEL_VM_regvar(m_pf_eel, "cx");            // i/o
+    var_pf_cy = NSEEL_VM_regvar(m_pf_eel, "cy");            // i/o
+    var_pf_dx = NSEEL_VM_regvar(m_pf_eel, "dx");            // i/o
+    var_pf_dy = NSEEL_VM_regvar(m_pf_eel, "dy");            // i/o
+    var_pf_sx = NSEEL_VM_regvar(m_pf_eel, "sx");            // i/o
+    var_pf_sy = NSEEL_VM_regvar(m_pf_eel, "sy");            // i/o
+    var_pf_time = NSEEL_VM_regvar(m_pf_eel, "time");        // i
+    var_pf_fps = NSEEL_VM_regvar(m_pf_eel, "fps");          // i
+    var_pf_bass = NSEEL_VM_regvar(m_pf_eel, "bass");        // i
+    var_pf_mid = NSEEL_VM_regvar(m_pf_eel, "mid");          // i
+    var_pf_treb = NSEEL_VM_regvar(m_pf_eel, "treb");        // i
+
+    var_pf_bass_att = NSEEL_VM_regvar(m_pf_eel, "bass_att");  // i
+    var_pf_mid_att = NSEEL_VM_regvar(m_pf_eel, "mid_att");    // i
+    var_pf_treb_att = NSEEL_VM_regvar(m_pf_eel, "treb_att");  // i
+
+    var_pf_bass_smooth = NSEEL_VM_regvar(m_pf_eel, "bass_smooth");  // i
+    var_pf_mid_smooth = NSEEL_VM_regvar(m_pf_eel, "mid_smooth");    // i
+    var_pf_treb_smooth = NSEEL_VM_regvar(m_pf_eel, "treb_smooth");  // i
 
     var_pf_frame = NSEEL_VM_regvar(m_pf_eel, "frame");
     var_pf_decay = NSEEL_VM_regvar(m_pf_eel, "decay");
@@ -346,40 +341,40 @@ void CState::RegisterBuiltInVariables(int flags) {
 
     NSEEL_VM_resetvars(m_pv_eel);
 
-    var_pv_zoom = NSEEL_VM_regvar(m_pv_eel, "zoom");		// i/o
-    var_pv_zoomexp = NSEEL_VM_regvar(m_pv_eel, "zoomexp");	// i/o
-    var_pv_rot = NSEEL_VM_regvar(m_pv_eel, "rot");		// i/o
-    var_pv_warp = NSEEL_VM_regvar(m_pv_eel, "warp");		// i/o
-    var_pv_cx = NSEEL_VM_regvar(m_pv_eel, "cx");		// i/o
-    var_pv_cy = NSEEL_VM_regvar(m_pv_eel, "cy");		// i/o
-    var_pv_dx = NSEEL_VM_regvar(m_pv_eel, "dx");		// i/o
-    var_pv_dy = NSEEL_VM_regvar(m_pv_eel, "dy");		// i/o
-    var_pv_sx = NSEEL_VM_regvar(m_pv_eel, "sx");		// i/o
-    var_pv_sy = NSEEL_VM_regvar(m_pv_eel, "sy");		// i/o
-    var_pv_time = NSEEL_VM_regvar(m_pv_eel, "time");		// i
-    var_pv_fps = NSEEL_VM_regvar(m_pv_eel, "fps");		// i
-    var_pv_bass = NSEEL_VM_regvar(m_pv_eel, "bass");		// i
-    var_pv_mid = NSEEL_VM_regvar(m_pv_eel, "mid");		// i
-    var_pv_treb = NSEEL_VM_regvar(m_pv_eel, "treb");		// i
-    
-    var_pv_bass_att = NSEEL_VM_regvar(m_pv_eel, "bass_att");	// i
-    var_pv_mid_att = NSEEL_VM_regvar(m_pv_eel, "mid_att");	// i
-    var_pv_treb_att = NSEEL_VM_regvar(m_pv_eel, "treb_att");	// i
-    
-    var_pv_bass_smooth = NSEEL_VM_regvar(m_pv_eel, "bass_smooth");		// i
-    var_pv_mid_smooth = NSEEL_VM_regvar(m_pv_eel, "mid_smooth");		// i
-    var_pv_treb_smooth = NSEEL_VM_regvar(m_pv_eel, "treb_smooth");		// i
+    var_pv_zoom = NSEEL_VM_regvar(m_pv_eel, "zoom");        // i/o
+    var_pv_zoomexp = NSEEL_VM_regvar(m_pv_eel, "zoomexp");  // i/o
+    var_pv_rot = NSEEL_VM_regvar(m_pv_eel, "rot");          // i/o
+    var_pv_warp = NSEEL_VM_regvar(m_pv_eel, "warp");        // i/o
+    var_pv_cx = NSEEL_VM_regvar(m_pv_eel, "cx");            // i/o
+    var_pv_cy = NSEEL_VM_regvar(m_pv_eel, "cy");            // i/o
+    var_pv_dx = NSEEL_VM_regvar(m_pv_eel, "dx");            // i/o
+    var_pv_dy = NSEEL_VM_regvar(m_pv_eel, "dy");            // i/o
+    var_pv_sx = NSEEL_VM_regvar(m_pv_eel, "sx");            // i/o
+    var_pv_sy = NSEEL_VM_regvar(m_pv_eel, "sy");            // i/o
+    var_pv_time = NSEEL_VM_regvar(m_pv_eel, "time");        // i
+    var_pv_fps = NSEEL_VM_regvar(m_pv_eel, "fps");          // i
+    var_pv_bass = NSEEL_VM_regvar(m_pv_eel, "bass");        // i
+    var_pv_mid = NSEEL_VM_regvar(m_pv_eel, "mid");          // i
+    var_pv_treb = NSEEL_VM_regvar(m_pv_eel, "treb");        // i
 
-    var_pv_mousex = NSEEL_VM_regvar(m_pv_eel, "mousex");		// i
-    var_pv_mousey = NSEEL_VM_regvar(m_pv_eel, "mousey");		// i
-    var_pv_mousedown = NSEEL_VM_regvar(m_pv_eel, "mousedown");		// i
-    var_pv_mouseclick = NSEEL_VM_regvar(m_pv_eel, "mouseclick");		// i
+    var_pv_bass_att = NSEEL_VM_regvar(m_pv_eel, "bass_att");  // i
+    var_pv_mid_att = NSEEL_VM_regvar(m_pv_eel, "mid_att");    // i
+    var_pv_treb_att = NSEEL_VM_regvar(m_pv_eel, "treb_att");  // i
+
+    var_pv_bass_smooth = NSEEL_VM_regvar(m_pv_eel, "bass_smooth");  // i
+    var_pv_mid_smooth = NSEEL_VM_regvar(m_pv_eel, "mid_smooth");    // i
+    var_pv_treb_smooth = NSEEL_VM_regvar(m_pv_eel, "treb_smooth");  // i
+
+    var_pv_mousex = NSEEL_VM_regvar(m_pv_eel, "mousex");          // i
+    var_pv_mousey = NSEEL_VM_regvar(m_pv_eel, "mousey");          // i
+    var_pv_mousedown = NSEEL_VM_regvar(m_pv_eel, "mousedown");    // i
+    var_pv_mouseclick = NSEEL_VM_regvar(m_pv_eel, "mouseclick");  // i
 
     var_pv_frame = NSEEL_VM_regvar(m_pv_eel, "frame");
-    var_pv_x = NSEEL_VM_regvar(m_pv_eel, "x");			// i
-    var_pv_y = NSEEL_VM_regvar(m_pv_eel, "y");			// i
-    var_pv_rad = NSEEL_VM_regvar(m_pv_eel, "rad");		// i
-    var_pv_ang = NSEEL_VM_regvar(m_pv_eel, "ang");		// i
+    var_pv_x = NSEEL_VM_regvar(m_pv_eel, "x");      // i
+    var_pv_y = NSEEL_VM_regvar(m_pv_eel, "y");      // i
+    var_pv_rad = NSEEL_VM_regvar(m_pv_eel, "rad");  // i
+    var_pv_ang = NSEEL_VM_regvar(m_pv_eel, "ang");  // i
     for (vi = 0; vi < NUM_Q_VAR; vi++) {
       char buf[16];
       sprintf(buf, "q%d", vi + 1);
@@ -397,9 +392,9 @@ void CState::RegisterBuiltInVariables(int flags) {
   if (flags & RECOMPILE_WAVE_CODE) {
     for (int i = 0; i < MAX_CUSTOM_WAVES; i++) {
       NSEEL_VM_resetvars(m_wave[i].m_pf_eel);
-      m_wave[i].var_pf_time = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "time");		// i
-      m_wave[i].var_pf_fps = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "fps");		// i
-      m_wave[i].var_pf_frame = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "frame");     // i
+      m_wave[i].var_pf_time = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "time");          // i
+      m_wave[i].var_pf_fps = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "fps");            // i
+      m_wave[i].var_pf_frame = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "frame");        // i
       m_wave[i].var_pf_progress = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "progress");  // i
       int vi;
       for (vi = 0; vi < NUM_Q_VAR; vi++) {
@@ -412,22 +407,22 @@ void CState::RegisterBuiltInVariables(int flags) {
         sprintf(buf, "t%d", vi + 1);
         m_wave[i].var_pf_t[vi] = NSEEL_VM_regvar(m_wave[i].m_pf_eel, buf);
       }
-      m_wave[i].var_pf_bass = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "bass");		// i
-      m_wave[i].var_pf_mid = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "mid");		// i
-      m_wave[i].var_pf_treb = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "treb");		// i
-      m_wave[i].var_pf_bass_att = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "bass_att");	// i
-      m_wave[i].var_pf_mid_att = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "mid_att");	// i
-      m_wave[i].var_pf_treb_att = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "treb_att");	// i
-      m_wave[i].var_pf_r = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "r");         // i/o
-      m_wave[i].var_pf_g = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "g");         // i/o
-      m_wave[i].var_pf_b = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "b");         // i/o
-      m_wave[i].var_pf_a = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "a");         // i/o
-      m_wave[i].var_pf_samples = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "samples");   // i/o
+      m_wave[i].var_pf_bass = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "bass");          // i
+      m_wave[i].var_pf_mid = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "mid");            // i
+      m_wave[i].var_pf_treb = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "treb");          // i
+      m_wave[i].var_pf_bass_att = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "bass_att");  // i
+      m_wave[i].var_pf_mid_att = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "mid_att");    // i
+      m_wave[i].var_pf_treb_att = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "treb_att");  // i
+      m_wave[i].var_pf_r = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "r");                // i/o
+      m_wave[i].var_pf_g = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "g");                // i/o
+      m_wave[i].var_pf_b = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "b");                // i/o
+      m_wave[i].var_pf_a = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "a");                // i/o
+      m_wave[i].var_pf_samples = NSEEL_VM_regvar(m_wave[i].m_pf_eel, "samples");    // i/o
 
       NSEEL_VM_resetvars(m_wave[i].m_pp_eel);
-      m_wave[i].var_pp_time = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "time");		// i
-      m_wave[i].var_pp_fps = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "fps");		// i
-      m_wave[i].var_pp_frame = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "frame");     // i
+      m_wave[i].var_pp_time = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "time");          // i
+      m_wave[i].var_pp_fps = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "fps");            // i
+      m_wave[i].var_pp_frame = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "frame");        // i
       m_wave[i].var_pp_progress = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "progress");  // i
       for (vi = 0; vi < NUM_Q_VAR; vi++) {
         char buf[16];
@@ -439,30 +434,30 @@ void CState::RegisterBuiltInVariables(int flags) {
         sprintf(buf, "t%d", vi + 1);
         m_wave[i].var_pp_t[vi] = NSEEL_VM_regvar(m_wave[i].m_pp_eel, buf);
       }
-      m_wave[i].var_pp_bass = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "bass");		// i
-      m_wave[i].var_pp_mid = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "mid");		// i
-      m_wave[i].var_pp_treb = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "treb");		// i
-      m_wave[i].var_pp_bass_att = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "bass_att");	// i
-      m_wave[i].var_pp_mid_att = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "mid_att");	// i
-      m_wave[i].var_pp_treb_att = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "treb_att");	// i
-      m_wave[i].var_pp_sample = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "sample");    // i
-      m_wave[i].var_pp_value1 = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "value1");    // i
-      m_wave[i].var_pp_value2 = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "value2");    // i
-      m_wave[i].var_pp_x = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "x");         // i/o
-      m_wave[i].var_pp_y = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "y");         // i/o
-      m_wave[i].var_pp_r = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "r");         // i/o
-      m_wave[i].var_pp_g = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "g");         // i/o
-      m_wave[i].var_pp_b = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "b");         // i/o
-      m_wave[i].var_pp_a = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "a");         // i/o
+      m_wave[i].var_pp_bass = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "bass");          // i
+      m_wave[i].var_pp_mid = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "mid");            // i
+      m_wave[i].var_pp_treb = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "treb");          // i
+      m_wave[i].var_pp_bass_att = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "bass_att");  // i
+      m_wave[i].var_pp_mid_att = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "mid_att");    // i
+      m_wave[i].var_pp_treb_att = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "treb_att");  // i
+      m_wave[i].var_pp_sample = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "sample");      // i
+      m_wave[i].var_pp_value1 = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "value1");      // i
+      m_wave[i].var_pp_value2 = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "value2");      // i
+      m_wave[i].var_pp_x = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "x");                // i/o
+      m_wave[i].var_pp_y = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "y");                // i/o
+      m_wave[i].var_pp_r = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "r");                // i/o
+      m_wave[i].var_pp_g = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "g");                // i/o
+      m_wave[i].var_pp_b = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "b");                // i/o
+      m_wave[i].var_pp_a = NSEEL_VM_regvar(m_wave[i].m_pp_eel, "a");                // i/o
     }
   }
 
   if (flags & RECOMPILE_SHAPE_CODE) {
     for (int i = 0; i < MAX_CUSTOM_SHAPES; i++) {
       NSEEL_VM_resetvars(m_shape[i].m_pf_eel);
-      m_shape[i].var_pf_time = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "time");		// i
-      m_shape[i].var_pf_fps = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "fps");		// i
-      m_shape[i].var_pf_frame = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "frame");     // i
+      m_shape[i].var_pf_time = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "time");          // i
+      m_shape[i].var_pf_fps = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "fps");            // i
+      m_shape[i].var_pf_frame = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "frame");        // i
       m_shape[i].var_pf_progress = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "progress");  // i
       int vi;
       for (vi = 0; vi < NUM_Q_VAR; vi++) {
@@ -475,51 +470,50 @@ void CState::RegisterBuiltInVariables(int flags) {
         sprintf(buf, "t%d", vi + 1);
         m_shape[i].var_pf_t[vi] = NSEEL_VM_regvar(m_shape[i].m_pf_eel, buf);
       }
-      m_shape[i].var_pf_bass = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "bass");		// i
-      m_shape[i].var_pf_mid = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "mid");		// i
-      m_shape[i].var_pf_treb = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "treb");		// i
-      m_shape[i].var_pf_bass_att = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "bass_att");	// i
-      m_shape[i].var_pf_mid_att = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "mid_att");	// i
-      m_shape[i].var_pf_treb_att = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "treb_att");	// i
-      m_shape[i].var_pf_x = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "x");         // i/o
-      m_shape[i].var_pf_y = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "y");         // i/o
-      m_shape[i].var_pf_rad = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "rad");         // i/o
-      m_shape[i].var_pf_ang = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "ang");         // i/o
-      m_shape[i].var_pf_tex_ang = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "tex_ang");         // i/o
-      m_shape[i].var_pf_tex_zoom = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "tex_zoom");         // i/o
+      m_shape[i].var_pf_bass = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "bass");           // i
+      m_shape[i].var_pf_mid = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "mid");             // i
+      m_shape[i].var_pf_treb = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "treb");           // i
+      m_shape[i].var_pf_bass_att = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "bass_att");   // i
+      m_shape[i].var_pf_mid_att = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "mid_att");     // i
+      m_shape[i].var_pf_treb_att = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "treb_att");   // i
+      m_shape[i].var_pf_x = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "x");                 // i/o
+      m_shape[i].var_pf_y = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "y");                 // i/o
+      m_shape[i].var_pf_rad = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "rad");             // i/o
+      m_shape[i].var_pf_ang = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "ang");             // i/o
+      m_shape[i].var_pf_tex_ang = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "tex_ang");     // i/o
+      m_shape[i].var_pf_tex_zoom = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "tex_zoom");   // i/o
       m_shape[i].var_pf_sides = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "sides");         // i/o
-      m_shape[i].var_pf_textured = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "textured");         // i/o
-      m_shape[i].var_pf_instance = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "instance");         // i/o
-      m_shape[i].var_pf_instances = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "num_inst");         // i/o
-      m_shape[i].var_pf_additive = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "additive");         // i/o
+      m_shape[i].var_pf_textured = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "textured");   // i/o
+      m_shape[i].var_pf_instance = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "instance");   // i/o
+      m_shape[i].var_pf_instances = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "num_inst");  // i/o
+      m_shape[i].var_pf_additive = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "additive");   // i/o
       m_shape[i].var_pf_thick = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "thick");         // i/o
-      m_shape[i].var_pf_r = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "r");         // i/o
-      m_shape[i].var_pf_g = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "g");         // i/o
-      m_shape[i].var_pf_b = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "b");         // i/o
-      m_shape[i].var_pf_a = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "a");         // i/o
-      m_shape[i].var_pf_r2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "r2");         // i/o
-      m_shape[i].var_pf_g2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "g2");         // i/o
-      m_shape[i].var_pf_b2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "b2");         // i/o
-      m_shape[i].var_pf_a2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "a2");         // i/o
-      m_shape[i].var_pf_border_r = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_r");         // i/o
-      m_shape[i].var_pf_border_g = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_g");         // i/o
-      m_shape[i].var_pf_border_b = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_b");         // i/o
-      m_shape[i].var_pf_border_a = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_a");         // i/o
+      m_shape[i].var_pf_r = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "r");                 // i/o
+      m_shape[i].var_pf_g = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "g");                 // i/o
+      m_shape[i].var_pf_b = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "b");                 // i/o
+      m_shape[i].var_pf_a = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "a");                 // i/o
+      m_shape[i].var_pf_r2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "r2");               // i/o
+      m_shape[i].var_pf_g2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "g2");               // i/o
+      m_shape[i].var_pf_b2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "b2");               // i/o
+      m_shape[i].var_pf_a2 = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "a2");               // i/o
+      m_shape[i].var_pf_border_r = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_r");   // i/o
+      m_shape[i].var_pf_border_g = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_g");   // i/o
+      m_shape[i].var_pf_border_b = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_b");   // i/o
+      m_shape[i].var_pf_border_a = NSEEL_VM_regvar(m_shape[i].m_pf_eel, "border_a");   // i/o
     }
   }
 }
 void CState::Default(DWORD ApplyFlags) {
   // DON'T FORGET TO ADD NEW VARIABLES TO BLEND FUNCTION, IMPORT, and EXPORT AS WELL!!!!!!!!
 
-  if ((ApplyFlags & STATE_GENERAL) &&    // check for these 3 @ same time,
-    (ApplyFlags & STATE_MOTION) &&     // so a preset switch w/ warp/comp lock
-    (ApplyFlags & STATE_WAVE)        // updates the name, but mash-ups don't.
-    ) {
-
+  if ((ApplyFlags & STATE_GENERAL) &&  // check for these 3 @ same time,
+      (ApplyFlags & STATE_MOTION) &&   // so a preset switch w/ warp/comp lock
+      (ApplyFlags & STATE_WAVE)        // updates the name, but mash-ups don't.
+  ) {
     // Set m_szDesc to the current timestamp
     std::time_t now = std::time(nullptr);
     std::tm localTime;
-    localtime_s(&localTime, &now); // Use localtime_s for thread safety
+    localtime_s(&localTime, &now);  // Use localtime_s for thread safety
 
     std::wcsftime(m_szDesc, sizeof(m_szDesc) / sizeof(wchar_t), L"<%Y-%m-%d_%H-%M-%S>", &localTime);
 
@@ -537,11 +531,11 @@ void CState::Default(DWORD ApplyFlags) {
     // m_fDecay = 0.98f;	// 1.0 = none, 0.95 = heavy decay
     m_fDecay = 0.75f;
     m_fFFTAttack = 0.5f;
-    m_fFFTDecay  = 0.7f;
-    m_fGammaAdj = 2.0f;		// 1.0 = reg; +2.0 = double, +3.0 = triple...
+    m_fFFTDecay = 0.7f;
+    m_fGammaAdj = 2.0f;  // 1.0 = reg; +2.0 = double, +3.0 = triple...
     m_fVideoEchoZoom = 2.0f;
     m_fVideoEchoAlpha = 0.0f;
-    m_nVideoEchoOrientation = 0;		// 0-3
+    m_nVideoEchoOrientation = 0;  // 0-3
     m_bRedBlueStereo = false;
     m_bBrighten = false;
     m_bDarken = false;
@@ -559,25 +553,24 @@ void CState::Default(DWORD ApplyFlags) {
     m_fBlur1EdgeDarken = 0.25f;
   }
 
-
   // wave:
   if (ApplyFlags & STATE_WAVE) {
     // default wave settings
-    m_nWaveMode = 16; // triangle
+    m_nWaveMode = 16;  // triangle
     m_nOldWaveMode = -1;
     m_bAdditiveWaves = true;
     m_bWaveDots = false;
     m_bWaveThick = true;
     m_fWaveAlpha = 0.4f;
     m_fWaveScale = 1.0f;
-    m_fWaveSmoothing = 0.75f;	// 0 = no smoothing, 0.9 = HEAVY smoothing
+    m_fWaveSmoothing = 0.75f;  // 0 = no smoothing, 0.9 = HEAVY smoothing
     m_fWaveParam = 0.0f;
     m_bModWaveAlphaByVolume = false;
-    m_fModWaveAlphaStart = 0.75f;		// when relative volume hits this level, alpha -> 0
-    m_fModWaveAlphaEnd = 0.95f;		// when relative volume hits this level, alpha -> 1
+    m_fModWaveAlphaStart = 0.75f;  // when relative volume hits this level, alpha -> 0
+    m_fModWaveAlphaEnd = 0.95f;    // when relative volume hits this level, alpha -> 1
     m_fWaveR = 1.0f;
     m_fWaveG = 0.0f;
-    m_fWaveB = 0.5f; // pink
+    m_fWaveB = 0.5f;  // pink
     m_fWaveX = 0.5f;
     m_fWaveY = 0.5f;
     m_bMaximizeWaveColor = true;
@@ -641,13 +634,13 @@ void CState::Default(DWORD ApplyFlags) {
     for (i = 0; i < MAX_CUSTOM_SHAPES; i++) {
       m_shape[i].m_szInit[0] = 0;
       m_shape[i].m_szPerFrame[0] = 0;
-      //m_shape[i].m_szPerPoint[0] = 0;
+      // m_shape[i].m_szPerPoint[0] = 0;
     }
   }
 
   // motion:
   if (ApplyFlags & STATE_MOTION) {
-    m_fWarpAnimSpeed = 1.0f;		// additional timescaling for warp animation
+    m_fWarpAnimSpeed = 1.0f;  // additional timescaling for warp animation
     m_fWarpScale = 1.0f;
     m_fZoomExponent = 1.0f;
     m_fZoom = 0.9f;
@@ -679,7 +672,7 @@ void CState::Default(DWORD ApplyFlags) {
   // DON'T FORGET TO ADD NEW VARIABLES TO BLEND FUNCTION, IMPORT, and EXPORT AS WELL!!!!!!!!
   // ALSO BE SURE TO REGISTER THEM ON THE MAIN MENU (SEE MILKDROP.CPP)
 
-    // warp shader
+  // warp shader
   if (ApplyFlags & STATE_WARP) {
     m_szWarpShadersText[0] = 0;
     m_nWarpPSVersion = 0;
@@ -837,7 +830,6 @@ void CState::StartBlendFrom(CState* s_from, float fAnimTime, float fTimespan) {
     s_to->m_fMvG = s_from->m_fMvG.eval(fAnimTime);
     s_to->m_fMvB = s_from->m_fMvB.eval(fAnimTime);
   }
-
 }
 
 void WriteCode(FILE* fOut, int i, char* pStr, char* prefix, bool bPrependApostrophe = false) {
@@ -848,14 +840,14 @@ void WriteCode(FILE* fOut, int i, char* pStr, char* prefix, bool bPrependApostro
 
   while (pStr[start_pos] != 0) {
     while (pStr[char_pos] != 0 &&
-      pStr[char_pos] != LINEFEED_CONTROL_CHAR)
+           pStr[char_pos] != LINEFEED_CONTROL_CHAR)
       char_pos++;
 
     sprintf(szLineName, "%s%d", prefix, line);
 
     char ch = pStr[char_pos];
     pStr[char_pos] = 0;
-    //if (!WritePrivateProfileString(szSectionName,szLineName,&pStr[start_pos],szIniFile)) return false;
+    // if (!WritePrivateProfileString(szSectionName,szLineName,&pStr[start_pos],szIniFile)) return false;
     fprintf(fOut, "%s=%s%s\n", szLineName, bPrependApostrophe ? "`" : "", &pStr[start_pos]);
     pStr[char_pos] = ch;
 
@@ -959,11 +951,11 @@ bool CState::Export(const wchar_t* szIniFile) {
 
   int i;
   for (i = 0; i < MAX_CUSTOM_WAVES; i++)
-    if (m_wave[i].enabled) //Only saves the enabled custom waves
+    if (m_wave[i].enabled)  // Only saves the enabled custom waves
       m_wave[i].Export(fOut, L"dummy_filename", i);
 
   for (i = 0; i < MAX_CUSTOM_SHAPES; i++)
-    if (m_shape[i].enabled) //Only saves the enabled custom shapes
+    if (m_shape[i].enabled)  // Only saves the enabled custom shapes
       m_shape[i].Export(fOut, L"dummy_filename", i);
 
   // write out arbitrary expressions, one line at a time
@@ -980,7 +972,7 @@ bool CState::Export(const wchar_t* szIniFile) {
   return true;
 }
 
-int  CWave::Export(FILE* fOut, const wchar_t* szFile, int i) {
+int CWave::Export(FILE* fOut, const wchar_t* szFile, int i) {
   FILE* f2 = fOut;
   if (!fOut) {
     f2 = _wfopen(szFile, L"w");
@@ -1003,22 +995,25 @@ int  CWave::Export(FILE* fOut, const wchar_t* szFile, int i) {
 
   // READ THE CODE IN
   char prefix[64];
-  sprintf(prefix, "wave_%d_init", i); WriteCode(f2, i, m_szInit, prefix);
-  sprintf(prefix, "wave_%d_per_frame", i); WriteCode(f2, i, m_szPerFrame, prefix);
-  sprintf(prefix, "wave_%d_per_point", i); WriteCode(f2, i, m_szPerPoint, prefix);
+  sprintf(prefix, "wave_%d_init", i);
+  WriteCode(f2, i, m_szInit, prefix);
+  sprintf(prefix, "wave_%d_per_frame", i);
+  WriteCode(f2, i, m_szPerFrame, prefix);
+  sprintf(prefix, "wave_%d_per_point", i);
+  WriteCode(f2, i, m_szPerPoint, prefix);
 
   if (!fOut)
-    fclose(f2); // [sic]
+    fclose(f2);  // [sic]
 
   return 1;
 }
 
-int  CShape::Export(FILE* fOut, const wchar_t* szFile, int i) {
+int CShape::Export(FILE* fOut, const wchar_t* szFile, int i) {
   FILE* f2 = fOut;
   if (!fOut) {
     f2 = _wfopen(szFile, L"w");
     if (!f2) return 0;
-    //fprintf(f2, "[%s]\n", szSection);
+    // fprintf(f2, "[%s]\n", szSection);
   }
 
   fprintf(f2, "shapecode_%d_%s=%d\n", i, "enabled", enabled);
@@ -1047,12 +1042,14 @@ int  CShape::Export(FILE* fOut, const wchar_t* szFile, int i) {
   fprintf(f2, "shapecode_%d_%s=%.3f\n", i, "border_a", border_a);
 
   char prefix[64];
-  sprintf(prefix, "shape_%d_init", i); WriteCode(f2, i, m_szInit, prefix);
-  sprintf(prefix, "shape_%d_per_frame", i); WriteCode(f2, i, m_szPerFrame, prefix);
-  //sprintf(prefix, "shape_%d_per_point", i); WriteCode(f2, i, m_szPerPoint, prefix);
+  sprintf(prefix, "shape_%d_init", i);
+  WriteCode(f2, i, m_szInit, prefix);
+  sprintf(prefix, "shape_%d_per_frame", i);
+  WriteCode(f2, i, m_szPerFrame, prefix);
+  // sprintf(prefix, "shape_%d_per_point", i); WriteCode(f2, i, m_szPerPoint, prefix);
 
   if (!fOut)
-    fclose(f2); // [sic]
+    fclose(f2);  // [sic]
 
   return 1;
 }
@@ -1074,15 +1071,14 @@ void ReadCode(FILE* f, char* pStr, char* prefix) {
   while (!bDone) {
     sprintf(szLineName, "%s%d", prefix, line);
 
-    GetFastString(szLineName, "~!@#$", szLine, MAX_BIGSTRING_LEN, f);	// fixme
+    GetFastString(szLineName, "~!@#$", szLine, MAX_BIGSTRING_LEN, f);  // fixme
     len = strlen(szLine);
 
-    if ((strcmp(szLine, "~!@#$") == 0) ||		// if the key was missing,
-      (len >= MAX_BIGSTRING_LEN - 1 - char_pos - 1))			// or if we're out of space
+    if ((strcmp(szLine, "~!@#$") == 0) ||               // if the key was missing,
+        (len >= MAX_BIGSTRING_LEN - 1 - char_pos - 1))  // or if we're out of space
     {
       bDone = true;
-    }
-    else {
+    } else {
       sprintf(&pStr[char_pos], "%s%c", (szLine[0] == '`') ? &szLine[1] : szLine, LINEFEED_CONTROL_CHAR);
       if (szLine[0] == '`')
         len--;
@@ -1091,75 +1087,75 @@ void ReadCode(FILE* f, char* pStr, char* prefix) {
     char_pos += len + 1;
     line++;
   }
-  pStr[char_pos++] = 0;	// null-terminate
+  pStr[char_pos++] = 0;  // null-terminate
 
   // read in & compile arbitrary expressions
-    /*
-    int n2 = 3 + MAX_CUSTOM_WAVES*3 + MAX_CUSTOM_SHAPES*2;
-  for (int n=0; n<n2; n++)
+  /*
+  int n2 = 3 + MAX_CUSTOM_WAVES*3 + MAX_CUSTOM_SHAPES*2;
+for (int n=0; n<n2; n++)
+{
+  char *pStr;
+      char prefix[64];
+  char szLineName[32];
+  char szLine[MAX_BIGSTRING_LEN];
+  int len;
+
+  int line = 1;
+  int char_pos = 0;
+  bool bDone = false;
+
+  switch(n)
   {
-    char *pStr;
-        char prefix[64];
-    char szLineName[32];
-    char szLine[MAX_BIGSTRING_LEN];
-    int len;
-
-    int line = 1;
-    int char_pos = 0;
-    bool bDone = false;
-
-    switch(n)
-    {
-    case 0: pStr = m_szPerFrameExpr; strcpy(prefix, "per_frame_"); break;
-    case 1: pStr = m_szPerPixelExpr; strcpy(prefix, "per_pixel_"); break;
-    case 2: pStr = m_szPerFrameInit; strcpy(prefix, "per_frame_init_"); break;
-        default:
-            if (n < 3 + 3*MAX_CUSTOM_WAVES)
-            {
-                int i = (n-3) / 3;
-                int j = (n-3) % 3;
-                switch(j)
-                {
-                case 0: pStr = m_wave[i].m_szInit;     sprintf(prefix, "wave_%d_init",      i); break;
-                case 1: pStr = m_wave[i].m_szPerFrame; sprintf(prefix, "wave_%d_per_frame", i); break;
-                case 2: pStr = m_wave[i].m_szPerPoint; sprintf(prefix, "wave_%d_per_point", i); break;
-                }
-            }
-            else
-            {
-                int i = (n-3-3*MAX_CUSTOM_WAVES) / 2;
-                int j = (n-3-3*MAX_CUSTOM_WAVES) % 2;
-                switch(j)
-                {
-                case 0: pStr = m_shape[i].m_szInit;     sprintf(prefix, "shape_%d_init",      i); break;
-                case 1: pStr = m_shape[i].m_szPerFrame; sprintf(prefix, "shape_%d_per_frame", i); break;
-                }
-            }
-    }
-
-    while (!bDone)
-    {
-      sprintf(szLineName, "%s%d", prefix, line);
-
-      GetPrivateProfileString(szSectionName, szLineName, "~!@#$", szLine, MAX_BIGSTRING_LEN, szIniFile);	// fixme
-      len = strlen(szLine);
-
-      if ((strcmp(szLine, "~!@#$")==0) ||		// if the key was missing,
-        (len >= MAX_BIGSTRING_LEN-1-char_pos-1))			// or if we're out of space
-      {
-        bDone = true;
-      }
-      else
-      {
-        sprintf(&pStr[char_pos], "%s%c", szLine, LINEFEED_CONTROL_CHAR);
-      }
-
-      char_pos += len + 1;
-      line++;
-    }
-    pStr[char_pos++] = 0;	// null-terminate
+  case 0: pStr = m_szPerFrameExpr; strcpy(prefix, "per_frame_"); break;
+  case 1: pStr = m_szPerPixelExpr; strcpy(prefix, "per_pixel_"); break;
+  case 2: pStr = m_szPerFrameInit; strcpy(prefix, "per_frame_init_"); break;
+      default:
+          if (n < 3 + 3*MAX_CUSTOM_WAVES)
+          {
+              int i = (n-3) / 3;
+              int j = (n-3) % 3;
+              switch(j)
+              {
+              case 0: pStr = m_wave[i].m_szInit;     sprintf(prefix, "wave_%d_init",      i); break;
+              case 1: pStr = m_wave[i].m_szPerFrame; sprintf(prefix, "wave_%d_per_frame", i); break;
+              case 2: pStr = m_wave[i].m_szPerPoint; sprintf(prefix, "wave_%d_per_point", i); break;
+              }
+          }
+          else
+          {
+              int i = (n-3-3*MAX_CUSTOM_WAVES) / 2;
+              int j = (n-3-3*MAX_CUSTOM_WAVES) % 2;
+              switch(j)
+              {
+              case 0: pStr = m_shape[i].m_szInit;     sprintf(prefix, "shape_%d_init",      i); break;
+              case 1: pStr = m_shape[i].m_szPerFrame; sprintf(prefix, "shape_%d_per_frame", i); break;
+              }
+          }
   }
-    */
+
+  while (!bDone)
+  {
+    sprintf(szLineName, "%s%d", prefix, line);
+
+    GetPrivateProfileString(szSectionName, szLineName, "~!@#$", szLine, MAX_BIGSTRING_LEN, szIniFile);	// fixme
+    len = strlen(szLine);
+
+    if ((strcmp(szLine, "~!@#$")==0) ||		// if the key was missing,
+      (len >= MAX_BIGSTRING_LEN-1-char_pos-1))			// or if we're out of space
+    {
+      bDone = true;
+    }
+    else
+    {
+      sprintf(&pStr[char_pos], "%s%c", szLine, LINEFEED_CONTROL_CHAR);
+    }
+
+    char_pos += len + 1;
+    line++;
+  }
+  pStr[char_pos++] = 0;	// null-terminate
+}
+  */
 }
 
 int CWave::Import(FILE* f, const wchar_t* szFile, int i) {
@@ -1171,33 +1167,49 @@ int CWave::Import(FILE* f, const wchar_t* szFile, int i) {
   }
 
   char buf[64];
-  sprintf(buf, "wavecode_%d_%s", i, "enabled"); enabled = GetFastInt(buf, enabled, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "samples"); samples = GetFastInt(buf, samples, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "sep"); sep = GetFastInt(buf, sep, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "bSpectrum"); bSpectrum = GetFastInt(buf, bSpectrum, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "bUseDots"); bUseDots = GetFastInt(buf, bUseDots, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "bDrawThick"); bDrawThick = GetFastInt(buf, bDrawThick, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "bAdditive"); bAdditive = GetFastInt(buf, bAdditive, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "scaling"); scaling = GetFastFloat(buf, scaling, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "smoothing"); smoothing = GetFastFloat(buf, smoothing, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "r"); r = GetFastFloat(buf, r, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "g"); g = GetFastFloat(buf, g, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "b"); b = GetFastFloat(buf, b, f2);
-  sprintf(buf, "wavecode_%d_%s", i, "a"); a = GetFastFloat(buf, a, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "enabled");
+  enabled = GetFastInt(buf, enabled, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "samples");
+  samples = GetFastInt(buf, samples, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "sep");
+  sep = GetFastInt(buf, sep, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "bSpectrum");
+  bSpectrum = GetFastInt(buf, bSpectrum, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "bUseDots");
+  bUseDots = GetFastInt(buf, bUseDots, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "bDrawThick");
+  bDrawThick = GetFastInt(buf, bDrawThick, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "bAdditive");
+  bAdditive = GetFastInt(buf, bAdditive, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "scaling");
+  scaling = GetFastFloat(buf, scaling, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "smoothing");
+  smoothing = GetFastFloat(buf, smoothing, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "r");
+  r = GetFastFloat(buf, r, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "g");
+  g = GetFastFloat(buf, g, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "b");
+  b = GetFastFloat(buf, b, f2);
+  sprintf(buf, "wavecode_%d_%s", i, "a");
+  a = GetFastFloat(buf, a, f2);
 
   // READ THE CODE IN
   char prefix[64];
-  sprintf(prefix, "wave_%d_init", i); ReadCode(f2, m_szInit, prefix);
-  sprintf(prefix, "wave_%d_per_frame", i); ReadCode(f2, m_szPerFrame, prefix);
-  sprintf(prefix, "wave_%d_per_point", i); ReadCode(f2, m_szPerPoint, prefix);
+  sprintf(prefix, "wave_%d_init", i);
+  ReadCode(f2, m_szInit, prefix);
+  sprintf(prefix, "wave_%d_per_frame", i);
+  ReadCode(f2, m_szPerFrame, prefix);
+  sprintf(prefix, "wave_%d_per_point", i);
+  ReadCode(f2, m_szPerPoint, prefix);
 
   if (!f)
-    fclose(f2); // [sic]
+    fclose(f2);  // [sic]
 
   return 1;
 }
 
-int  CShape::Import(FILE* f, const wchar_t* szFile, int i) {
+int CShape::Import(FILE* f, const wchar_t* szFile, int i) {
   FILE* f2 = f;
   if (!f) {
     f2 = _wfopen(szFile, L"rb");
@@ -1206,38 +1218,64 @@ int  CShape::Import(FILE* f, const wchar_t* szFile, int i) {
   }
 
   char buf[64];
-  sprintf(buf, "shapecode_%d_%s", i, "enabled"); enabled = GetFastInt(buf, enabled, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "sides"); sides = GetFastInt(buf, sides, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "additive"); additive = GetFastInt(buf, additive, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "thickOutline"); thickOutline = GetFastInt(buf, thickOutline, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "textured"); textured = GetFastInt(buf, textured, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "num_inst"); instances = GetFastInt(buf, instances, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "x"); x = GetFastFloat(buf, x, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "y"); y = GetFastFloat(buf, y, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "rad"); rad = GetFastFloat(buf, rad, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "ang"); ang = GetFastFloat(buf, ang, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "tex_ang"); tex_ang = GetFastFloat(buf, tex_ang, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "tex_zoom"); tex_zoom = GetFastFloat(buf, tex_zoom, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "r"); r = GetFastFloat(buf, r, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "g"); g = GetFastFloat(buf, g, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "b"); b = GetFastFloat(buf, b, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "a"); a = GetFastFloat(buf, a, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "r2"); r2 = GetFastFloat(buf, r2, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "g2"); g2 = GetFastFloat(buf, g2, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "b2"); b2 = GetFastFloat(buf, b2, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "a2"); a2 = GetFastFloat(buf, a2, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "border_r"); border_r = GetFastFloat(buf, border_r, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "border_g"); border_g = GetFastFloat(buf, border_g, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "border_b"); border_b = GetFastFloat(buf, border_b, f2);
-  sprintf(buf, "shapecode_%d_%s", i, "border_a"); border_a = GetFastFloat(buf, border_a, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "enabled");
+  enabled = GetFastInt(buf, enabled, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "sides");
+  sides = GetFastInt(buf, sides, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "additive");
+  additive = GetFastInt(buf, additive, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "thickOutline");
+  thickOutline = GetFastInt(buf, thickOutline, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "textured");
+  textured = GetFastInt(buf, textured, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "num_inst");
+  instances = GetFastInt(buf, instances, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "x");
+  x = GetFastFloat(buf, x, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "y");
+  y = GetFastFloat(buf, y, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "rad");
+  rad = GetFastFloat(buf, rad, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "ang");
+  ang = GetFastFloat(buf, ang, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "tex_ang");
+  tex_ang = GetFastFloat(buf, tex_ang, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "tex_zoom");
+  tex_zoom = GetFastFloat(buf, tex_zoom, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "r");
+  r = GetFastFloat(buf, r, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "g");
+  g = GetFastFloat(buf, g, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "b");
+  b = GetFastFloat(buf, b, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "a");
+  a = GetFastFloat(buf, a, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "r2");
+  r2 = GetFastFloat(buf, r2, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "g2");
+  g2 = GetFastFloat(buf, g2, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "b2");
+  b2 = GetFastFloat(buf, b2, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "a2");
+  a2 = GetFastFloat(buf, a2, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "border_r");
+  border_r = GetFastFloat(buf, border_r, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "border_g");
+  border_g = GetFastFloat(buf, border_g, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "border_b");
+  border_b = GetFastFloat(buf, border_b, f2);
+  sprintf(buf, "shapecode_%d_%s", i, "border_a");
+  border_a = GetFastFloat(buf, border_a, f2);
 
   // READ THE CODE IN
   char prefix[64];
-  sprintf(prefix, "shape_%d_init", i); ReadCode(f2, m_szInit, prefix);
-  sprintf(prefix, "shape_%d_per_frame", i); ReadCode(f2, m_szPerFrame, prefix);
+  sprintf(prefix, "shape_%d_init", i);
+  ReadCode(f2, m_szInit, prefix);
+  sprintf(prefix, "shape_%d_per_frame", i);
+  ReadCode(f2, m_szPerFrame, prefix);
 
   if (!f)
-    fclose(f2); // [sic]
+    fclose(f2);  // [sic]
 
   return 1;
 }
@@ -1259,14 +1297,14 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
   }
 
   // apply defaults for the stuff we will overwrite.
-  Default(ApplyFlags);//RandomizePresetVars();
+  Default(ApplyFlags);  // RandomizePresetVars();
 
   GetFast_CLEAR();
 
-  if ((ApplyFlags & STATE_GENERAL) &&    // check for these 3 @ same time,
-    (ApplyFlags & STATE_MOTION) &&     // so a preset switch w/ warp/comp lock
-    (ApplyFlags & STATE_WAVE)        // updates the name, but mash-ups don't.
-    ) {
+  if ((ApplyFlags & STATE_GENERAL) &&  // check for these 3 @ same time,
+      (ApplyFlags & STATE_MOTION) &&   // so a preset switch w/ warp/comp lock
+      (ApplyFlags & STATE_WAVE)        // updates the name, but mash-ups don't.
+  ) {
     m_fPresetStartTime = fTime;
 
     // extract a description of the preset from the filename
@@ -1286,30 +1324,26 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
     return false;
 
   int nMilkdropPresetVersion = GetFastInt("MILKDROP_PRESET_VERSION", 100, f);
-  //if (ApplyFlags != STATE_ALL)
-  //    nMilkdropPresetVersion = CUR_MILKDROP_PRESET_VERSION;  //if we're mashing up, force it up to now
-
+  // if (ApplyFlags != STATE_ALL)
+  //     nMilkdropPresetVersion = CUR_MILKDROP_PRESET_VERSION;  //if we're mashing up, force it up to now
 
   int nWarpPSVersionInFile;
   int nCompPSVersionInFile;
   if (nMilkdropPresetVersion < 200) {
     nWarpPSVersionInFile = 0;
     nCompPSVersionInFile = 0;
-  }
-  else if (nMilkdropPresetVersion == 200) {
+  } else if (nMilkdropPresetVersion == 200) {
     if (g_plugin.m_IsAMD)
       nWarpPSVersionInFile = g_plugin.m_nMaxPSVersion_DX9;
     else
       nWarpPSVersionInFile = GetFastInt("PSVERSION", 2, f);
 
     nCompPSVersionInFile = nWarpPSVersionInFile;
-  }
-  else {
+  } else {
     if (g_plugin.m_IsAMD) {
       nWarpPSVersionInFile = g_plugin.m_nMaxPSVersion_DX9;
       nCompPSVersionInFile = g_plugin.m_nMaxPSVersion_DX9;
-    }
-    else {
+    } else {
       nWarpPSVersionInFile = GetFastInt("PSVERSION_WARP", 2, f);
       nCompPSVersionInFile = GetFastInt("PSVERSION_COMP", 2, f);
     }
@@ -1320,7 +1354,7 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
     m_fRating = GetFastFloat("fRating", m_fRating, f);
     m_fDecay = GetFastFloat("fDecay", m_fDecay.eval(-1), f);
     m_fFFTAttack = max(0.0f, min(1.0f, GetFastFloat("FFTAttack", m_fFFTAttack, f)));
-    m_fFFTDecay  = max(0.0f, min(1.0f, GetFastFloat("FFTDecay",  m_fFFTDecay,  f)));
+    m_fFFTDecay = max(0.0f, min(1.0f, GetFastFloat("FFTDecay", m_fFFTDecay, f)));
     m_fGammaAdj = GetFastFloat("fGammaAdj", m_fGammaAdj.eval(-1), f);
     m_fVideoEchoZoom = GetFastFloat("fVideoEchoZoom", m_fVideoEchoZoom.eval(-1), f);
     m_fVideoEchoAlpha = GetFastFloat("fVideoEchoAlpha", m_fVideoEchoAlpha.eval(-1), f);
@@ -1367,7 +1401,7 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
     m_fMvR = GetFastFloat("mv_r", m_fMvR.eval(-1), f);
     m_fMvG = GetFastFloat("mv_g", m_fMvG.eval(-1), f);
     m_fMvB = GetFastFloat("mv_b", m_fMvB.eval(-1), f);
-    m_fMvA = (GetFastInt("bMotionVectorsOn", false, f) == 0) ? 0.0f : 1.0f; // for backwards compatibility
+    m_fMvA = (GetFastInt("bMotionVectorsOn", false, f) == 0) ? 0.0f : 1.0f;  // for backwards compatibility
     m_fMvA = GetFastFloat("mv_a", m_fMvA.eval(-1), f);
     int i;
     for (i = 0; i < MAX_CUSTOM_WAVES; i++) {
@@ -1404,9 +1438,9 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
     m_fInnerBorderG = GetFastFloat("ib_g", m_fInnerBorderG.eval(-1), f);
     m_fInnerBorderB = GetFastFloat("ib_b", m_fInnerBorderB.eval(-1), f);
     m_fInnerBorderA = GetFastFloat("ib_a", m_fInnerBorderA.eval(-1), f);
-    //m_szPerFrameInit[0] = 0;
-    //m_szPerFrameExpr[0] = 0;
-    //m_szPerPixelExpr[0] = 0;
+    // m_szPerFrameInit[0] = 0;
+    // m_szPerFrameExpr[0] = 0;
+    // m_szPerPixelExpr[0] = 0;
     ReadCode(f, m_szPerFrameInit, "per_frame_init_");
     ReadCode(f, m_szPerFrameExpr, "per_frame_");
     ReadCode(f, m_szPerPixelExpr, "per_pixel_");
@@ -1414,7 +1448,7 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
 
   // warp shader
   if (ApplyFlags & STATE_WARP) {
-    //m_szWarpShadersText[0] = 0;
+    // m_szWarpShadersText[0] = 0;
     ReadCode(f, m_szWarpShadersText, "warp_");
     if (!m_szWarpShadersText[0])
       g_plugin.GenWarpPShaderText(m_szWarpShadersText, m_fDecay.eval(-1), m_bTexWrap);
@@ -1423,13 +1457,12 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
 
   // comp shader
   if (ApplyFlags & STATE_COMP) {
-    //m_szCompShadersText[0] = 0;
+    // m_szCompShadersText[0] = 0;
     ReadCode(f, m_szCompShadersText, "comp_");
     if (!m_szCompShadersText[0])
       g_plugin.GenCompPShaderText(m_szCompShadersText, m_fGammaAdj.eval(-1), m_fVideoEchoAlpha.eval(-1), m_fVideoEchoZoom.eval(-1), m_nVideoEchoOrientation, m_fShader.eval(-1), m_bBrighten, m_bDarken, m_bSolarize, m_bInvert);
     m_nCompPSVersion = nCompPSVersionInFile;
   }
-
 
   // U + 2191
   boolean autoUpdate = false;
@@ -1437,15 +1470,13 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
     if (m_nWarpPSVersion < g_plugin.m_MinPSVersionConfig) {
       m_nWarpPSVersion = g_plugin.m_MinPSVersionConfig;
       autoUpdate = true;
-    }
-    else if (m_nWarpPSVersion > g_plugin.m_MaxPSVersionConfig) {
+    } else if (m_nWarpPSVersion > g_plugin.m_MaxPSVersionConfig) {
       m_nWarpPSVersion = g_plugin.m_MaxPSVersionConfig;
     }
     if (m_nCompPSVersion < g_plugin.m_MinPSVersionConfig) {
       m_nCompPSVersion = g_plugin.m_MinPSVersionConfig;
       autoUpdate = true;
-    }
-    else if (m_nCompPSVersion > g_plugin.m_MaxPSVersionConfig) {
+    } else if (m_nCompPSVersion > g_plugin.m_MaxPSVersionConfig) {
       m_nCompPSVersion = g_plugin.m_MaxPSVersionConfig;
     }
   }
@@ -1453,8 +1484,8 @@ bool CState::Import(const wchar_t* szIniFile, float fTime, CState* pOldState, DW
   if (autoUpdate && g_plugin.m_ShowUpArrowInDescriptionIfPSMinVersionForced) {
     // Prepend the Unicode up arrow (U+2191) and a blank space to m_szDesc
     wchar_t temp[512];
-    wcsncpy_s(temp, m_szDesc, _countof(temp)); // Copy the current content of m_szDesc to a temporary buffer
-    swprintf_s(m_szDesc, _countof(m_szDesc), L"\u2191 %s", temp); // Prepend the arrow and space
+    wcsncpy_s(temp, m_szDesc, _countof(temp));                     // Copy the current content of m_szDesc to a temporary buffer
+    swprintf_s(m_szDesc, _countof(m_szDesc), L"\u2191 %s", temp);  // Prepend the arrow and space
   }
 
   m_nMaxPSVersion = max(m_nWarpPSVersion, m_nCompPSVersion);
@@ -1517,8 +1548,8 @@ void CState::FreeVarsAndCode(bool bFree) {
   }
 
   // free our text version of the expressions? - no!
-  //m_szPerFrameExpr[0] = 0;
-  //m_szPerPixelExpr[0] = 0;
+  // m_szPerFrameExpr[0] = 0;
+  // m_szPerPixelExpr[0] = 0;
 
   // free the old variable names & reregister the built-in variables (since they got nuked too)
   RegisterBuiltInVariables(0xFFFFFFFF);
@@ -1536,8 +1567,7 @@ void CState::StripLinefeedCharsAndComments(char* src, char* dest) {
     if (bComment) {
       if (src[i] == LINEFEED_CONTROL_CHAR)
         bComment = false;
-    }
-    else {
+    } else {
       if ((src[i] == '\\' && src[i + 1] == '\\') || (src[i] == '/' && src[i + 1] == '/'))
         bComment = true;
       else if (src[i] != LINEFEED_CONTROL_CHAR)
@@ -1621,7 +1651,6 @@ void CState::RecompileExpressions(int flags, int bReInit) {
 
     // --- WAVE ---
     for (int i = 0; i < MAX_CUSTOM_WAVES; i++) {
-
       for (vi = 0; vi < NUM_Q_VAR; vi++)
         if (m_wave[i].var_pf_q[vi]) *m_wave[i].var_pf_q[vi] = 0;
 
@@ -1638,27 +1667,42 @@ void CState::RecompileExpressions(int flags, int bReInit) {
   for (int n = 0; n < n2; n++) {
     char* pOrig;
     switch (n) {
-    case 0: pOrig = m_szPerFrameExpr; break;
-    case 1: pOrig = m_szPerPixelExpr; break;
-    case 2: pOrig = m_szPerFrameInit; break;
-    default:
-      if (n < 3 + 3 * MAX_CUSTOM_WAVES) {
-        int i = (n - 3) / 3;
-        int j = (n - 3) % 3;
-        switch (j) {
-        case 0: pOrig = m_wave[i].m_szInit;     break;
-        case 1: pOrig = m_wave[i].m_szPerFrame; break;
-        case 2: pOrig = m_wave[i].m_szPerPoint; break;
+      case 0:
+        pOrig = m_szPerFrameExpr;
+        break;
+      case 1:
+        pOrig = m_szPerPixelExpr;
+        break;
+      case 2:
+        pOrig = m_szPerFrameInit;
+        break;
+      default:
+        if (n < 3 + 3 * MAX_CUSTOM_WAVES) {
+          int i = (n - 3) / 3;
+          int j = (n - 3) % 3;
+          switch (j) {
+            case 0:
+              pOrig = m_wave[i].m_szInit;
+              break;
+            case 1:
+              pOrig = m_wave[i].m_szPerFrame;
+              break;
+            case 2:
+              pOrig = m_wave[i].m_szPerPoint;
+              break;
+          }
+        } else {
+          int i = (n - 3 - 3 * MAX_CUSTOM_WAVES) / 2;
+          int j = (n - 3 - 3 * MAX_CUSTOM_WAVES) % 2;
+          switch (j) {
+            case 0:
+              pOrig = m_shape[i].m_szInit;
+              break;
+            case 1:
+              pOrig = m_shape[i].m_szPerFrame;
+              break;
+          }
         }
-      }
-      else {
-        int i = (n - 3 - 3 * MAX_CUSTOM_WAVES) / 2;
-        int j = (n - 3 - 3 * MAX_CUSTOM_WAVES) % 2;
-        switch (j) {
-        case 0: pOrig = m_shape[i].m_szInit;     break;
-        case 1: pOrig = m_shape[i].m_szPerFrame; break;
-        }
-      }
     }
     char* p = pOrig;
     while (*p == ' ' || *p == LINEFEED_CONTROL_CHAR) p++;
@@ -1669,7 +1713,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
 #ifndef _NO_EXPR_
   {
     // clear any old error msg.:
-    //g_plugin.m_fShowUserMessageUntilThisTime = g_plugin.GetTime();
+    // g_plugin.m_fShowUserMessageUntilThisTime = g_plugin.GetTime();
 
     char buf[MAX_BIGSTRING_LEN * 3];
 
@@ -1677,7 +1721,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
       // 1. compile AND EXECUTE preset init code
       StripLinefeedCharsAndComments(m_szPerFrameInit, buf);
       if (buf[0] && bReInit) {
-        NSEEL_CODEHANDLE	pf_codehandle_init;
+        NSEEL_CODEHANDLE pf_codehandle_init;
 
         if (!(pf_codehandle_init = NSEEL_code_compile(m_pf_eel, buf))) {
           wchar_t buf[1024];
@@ -1687,8 +1731,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
           for (int vi = 0; vi < NUM_Q_VAR; vi++)
             q_values_after_init_code[vi] = 0;
           monitor_after_init_code = 0;
-        }
-        else {
+        } else {
           // now execute the code, save the values of q1..q32, and clean up the code!
 
           g_plugin.LoadPerFrameEvallibVars(g_plugin.m_pState);
@@ -1724,7 +1767,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
         }
       }
 
-      //resetVars(NULL);
+      // resetVars(NULL);
     }
 
     if (flags & RECOMPILE_WAVE_CODE) {
@@ -1734,7 +1777,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
         if (buf[0] && bReInit) {
 #ifndef _NO_EXPR_
           {
-            NSEEL_CODEHANDLE	codehandle_temp;
+            NSEEL_CODEHANDLE codehandle_temp;
             if (!(codehandle_temp = NSEEL_code_compile(m_wave[i].m_pf_eel, buf))) {
               wchar_t buf[1024];
               swprintf(buf, wasabiApiLangString(IDS_WARNING_PRESET_X_ERROR_IN_WAVE_X_INIT_CODE), m_szDesc, i);
@@ -1745,8 +1788,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
                 *m_wave[i].var_pf_q[vi] = q_values_after_init_code[vi];
               for (vi = 0; vi < NUM_T_VAR; vi++)
                 m_wave[i].t_values_after_init_code[vi] = 0;
-            }
-            else {
+            } else {
               // now execute the code, save the values of t1..t8, and clean up the code!
 
               g_plugin.LoadCustomWavePerFrameEvallibVars(g_plugin.m_pState, i);
@@ -1797,7 +1839,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
         if (buf[0] && bReInit) {
 #ifndef _NO_EXPR_
           {
-            NSEEL_CODEHANDLE	codehandle_temp;
+            NSEEL_CODEHANDLE codehandle_temp;
             if (!(codehandle_temp = NSEEL_code_compile(m_shape[i].m_pf_eel, buf))) {
               wchar_t buf[1024];
               swprintf(buf, wasabiApiLangString(IDS_WARNING_PRESET_X_ERROR_IN_SHAPE_X_INIT_CODE), m_szDesc, i);
@@ -1808,8 +1850,7 @@ void CState::RecompileExpressions(int flags, int bReInit) {
                 *m_shape[i].var_pf_q[vi] = q_values_after_init_code[vi];
               for (vi = 0; vi < NUM_T_VAR; vi++)
                 m_shape[i].t_values_after_init_code[vi] = 0;
-            }
-            else {
+            } else {
               // now execute the code, save the values of q1..q8, and clean up the code!
 
               g_plugin.LoadCustomShapePerFrameEvallibVars(g_plugin.m_pState, i, 0);
@@ -1870,7 +1911,7 @@ void CState::RandomizePresetVars() {
   int k = 0;
   do {
     for (int i = 0; i < 4; i++) {
-      float xlate_mult = 1;//(j==0) ? 1 : 0;
+      float xlate_mult = 1;  //(j==0) ? 1 : 0;
       float rot_mult = 0.9f * powf(k / 8.0f, 3.2f);
       m_xlate[k].x = (FRAND * 2 - 1) * xlate_mult;
       m_xlate[k].y = (FRAND * 2 - 1) * xlate_mult;
@@ -1905,8 +1946,7 @@ float CBlendableFloat::eval(float fTime) {
 
   if (!m_bBlending) {
     return val;
-  }
-  else {
+  } else {
     float mix = (fTime - m_fBlendStartTime) / m_fBlendDuration;
     return (m_fBlendFrom * (1.0f - mix) + val * mix);
   }

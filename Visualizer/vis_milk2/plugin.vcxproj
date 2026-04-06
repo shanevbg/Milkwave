@@ -201,7 +201,7 @@
     <ClCompile Include="dxcontext.cpp" />
     <ClCompile Include="fft.cpp" />
     <ClCompile Include="menu.cpp" />
-    <ClCompile Include="Milkdrop2PcmVisualizer.cpp" />
+    <ClCompile Include="MilkwaveVisualizer.cpp" />
     <ClCompile Include="milkdropfs.cpp" />
     <ClCompile Include="milkwave.cpp" />
     <ClCompile Include="pipe_server.cpp" />
@@ -247,7 +247,7 @@
     <ClInclude Include="fft.h" />
     <ClInclude Include="md_defines.h" />
     <ClInclude Include="menu.h" />
-    <ClInclude Include="Milkdrop2PcmVisualizer.h" />
+    <ClInclude Include="MilkwaveVisualizer.h" />
     <ClInclude Include="VideoCapture.h" />
     <ClInclude Include="milkwave.h" />
     <ClInclude Include="pipe_server.h" />

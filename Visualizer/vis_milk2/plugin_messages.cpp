@@ -114,7 +114,6 @@ void CPlugin::ReadCustomMessages() {
   }
 }
 
-
 void CPlugin::LaunchCustomMessage(int nMsgNum) {
   if (nMsgNum > 99)
     nMsgNum = 99;
@@ -137,8 +136,8 @@ void CPlugin::LaunchCustomMessage(int nMsgNum) {
   }
 
   if (nMsgNum < 0 ||
-    nMsgNum >= MAX_CUSTOM_MESSAGES ||
-    m_CustomMessage[nMsgNum].szText[0] == 0) {
+      nMsgNum >= MAX_CUSTOM_MESSAGES ||
+      m_CustomMessage[nMsgNum].szText[0] == 0) {
     return;
   }
 
@@ -201,16 +200,12 @@ void CPlugin::LaunchCustomMessage(int nMsgNum) {
     }*/
 
     m_supertexts[nextFreeSupertextIndex].fStartTime = GetTime();
-
   }
   // no free supertext slots available
   return;
-
 }
 
-
 void CPlugin::LaunchSongTitleAnim(int supertextIndex) {
-
   wchar_t debugMsg[128];
   swprintf(debugMsg, sizeof(debugMsg) / sizeof(debugMsg[0]), L"LaunchSongTitleAnim: supertextIndex=%d\n", supertextIndex);
   OutputDebugStringW(debugMsg);
@@ -221,7 +216,7 @@ void CPlugin::LaunchSongTitleAnim(int supertextIndex) {
   m_supertexts[supertextIndex].bRedrawSuperText = true;
   m_supertexts[supertextIndex].bIsSongTitle = true;
   lstrcpyW(m_supertexts[supertextIndex].szTextW, m_szSongTitle);
-  //lstrcpy(m_supertext[supertextIndex].szText, " ");
+  // lstrcpy(m_supertext[supertextIndex].szText, " ");
   lstrcpyW(m_supertexts[supertextIndex].nFontFace, m_fontinfo[SONGTITLE_FONT].szFace);
   m_supertexts[supertextIndex].fFontSize = (float)m_fontinfo[SONGTITLE_FONT].nSize;
   m_supertexts[supertextIndex].bBold = m_fontinfo[SONGTITLE_FONT].bBold;
@@ -237,17 +232,14 @@ void CPlugin::LaunchSongTitleAnim(int supertextIndex) {
   m_supertexts[supertextIndex].fStartTime = GetTime();
 }
 
-
 // Convert std::wstring to LPCWSTR
 LPCWSTR ConvertToLPCWSTR(const std::wstring& wstr) {
   return wstr.c_str();
 }
 
-
 void CPlugin::LaunchMessage(wchar_t* sMessage) {
   if (wcsncmp(sMessage, L"MSG|", 4) == 0) {
-
-    std::wstring message(sMessage + 4); // Remove "MSG|"
+    std::wstring message(sMessage + 4);  // Remove "MSG|"
     std::wstringstream ss(message);
     std::wstring token;
     std::map<std::wstring, std::wstring> params;
@@ -266,9 +258,8 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     // Set m_supertext properties
     if (params.find(L"text") != params.end()) {
       lstrcpyW(m_supertexts[nextFreeSupertextIndex].szTextW, ConvertToLPCWSTR(params[L"text"]));
-    }
-    else {
-      return; // 'text' parameter is required
+    } else {
+      return;  // 'text' parameter is required
     }
 
     m_supertexts[nextFreeSupertextIndex].bRedrawSuperText = true;
@@ -276,31 +267,27 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
 
     if (params.find(L"font") != params.end()) {
       lstrcpyW(m_supertexts[nextFreeSupertextIndex].nFontFace, ConvertToLPCWSTR(params[L"font"]));
-    }
-    else {
+    } else {
       // Default font
       lstrcpyW(m_supertexts[nextFreeSupertextIndex].nFontFace, L"Segoe UI");
     }
 
     if (params.find(L"size") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fFontSize = std::stof(params[L"size"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].fFontSize = 30.0f; // Default size
+    } else {
+      m_supertexts[nextFreeSupertextIndex].fFontSize = 30.0f;  // Default size
     }
 
     if (params.find(L"x") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fX = std::stof(params[L"x"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].fX = 0.49f; // Default x position
+    } else {
+      m_supertexts[nextFreeSupertextIndex].fX = 0.49f;  // Default x position
     }
 
     if (params.find(L"y") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fY = std::stof(params[L"y"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].fY = 0.5f; // Default y position
+    } else {
+      m_supertexts[nextFreeSupertextIndex].fY = 0.5f;  // Default y position
     }
 
     if (params.find(L"randx") != params.end()) {
@@ -313,65 +300,56 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
 
     if (params.find(L"growth") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fGrowth = std::stof(params[L"growth"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].fGrowth = 1.0f; // Default growth
+    } else {
+      m_supertexts[nextFreeSupertextIndex].fGrowth = 1.0f;  // Default growth
     }
 
     if (params.find(L"time") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fDuration = std::stof(params[L"time"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].fDuration = 5.0f; // Default duration
+    } else {
+      m_supertexts[nextFreeSupertextIndex].fDuration = 5.0f;  // Default duration
     }
 
     if (params.find(L"fade") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fFadeInTime = std::stof(params[L"fade"]);
-    }
-    else {
+    } else {
       m_supertexts[nextFreeSupertextIndex].fFadeInTime = m_MessageDefaultFadeinTime;
     }
 
     if (params.find(L"fadeout") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fFadeOutTime = std::stof(params[L"fadeout"]);
-    }
-    else {
+    } else {
       m_supertexts[nextFreeSupertextIndex].fFadeOutTime = m_MessageDefaultFadeoutTime;
     }
 
     if (params.find(L"bold") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].bBold = std::stoi(params[L"bold"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].bBold = 0; // Default bold
+    } else {
+      m_supertexts[nextFreeSupertextIndex].bBold = 0;  // Default bold
     }
 
     if (params.find(L"ital") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].bItal = std::stoi(params[L"ital"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].bItal = 0; // Default italic
+    } else {
+      m_supertexts[nextFreeSupertextIndex].bItal = 0;  // Default italic
     }
 
     if (params.find(L"r") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].nColorR = std::stoi(params[L"r"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].nColorR = 255; // Default red color
+    } else {
+      m_supertexts[nextFreeSupertextIndex].nColorR = 255;  // Default red color
     }
 
     if (params.find(L"g") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].nColorG = std::stoi(params[L"g"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].nColorG = 255; // Default green color
+    } else {
+      m_supertexts[nextFreeSupertextIndex].nColorG = 255;  // Default green color
     }
 
     if (params.find(L"b") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].nColorB = std::stoi(params[L"b"]);
-    }
-    else {
-      m_supertexts[nextFreeSupertextIndex].nColorB = 255; // Default blue color
+    } else {
+      m_supertexts[nextFreeSupertextIndex].nColorB = 255;  // Default blue color
     }
 
     if (params.find(L"randr") != params.end()) {
@@ -392,7 +370,6 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     if (m_supertexts[nextFreeSupertextIndex].nColorR > 255) m_supertexts[nextFreeSupertextIndex].nColorR = 255;
     if (m_supertexts[nextFreeSupertextIndex].nColorG > 255) m_supertexts[nextFreeSupertextIndex].nColorG = 255;
     if (m_supertexts[nextFreeSupertextIndex].nColorB > 255) m_supertexts[nextFreeSupertextIndex].nColorB = 255;
-
 
     if (params.find(L"startx") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fStartX = std::stof(params[L"startx"]);
@@ -420,8 +397,7 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
 
     if (params.find(L"burntime") != params.end()) {
       m_supertexts[nextFreeSupertextIndex].fBurnTime = std::stof(params[L"burntime"]);
-    }
-    else {
+    } else {
       m_supertexts[nextFreeSupertextIndex].fBurnTime = m_MessageDefaultBurnTime;
     }
 
@@ -438,7 +414,7 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
         try {
           rgb.push_back(std::stof(token));
         } catch (...) {
-          rgb.push_back(0.0f); // fallback if parsing fails
+          rgb.push_back(0.0f);  // fallback if parsing fails
         }
       }
 
@@ -465,12 +441,7 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     m_supertexts[nextFreeSupertextIndex].fStartTime = GetTime();
 
     for (int i = 0; i < NUM_SUPERTEXTS; i++) {
-      if (i != nextFreeSupertextIndex
-        && m_supertexts[i].fStartTime != -1.0f
-        && m_supertexts[i].fStartX == -100
-        && m_supertexts[i].fStartY == -100
-        && m_supertexts[i].fX == m_supertexts[nextFreeSupertextIndex].fX
-        && m_supertexts[i].fY == m_supertexts[nextFreeSupertextIndex].fY) {
+      if (i != nextFreeSupertextIndex && m_supertexts[i].fStartTime != -1.0f && m_supertexts[i].fStartX == -100 && m_supertexts[i].fStartY == -100 && m_supertexts[i].fX == m_supertexts[nextFreeSupertextIndex].fX && m_supertexts[i].fY == m_supertexts[nextFreeSupertextIndex].fY) {
         // If the new supertext overlaps with an existing non-animated one, end it
         float fProgress = (GetTime() - m_supertexts[i].fStartTime) / m_supertexts[i].fDuration;
         // If text was growing, try keeping the current size
@@ -481,10 +452,9 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
         m_supertexts[i].fDuration = GetTime() - m_supertexts[i].fStartTime;
       }
     }
-  }
-  else if (wcsncmp(sMessage, L"AMP|", 4) == 0) {
+  } else if (wcsncmp(sMessage, L"AMP|", 4) == 0) {
     // EQ message
-    std::wstring message(sMessage + 4); // Remove "AMP|"
+    std::wstring message(sMessage + 4);  // Remove "AMP|"
     std::wstringstream ss(message);
     std::wstring token;
     std::map<std::wstring, std::wstring> params;
@@ -504,19 +474,18 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
         milkwave_amp_right = std::stof(params[L"r"]);
       } catch (const std::exception&) {
         // Handle the error if the conversion fails
-        milkwave_amp_left = 1.0f; // Default value
-        milkwave_amp_right = 1.0f; // Default value
+        milkwave_amp_left = 1.0f;   // Default value
+        milkwave_amp_right = 1.0f;  // Default value
       }
     }
-  }
-  else if (wcsncmp(sMessage, L"PRESET=", 7) == 0) {
+  } else if (wcsncmp(sMessage, L"PRESET=", 7) == 0) {
     // Find the position of ".milk" in the string
     // wchar_t* pos = wcsstr(sMessage, L".milk");
     // if (pos) {
     //   // Keep everything up to and including ".milk"
     //   pos[5] = L'\0'; // Truncate the string after ".milk"
     // }
-    std::wstring message(sMessage + 7); // Remove "PRESET="
+    std::wstring message(sMessage + 7);  // Remove "PRESET="
 
     size_t pos = message.find_last_of(L"\\/");
     std::wstring sPath;
@@ -526,8 +495,7 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
       sPath = message.substr(0, pos + 1);
       // Extract the filename after the last separator
       sFilename = message.substr(pos + 1);
-    }
-    else {
+    } else {
       // If no separator is found, assume the fullPath is just a filename
       sFilename = message;
     }
@@ -553,23 +521,19 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
 
     LoadPreset(message.c_str(), 1);
     // Handle other message types here if needed
-  }
-  else if (wcsncmp(sMessage, L"WAVE|", 5) == 0) {
+  } else if (wcsncmp(sMessage, L"WAVE|", 5) == 0) {
     std::wstring message(sMessage + 5);
     SetWaveParamsFromMessage(message);
-  }
-  else if (wcsncmp(sMessage, L"DEVICE=", 7) == 0) {
+  } else if (wcsncmp(sMessage, L"DEVICE=", 7) == 0) {
     std::wstring message(sMessage + 7);
     int newRequestType = 0;
     if (wcsncmp(message.c_str(), L"IN|", 3) == 0) {
       message = message.substr(3);
       newRequestType = 1;
-    }
-    else if (wcsncmp(message.c_str(), L"OUT|", 4) == 0) {
+    } else if (wcsncmp(message.c_str(), L"OUT|", 4) == 0) {
       message = message.substr(4);
       newRequestType = 2;
-    }
-    else {
+    } else {
       newRequestType = 0;
     }
     m_nAudioDeviceRequestType = newRequestType;
@@ -579,80 +543,69 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     bool isRenderDevice = true;
     if (newRequestType == 1) {
       isRenderDevice = false;
-    }
-    else if (newRequestType == 2) {
+    } else if (newRequestType == 2) {
       isRenderDevice = true;
     }
     g_plugin.SetAudioDeviceDisplayName(message.c_str(), isRenderDevice);
     // Restart audio
     m_nAudioLoopState = 1;
-  }
-  else if (wcsncmp(sMessage, L"VIDEOINPUT=", 11) == 0) {
+  } else if (wcsncmp(sMessage, L"VIDEOINPUT=", 11) == 0) {
     std::wstring message(sMessage + 11);
     size_t pos = message.find(L'|');
     if (pos != std::wstring::npos) {
       std::wstring enabledStr = message.substr(0, pos);
       std::wstring deviceName = message.substr(pos + 1);
       bool enabled = (enabledStr == L"1");
-      
+
       // For now, just enable/disable - device selection could be added later
       EnableVideoMixing(enabled);
     }
-  }
-  else if (wcsncmp(sMessage, L"SPOUTINPUT=", 11) == 0) {
+  } else if (wcsncmp(sMessage, L"SPOUTINPUT=", 11) == 0) {
     std::wstring message(sMessage + 11);
     size_t pos = message.find(L'|');
     if (pos != std::wstring::npos) {
       std::wstring enabledStr = message.substr(0, pos);
       std::wstring senderName = message.substr(pos + 1);
       bool enabled = (enabledStr == L"1");
-      
+
       // Set the sender name first
       if (!senderName.empty()) {
         SetSpoutSender(senderName.c_str());
       }
-      
+
       // Then enable/disable mixing
       EnableSpoutMixing(enabled);
     }
-  }
-  else if (wcsncmp(sMessage, L"OPACITY=", 8) == 0) {
+  } else if (wcsncmp(sMessage, L"OPACITY=", 8) == 0) {
     std::wstring message(sMessage + 8);
     fOpacity = std::stof(message);
     SetOpacity(GetPluginWindow());
-  }
-  else if (wcsncmp(sMessage, L"STATE", 5) == 0) {
+  } else if (wcsncmp(sMessage, L"STATE", 5) == 0) {
     int display = static_cast<int>(std::ceil(100 * fOpacity));
     wchar_t buf[1024];
-    swprintf(buf, 64, L"Opacity: %d%%", display); // Use %d for integers
+    swprintf(buf, 64, L"Opacity: %d%%", display);  // Use %d for integers
     SendMessageToMilkwaveRemote((L"OPACITY=" + std::to_wstring(display)).c_str());
     SendPresetChangedInfoToMilkwaveRemote();
     SendSettingsInfoToMilkwaveRemote();
     if (m_nNumericInputMode == NUMERIC_INPUT_MODE_CUST_MSG) {
       PostMessageToMilkwaveRemote(WM_USER_MESSAGE_MODE);
-    }
-    else {
+    } else {
       PostMessageToMilkwaveRemote(WM_USER_SPRITE_MODE);
     }
-  }
-  else if (wcsncmp(sMessage, L"LINK=", 5) == 0) {
+  } else if (wcsncmp(sMessage, L"LINK=", 5) == 0) {
     std::wstring message(sMessage + 5);
     m_RemotePresetLink = std::stoi(message);
-  }
-  else if (wcsncmp(sMessage, L"QUICKSAVE", 9) == 0) {
+  } else if (wcsncmp(sMessage, L"QUICKSAVE", 9) == 0) {
     g_plugin.SaveCurrentPresetToQuicksave(false);
-  }
-  else if (wcsncmp(sMessage, L"CONFIG", 6) == 0) {
+  } else if (wcsncmp(sMessage, L"CONFIG", 6) == 0) {
     ReadConfig();
     // to update fonts
     AllocateDX9Stuff();
-  }
-  else if (wcsncmp(sMessage, L"SETTINGS", 8) == 0) {
+  } else if (wcsncmp(sMessage, L"SETTINGS", 8) == 0) {
     m_fTimeBetweenPresets = GetPrivateProfileFloatW(L"Settings", L"fTimeBetweenPresets", m_fTimeBetweenPresets, GetConfigIniFile());
     m_fPresetStartTime = GetTime();
-    m_fNextPresetTime = -1.0f; // force recalculation
-  }
-  else if (wcsncmp(sMessage, L"TESTFONTS", 9) == 0) {
+    m_fNextPresetTime = -1.0f;  // force recalculation
+  } else if (wcsncmp(sMessage, L"TESTFONTS", 9) == 0) {
     ClearErrors(ERR_MSG_BOTTOM_EXTRA_1);
     ClearErrors(ERR_MSG_BOTTOM_EXTRA_2);
     ClearErrors(ERR_MSG_BOTTOM_EXTRA_3);
@@ -662,60 +615,45 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     g_plugin.AddError(L"This is the Artist", g_plugin.m_SongInfoDisplaySeconds, ERR_MSG_BOTTOM_EXTRA_1, false);
     if (!g_plugin.m_bShowPresetInfo) g_plugin.m_bShowPresetInfo = true;
     g_plugin.AddNotification(L"This is a notification");
-  }
-  else if (wcsncmp(sMessage, L"CLEARPRESET", 11) == 0) {
+  } else if (wcsncmp(sMessage, L"CLEARPRESET", 11) == 0) {
     ClearPreset();
-  }
-  else if (wcsncmp(sMessage, L"CLEARSPRITES", 12) == 0) {
+  } else if (wcsncmp(sMessage, L"CLEARSPRITES", 12) == 0) {
     g_plugin.KillAllSprites();
-  }
-  else if (wcsncmp(sMessage, L"CLEARTEXTS", 10) == 0) {
+  } else if (wcsncmp(sMessage, L"CLEARTEXTS", 10) == 0) {
     g_plugin.KillAllSupertexts();
-  }
-  else if (wcsncmp(sMessage, L"VAR_TIME=", 9) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_TIME=", 9) == 0) {
     std::wstring message(sMessage + 9);
     g_plugin.m_timeFactor = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"VAR_FRAME=", 10) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_FRAME=", 10) == 0) {
     std::wstring message(sMessage + 10);
     g_plugin.m_frameFactor = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"VAR_FPS=", 8) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_FPS=", 8) == 0) {
     std::wstring message(sMessage + 8);
     g_plugin.m_fpsFactor = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"VAR_INTENSITY=", 14) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_INTENSITY=", 14) == 0) {
     std::wstring message(sMessage + 14);
     g_plugin.m_VisIntensity = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"VAR_SHIFT=", 10) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_SHIFT=", 10) == 0) {
     std::wstring message(sMessage + 10);
     g_plugin.m_VisShift = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"VAR_VERSION=", 12) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_VERSION=", 12) == 0) {
     std::wstring message(sMessage + 12);
     g_plugin.m_VisVersion = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"COL_HUE=", 8) == 0) {
+  } else if (wcsncmp(sMessage, L"COL_HUE=", 8) == 0) {
     std::wstring message(sMessage + 8);
     g_plugin.m_ColShiftHue = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"HUE_AUTO=", 9) == 0) {
+  } else if (wcsncmp(sMessage, L"HUE_AUTO=", 9) == 0) {
     g_plugin.m_AutoHue = (sMessage[9] == L'1');
-  }
-  else if (wcsncmp(sMessage, L"HUE_AUTO_SECONDS=", 17) == 0) {
+  } else if (wcsncmp(sMessage, L"HUE_AUTO_SECONDS=", 17) == 0) {
     std::wstring message(sMessage + 17);
     g_plugin.m_AutoHueSeconds = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"COL_SATURATION=", 15) == 0) {
+  } else if (wcsncmp(sMessage, L"COL_SATURATION=", 15) == 0) {
     std::wstring message(sMessage + 15);
     g_plugin.m_ColShiftSaturation = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"COL_BRIGHTNESS=", 15) == 0) {
+  } else if (wcsncmp(sMessage, L"COL_BRIGHTNESS=", 15) == 0) {
     std::wstring message(sMessage + 15);
     g_plugin.m_ColShiftBrightness = std::stof(message);
-  }
-  else if (wcsncmp(sMessage, L"FFT_ATTACK=", 11) == 0) {
+  } else if (wcsncmp(sMessage, L"FFT_ATTACK=", 11) == 0) {
     std::wstring message(sMessage + 11);
     g_plugin.m_fFFTAttackGlobal = max(0.0f, min(1.0f, std::stof(message)));
     if (g_plugin.m_pState)
@@ -723,8 +661,7 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     wchar_t buf[64];
     swprintf(buf, 64, L"FFT Attack: %.2f", g_plugin.m_fFFTAttackGlobal);
     g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
-  }
-  else if (wcsncmp(sMessage, L"FFT_DECAY=", 10) == 0) {
+  } else if (wcsncmp(sMessage, L"FFT_DECAY=", 10) == 0) {
     std::wstring message(sMessage + 10);
     g_plugin.m_fFFTDecayGlobal = max(0.0f, min(1.0f, std::stof(message)));
     if (g_plugin.m_pState)
@@ -732,29 +669,24 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     wchar_t buf[64];
     swprintf(buf, 64, L"FFT Decay: %.2f", g_plugin.m_fFFTDecayGlobal);
     g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
-  }
-  else if (wcsncmp(sMessage, L"VAR_QUALITY=", 12) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_QUALITY=", 12) == 0) {
     std::wstring message(sMessage + 12);
     g_plugin.m_fRenderQuality = std::stof(message);
     ResetBufferAndFonts();
-  }
-  else if (wcsncmp(sMessage, L"VAR_AUTO=", 9) == 0) {
+  } else if (wcsncmp(sMessage, L"VAR_AUTO=", 9) == 0) {
     g_plugin.bQualityAuto = (sMessage[9] == L'1');
     ResetBufferAndFonts();
-  }
-  else if (wcsncmp(sMessage, L"SPOUT_ACTIVE=", 13) == 0) {
+  } else if (wcsncmp(sMessage, L"SPOUT_ACTIVE=", 13) == 0) {
     wchar_t status = sMessage[13];
     if ((status == L'0' && bSpoutOut) || (status == L'1' && !bSpoutOut)) {
       ToggleSpout();
     }
-  }
-  else if (wcsncmp(sMessage, L"SPOUT_FIXEDSIZE=", 16) == 0) {
+  } else if (wcsncmp(sMessage, L"SPOUT_FIXEDSIZE=", 16) == 0) {
     wchar_t status = sMessage[16];
     if ((status == L'0' && bSpoutFixedSize) || (status == L'1' && !bSpoutFixedSize)) {
       SetSpoutFixedSize(true, true);
     }
-  }
-  else if (wcsncmp(sMessage, L"SPOUT_RESOLUTION=", 17) == 0) {
+  } else if (wcsncmp(sMessage, L"SPOUT_RESOLUTION=", 17) == 0) {
     std::wstring message(sMessage + 17);
     size_t pos = message.find(L'x');
     if (pos != std::wstring::npos) {
@@ -764,19 +696,16 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
       nSpoutFixedHeight = std::stoi(height);
       SetSpoutFixedSize(false, true);
     }
-  }
-  else if (wcsncmp(sMessage, L"CAPTURE", 7) == 0) {
+  } else if (wcsncmp(sMessage, L"CAPTURE", 7) == 0) {
     OutputDebugStringW(L"[CAPTURE] Message received\n");
     milkwave->LogInfo(L"CAPTURE message received, calling CaptureScreenshot()");
     CaptureScreenshot();
     OutputDebugStringW(L"[CAPTURE] CaptureScreenshot() returned\n");
-  }
-  else if (wcsncmp(sMessage, L"PRECOMPILE_CACHE", 16) == 0) {
+  } else if (wcsncmp(sMessage, L"PRECOMPILE_CACHE", 16) == 0) {
     milkwave->LogInfo(L"PRECOMPILE_CACHE message received");
     extern void StartSetupThread(bool manualTrigger);
     StartSetupThread(true);
-  }
-  else if (wcsncmp(sMessage, L"SEND=", 5) == 0) {
+  } else if (wcsncmp(sMessage, L"SEND=", 5) == 0) {
     // Keystroke sent via pipe
     std::wstring val(sMessage + 5);
     HWND hWnd = GetPluginWindow();
@@ -789,8 +718,8 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
           // For character keys, also post WM_CHAR since HandleRegularKey
           // processes WM_CHAR, not WM_KEYDOWN. PostMessage bypasses
           // TranslateMessage which normally generates WM_CHAR.
-          if ((vkCode >= 0x30 && vkCode <= 0x39) || // 0-9
-              (vkCode >= 0x41 && vkCode <= 0x5A) || // A-Z
+          if ((vkCode >= 0x30 && vkCode <= 0x39) ||  // 0-9
+              (vkCode >= 0x41 && vkCode <= 0x5A) ||  // A-Z
               vkCode == 0x20)                        // Space
             PostMessageW(hWnd, WM_CHAR, (WPARAM)vkCode, 0);
           PostMessageW(hWnd, WM_KEYUP, (WPARAM)vkCode, 0);
@@ -803,4 +732,3 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     }
   }
 }
-

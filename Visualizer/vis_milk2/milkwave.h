@@ -27,14 +27,13 @@ extern float milkwave_amp_left;
 extern float milkwave_amp_right;
 
 class Milkwave {
-
-public:
+ public:
   std::wstring currentArtist;
   std::wstring currentTitle;
   std::wstring currentAlbum;
 
   std::chrono::steady_clock::time_point start_time;
-  
+
   std::filesystem::path coverSpriteFilePath;
 
   bool updated = false;
@@ -43,7 +42,7 @@ public:
   bool isSongChange = false;
   bool doSaveCover = true;
   bool coverUpdated = false;
-  int logLevel = 1; // 0 = Off, 1 = Error, 2 = Info
+  int logLevel = 1;  // 0 = Off, 1 = Error, 2 = Info
 
   Milkwave();
   void Init(wchar_t* exePath);

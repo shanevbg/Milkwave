@@ -31,14 +31,15 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __NULLSOFT_DX9_PLUGIN_SHELL_FFT_H__ 1
 
 class FFT {
-public:
+ public:
   FFT();
   ~FFT();
   void Init(int samples_in, int samples_out, int bEqualize = 1, float envelope_power = 1.0f);
   void time_to_frequency_domain(float* in_wavedata, float* out_spectraldata);
-  int  GetNumFreq() { return NFREQ; };
+  int GetNumFreq() { return NFREQ; };
   void CleanUp();
-private:
+
+ private:
   int m_ready;
   int m_samples_in;
   int NFREQ;

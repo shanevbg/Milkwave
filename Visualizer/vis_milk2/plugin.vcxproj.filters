@@ -94,7 +94,7 @@
     <ClCompile Include="..\spoutDX9\SpoutUtils.cpp">
       <Filter>spoutDX9</Filter>
     </ClCompile>
-    <ClCompile Include="Milkdrop2PcmVisualizer.cpp">
+    <ClCompile Include="MilkwaveVisualizer.cpp">
       <Filter>library\sources</Filter>
     </ClCompile>
     <ClCompile Include="milkwave.cpp">
@@ -216,7 +216,7 @@
     <ClInclude Include="..\audio\prefs.h">
       <Filter>library\headers</Filter>
     </ClInclude>
-    <ClInclude Include="Milkdrop2PcmVisualizer.h">
+    <ClInclude Include="MilkwaveVisualizer.h">
       <Filter>library\headers</Filter>
     </ClInclude>
     <ClInclude Include="VideoCapture.h">

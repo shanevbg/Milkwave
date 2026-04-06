@@ -32,18 +32,18 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <windows.h>
 
-#define DEFAULT_FULLSCREEN_WIDTH  640
+#define DEFAULT_FULLSCREEN_WIDTH 640
 #define DEFAULT_FULLSCREEN_HEIGHT 480
 #define MAX_ICON_TEXTURES 8
 #define ICON_TEXTURE_SIZE 256
-#define DEFAULT_WINDOW_SIZE 0.625f      // as a portion of the width or height of the screen (whichever is smaller)
-#define BGR2RGB(x) (((x>>16)&0xFF) | (x & 0xFF00) | ((x<<16)&0xFF0000))
+#define DEFAULT_WINDOW_SIZE 0.625f  // as a portion of the width or height of the screen (whichever is smaller)
+#define BGR2RGB(x) (((x >> 16) & 0xFF) | (x & 0xFF00) | ((x << 16) & 0xFF0000))
 
 #define NUM_BASIC_FONTS 4
-#define  SYS_FONT 0
-#define  DEC_FONT 1
-#define  HELP_FONT 2
-#define  DESK_FONT 3
+#define SYS_FONT 0
+#define DEC_FONT 1
+#define HELP_FONT 2
+#define DESK_FONT 3
 #define MAX_EXTRA_FONTS 5
 typedef enum {
   SIMPLE_FONT = 0,  // aka 'system' font; should be legible
@@ -55,7 +55,6 @@ typedef enum {
   EXTRA_3 = 6,
   EXTRA_4 = 7,
   EXTRA_5 = 8
-}
-eFontIndex;
+} eFontIndex;
 
 #endif

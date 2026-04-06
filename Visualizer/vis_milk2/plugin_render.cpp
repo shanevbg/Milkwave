@@ -11,7 +11,6 @@
 #include "wasabi.h"
 
 void CPlugin::MyRenderFn(int redraw) {
-
   EnterCriticalSection(&g_cs);
 
   // Render a frame of animation here.
@@ -35,20 +34,20 @@ void CPlugin::MyRenderFn(int redraw) {
   //   1. take care of timing/other paperwork/etc. for new frame
   if (!redraw) {
     float dt = GetTime() - m_prev_time;
-    m_prev_time = GetTime(); // note: m_prev_time is not for general use!
+    m_prev_time = GetTime();  // note: m_prev_time is not for general use!
     m_bPresetLockedByCode = (m_UI_mode != UI_REGULAR);
     if (m_bPresetLockedByUser || m_bPresetLockedByCode) {
       // to freeze time (at current preset time value) when menus are up or Scroll Lock is on:
-  //m_fPresetStartTime += dt;
-  //m_fNextPresetTime += dt;
-      // OR, to freeze time @ [preset] zero, so that when you exit menus,
-      //   you don't run the risk of it changing the preset on you right away:
+      // m_fPresetStartTime += dt;
+      // m_fNextPresetTime += dt;
+      //  OR, to freeze time @ [preset] zero, so that when you exit menus,
+      //    you don't run the risk of it changing the preset on you right away:
       m_fPresetStartTime = GetTime();
-      m_fNextPresetTime = -1.0f;		// flags UpdateTime() to recompute this.
+      m_fNextPresetTime = -1.0f;  // flags UpdateTime() to recompute this.
     }
 
-    //if (!m_bPresetListReady)
-    //    UpdatePresetList(true);//UpdatePresetRatings(); // read in a few each frame, til they're all in
+    // if (!m_bPresetListReady)
+    //     UpdatePresetList(true);//UpdatePresetRatings(); // read in a few each frame, til they're all in
   }
 
   m_bHadFocus = m_bHasFocus;
@@ -57,11 +56,11 @@ void CPlugin::MyRenderFn(int redraw) {
   HWND focus = GetFocus();
   HWND cur = plugin;
 
-  timetick += 1 / GetFps(); //Now these timeticks variables are now became FPS-independent.
+  timetick += 1 / GetFps();  // Now these timeticks variables are now became FPS-independent.
   timetick2 += 1 / GetFps();
 
-  //HardCut Modes (controlled via F11 hotkey)
-  if (HardcutMode == 2) //Bass Blend
+  // HardCut Modes (controlled via F11 hotkey)
+  if (HardcutMode == 2)  // Bass Blend
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode) {
       if ((double)mysound.imm_rel[0] > 1.75 && timetick >= 0.99) {
@@ -71,7 +70,7 @@ void CPlugin::MyRenderFn(int redraw) {
       }
     }
   }
-  if (HardcutMode == 3) //Bass
+  if (HardcutMode == 3)  // Bass
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode)
       if ((double)mysound.imm_rel[0] > 1.75) {
@@ -79,7 +78,7 @@ void CPlugin::MyRenderFn(int redraw) {
           NextPreset(0.0f);
       }
   }
-  if (HardcutMode == 4) //Middle
+  if (HardcutMode == 4)  // Middle
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode)
       if ((double)mysound.imm_rel[1] > 1.75) {
@@ -87,7 +86,7 @@ void CPlugin::MyRenderFn(int redraw) {
           NextPreset(0.0f);
       }
   }
-  if (HardcutMode == 5) //Treble
+  if (HardcutMode == 5)  // Treble
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode)
       if ((double)mysound.imm_rel[2] > 1.75) {
@@ -95,7 +94,7 @@ void CPlugin::MyRenderFn(int redraw) {
           NextPreset(0.0f);
       }
   }
-  if (HardcutMode == 6) //Bass Fast Blend
+  if (HardcutMode == 6)  // Bass Fast Blend
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode)
       if ((double)mysound.imm_rel[0] > 1.75 && timetick >= 0.49) {
@@ -104,7 +103,7 @@ void CPlugin::MyRenderFn(int redraw) {
         timetick = 0;
       }
   }
-  if (HardcutMode == 7) //Treble Fast Blend
+  if (HardcutMode == 7)  // Treble Fast Blend
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode)
       if ((double)mysound.imm_rel[2] > 1.75 && timetick2 >= 0.49) {
@@ -113,7 +112,7 @@ void CPlugin::MyRenderFn(int redraw) {
         timetick2 = 0;
       }
   }
-  if (HardcutMode == 8) //Bass Blend and Hard Cut Treble
+  if (HardcutMode == 8)  // Bass Blend and Hard Cut Treble
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode) {
       if ((double)mysound.imm_rel[0] > 1.75 && timetick >= 0.48) {
@@ -129,7 +128,7 @@ void CPlugin::MyRenderFn(int redraw) {
     }
   }
 
-  if (HardcutMode == 9) //Rhythmic Hardcut
+  if (HardcutMode == 9)  // Rhythmic Hardcut
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode) {
       if (((double)mysound.imm_rel[0] > 1.75 || (double)mysound.imm_rel[2] > 1.75) && timetick >= 0.23) {
@@ -140,7 +139,7 @@ void CPlugin::MyRenderFn(int redraw) {
     }
   }
 
-  if (HardcutMode == 10) //2 beats
+  if (HardcutMode == 10)  // 2 beats
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode) {
       if (((double)mysound.imm_rel[0] > 2.05 && timetick >= 0.23)) {
@@ -156,7 +155,7 @@ void CPlugin::MyRenderFn(int redraw) {
       beatcount = -1;
   }
 
-  if (HardcutMode == 11) //4 beats
+  if (HardcutMode == 11)  // 4 beats
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode) {
       if (((double)mysound.imm_rel[0] > 2.05 && timetick >= 0.23)) {
@@ -172,7 +171,7 @@ void CPlugin::MyRenderFn(int redraw) {
       beatcount = -1;
   }
 
-  if (HardcutMode == 12) //Kinetronix (Vizikord) -- Probably we need BPM algorithm for getting in sync
+  if (HardcutMode == 12)  // Kinetronix (Vizikord) -- Probably we need BPM algorithm for getting in sync
   {
     if (GetFps() > 1.0f && !m_bPresetLockedByUser && !m_bPresetLockedByCode) {
       if (((double)mysound.imm_rel[0] > 2.05 && timetick >= 0.23)) {
@@ -180,8 +179,7 @@ void CPlugin::MyRenderFn(int redraw) {
         if (beatcount % 2 == 0) {
           if (m_nLoadingPreset == 0)
             NextPreset(0.0f);
-        }
-        else {
+        } else {
           if (m_nLoadingPreset == 0)
             PrevPreset(0.0f);
         }
@@ -193,16 +191,16 @@ void CPlugin::MyRenderFn(int redraw) {
             if (m_nLoadingPreset == 0)
               NextPreset(0.0f);
           }
-        } //Double the Next Preset (basically a trick to load 2 presets at the same time)
+        }  // Double the Next Preset (basically a trick to load 2 presets at the same time)
         timetick = 0;
       }
     }
     if (timetick >= 1)
       beatcount = -1;
   }
-  //END
+  // END
 
-  //Auto-Lock Preset when it's silence.
+  // Auto-Lock Preset when it's silence.
   if (m_bAutoLockPresetWhenNoMusic) {
     if (((double)mysound.imm_rel[0] + (double)mysound.imm_rel[1] + (double)mysound.imm_rel[2]) == 0) {
       if (TimeToAutoLockPreset <= 2.5)
@@ -223,7 +221,7 @@ void CPlugin::MyRenderFn(int redraw) {
       TimeToAutoLockPreset = 0;
     }
   }
-  //END
+  // END
 
   if (m_bEnableMouseInteraction) {
     POINT pt;
@@ -244,8 +242,7 @@ void CPlugin::MyRenderFn(int redraw) {
     if (g_plugin.d3dPp.BackBufferWidth > 0 && g_plugin.d3dPp.BackBufferHeight > 0) {
       targetW = static_cast<int>(g_plugin.d3dPp.BackBufferWidth);
       targetH = static_cast<int>(g_plugin.d3dPp.BackBufferHeight);
-    }
-    else if (g_plugin.m_WindowWidth > 0 && g_plugin.m_WindowHeight > 0) {
+    } else if (g_plugin.m_WindowWidth > 0 && g_plugin.m_WindowHeight > 0) {
       targetW = g_plugin.m_WindowWidth;
       targetH = g_plugin.m_WindowHeight;
     }
@@ -265,17 +262,17 @@ void CPlugin::MyRenderFn(int redraw) {
     fy = clamp(fy, 0.0f, 1.0f);
 
     // Convert to lower-left origin: (0,0)=lower-left, (1,1)=upper-right
-    m_mouseX = fx;        // 0 = left, 1 = right
-    m_mouseY = 1.0f - fy; // 0 = bottom, 1 = top
+    m_mouseX = fx;         // 0 = left, 1 = right
+    m_mouseY = 1.0f - fy;  // 0 = bottom, 1 = top
   }
 
-  //Duration of the click called from WM_LBUTTONDOWN
+  // Duration of the click called from WM_LBUTTONDOWN
   if (m_mouseClicked > 0) {
     m_mouseClicked--;
   }
 
-  //Don't show the help message again when the "Press F1 for help" message is finished.
-  //Useful when I press CTRL + T or when it reaches 250000 seconds, it shows the message again, so I did.
+  // Don't show the help message again when the "Press F1 for help" message is finished.
+  // Useful when I press CTRL + T or when it reaches 250000 seconds, it shows the message again, so I did.
   if (GetTime() >= PRESS_F1_DUR)
     m_show_press_f1_msg = 0;
 
@@ -290,12 +287,12 @@ void CPlugin::MyRenderFn(int redraw) {
   if (m_hTextWnd && focus == m_hTextWnd)
     m_bHasFocus = 1;
 
-  //if (m_bEnablePresetStartup) 
-  //    if (StartupPresetLoaded == false)
-  //    {
-  //        LoadPreset(m_szPresetStartup, 0.0f);
-  //        StartupPresetLoaded = true;
-  //    }  //The Preset Startup Implementation are reworked and moved to line 2560.
+  // if (m_bEnablePresetStartup)
+  //     if (StartupPresetLoaded == false)
+  //     {
+  //         LoadPreset(m_szPresetStartup, 0.0f);
+  //         StartupPresetLoaded = true;
+  //     }  //The Preset Startup Implementation are reworked and moved to line 2560.
 
   if (GetFocus() == NULL)
     m_bHasFocus = 0;
@@ -321,8 +318,8 @@ void CPlugin::MyRenderFn(int redraw) {
   }
 
   // 2. Clear the background:
-  //DWORD clear_color = (m_fog_enabled) ? FOG_COLOR : 0xFF000000;
-  //GetDevice()->Clear(0, 0, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER, clear_color, 1.0f, 0);
+  // DWORD clear_color = (m_fog_enabled) ? FOG_COLOR : 0xFF000000;
+  // GetDevice()->Clear(0, 0, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER, clear_color, 1.0f, 0);
 
   // 5. switch to 2D drawing mode.  2D coord system:
   //         +--------+ Y=-1
@@ -334,7 +331,7 @@ void CPlugin::MyRenderFn(int redraw) {
   PrepareFor2DDrawing(GetDevice());
 
   if (!redraw)
-    DoCustomSoundAnalysis();    // emulates old pre-vms milkdrop sound analysis
+    DoCustomSoundAnalysis();  // emulates old pre-vms milkdrop sound analysis
 
   RenderFrame(redraw);  // see milkdropfs.cpp
 
@@ -346,14 +343,12 @@ void CPlugin::MyRenderFn(int redraw) {
   }
 
   LeaveCriticalSection(&g_cs);
-
 }
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-
 
 void CPlugin::DrawTooltip(wchar_t* str, int xR, int yB) {
   // draws a string in the lower-right corner of the screen.
@@ -370,16 +365,18 @@ void CPlugin::DrawTooltip(wchar_t* str, int xR, int yB) {
   r2.right = xR - TEXT_MARGIN;
   r2.left = r2.right - (r.right - r.left);
   r2.top = r2.bottom - (r.bottom - r.top);
-  RECT r3 = r2; r3.left -= 4; r3.top -= 2; r3.right += 2; r3.bottom += 2;
+  RECT r3 = r2;
+  r3.left -= 4;
+  r3.top -= 2;
+  r3.right += 2;
+  r3.bottom += 2;
   DrawDarkTranslucentBox(&r3);
   m_text.DrawTextW(GetFont(TOOLTIP_FONT), str, -1, &r2, 0, 0xFFFFFFFF, false);
 }
 
-
 void CPlugin::OnAltK() {
   AddNotification(wasabiApiLangString(IDS_PLEASE_EXIT_VIS_BEFORE_RUNNING_CONFIG_PANEL));
 }
-
 
 void CPlugin::AddNotification(wchar_t* szMsg) {
   g_plugin.AddError(szMsg, 3.0F, ERR_NOTIFY, m_fontinfo[SIMPLE_FONT].bBold);
@@ -393,11 +390,9 @@ void CPlugin::AddNotificationAudioDevice() {
   std::wstring statusMessage;
   if (m_szAudioDeviceDisplayName[0] != L'\0') {
     statusMessage = m_szAudioDeviceDisplayName;
-  }
-  else if (g_plugin.m_szAudioDeviceDisplayName[0] != L'\0') {
+  } else if (g_plugin.m_szAudioDeviceDisplayName[0] != L'\0') {
     statusMessage = g_plugin.m_szAudioDeviceDisplayName;
-  }
-  else if (g_plugin.m_szAudioDevice[0] != L'\0') {
+  } else if (g_plugin.m_szAudioDevice[0] != L'\0') {
     statusMessage = g_plugin.m_szAudioDevice;
   }
 
@@ -409,8 +404,7 @@ void CPlugin::AddNotificationAudioDevice() {
   const wchar_t* tag = nullptr;
   if (effectiveType == 1) {
     tag = L" [In]";
-  }
-  else if (effectiveType == 2) {
+  } else if (effectiveType == 2) {
     tag = L" [Out]";
   }
 
@@ -422,12 +416,10 @@ void CPlugin::AddNotificationAudioDevice() {
 
   if (!statusMessage.empty()) {
     AddNotification(statusMessage.data());
-  }
-  else {
+  } else {
     AddNotification(g_plugin.m_szAudioDeviceDisplayName);
   }
 }
-
 
 void CPlugin::AddError(wchar_t* szMsg, float fDuration, int category, bool bBold) {
   OutputDebugStringW(szMsg);
@@ -441,10 +433,9 @@ void CPlugin::AddError(wchar_t* szMsg, float fDuration, int category, bool bBold
   x.expireTime = GetTime() + fDuration;
   x.category = category;
   x.bBold = bBold;
-  x.bSentToRemote = false; // not sent to remote yet
+  x.bSentToRemote = false;  // not sent to remote yet
   m_errors.push_back(x);
 }
-
 
 void CPlugin::ClearErrors(int category)  // 0=all categories
 {
@@ -456,4 +447,3 @@ void CPlugin::ClearErrors(int category)  // 0=all categories
       N--;
     }
 }
-

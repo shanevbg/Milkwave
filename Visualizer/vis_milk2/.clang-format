@@ -1,0 +1,7 @@
+---
+BasedOnStyle: Google
+ColumnLimit: 0
+AlignConsecutiveMacros: false
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+SortIncludes: false

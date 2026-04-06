@@ -53,7 +53,7 @@ int CPlugin::AllocateMyNonDx9Stuff() {
   BuildMenus();
 
   m_bMMX = CheckForMMX();
-  //m_bSSE = CheckForSSE();
+  // m_bSSE = CheckForSSE();
 
   m_pState->Default();
   m_pOldState->Default();
@@ -61,7 +61,7 @@ int CPlugin::AllocateMyNonDx9Stuff() {
 
   // Initialize video capture
   m_pVideoCaptureTexture = nullptr;
-  m_nVideoCaptureWidth = 640;      // Default video capture dimensions
+  m_nVideoCaptureWidth = 640;  // Default video capture dimensions
   m_nVideoCaptureHeight = 480;
   m_fInputMixOpacity = 0.5f;
   m_bInputMixOnTop = true;
@@ -76,14 +76,12 @@ int CPlugin::AllocateMyNonDx9Stuff() {
   m_nSpoutInputHeight = 0;
   m_bSpoutInputEnabled = false;
 
-
-  //LoadRandomPreset(0.0f);   -avoid this here; causes some DX9 stuff to happen.
+  // LoadRandomPreset(0.0f);   -avoid this here; causes some DX9 stuff to happen.
 
   return true;
 }
 
 //----------------------------------------------------------------------
-
 
 void CPlugin::CleanUpMyNonDx9Stuff() {
   // This gets called only once, when your plugin exits.
@@ -109,9 +107,9 @@ void CPlugin::CleanUpMyNonDx9Stuff() {
     m_pSpoutReceiver = nullptr;
   }
 
-// =========================================================
-// SPOUT cleanup on exit
-//
+  // =========================================================
+  // SPOUT cleanup on exit
+  //
   spoutsender.ReleaseDX9sender();
   spoutsender.CloseDirectX9();
 
@@ -120,7 +118,7 @@ void CPlugin::CleanUpMyNonDx9Stuff() {
   if (bSpoutChanged) MyWriteConfig();
   // =========================================================
 
-  //sound.Finish();
+  // sound.Finish();
 
   // NOTE: DO NOT DELETE m_gdi_titlefont_doublesize HERE!!!
 
@@ -142,11 +140,10 @@ void CPlugin::CleanUpMyNonDx9Stuff() {
   for (i = 0; i < MAX_CUSTOM_SHAPES; i++)
     m_menuShapecode[i].Finish();
 
-  //dumpmsg("Finish: cleanup complete.");
+  // dumpmsg("Finish: cleanup complete.");
 }
 
 //----------------------------------------------------------------------
-
 
 int CPlugin::AllocateMyDX9Stuff() {
   // (...aka OnUserResizeWindow)
@@ -193,7 +190,7 @@ int CPlugin::AllocateMyDX9Stuff() {
     m_nMaxPSVersion = m_nMaxPSVersion_DX9;
   else {
     // to still limit their choice by what HW reports:
-    //m_nMaxPSVersion = min(m_nMaxPSVersion_DX9, m_nMaxPSVersion_ConfigPanel);
+    // m_nMaxPSVersion = min(m_nMaxPSVersion_DX9, m_nMaxPSVersion_ConfigPanel);
 
     // to allow them to override:
     m_nMaxPSVersion = m_nMaxPSVersion_ConfigPanel;
@@ -252,31 +249,31 @@ int CPlugin::AllocateMyDX9Stuff() {
   // THE GENERAL GUIDELINE HERE:
   //   It should be at least as fast as a GeForce FX 5700 or my GeForce 6200 (TC)
   //   if it's to run without stretch.
-  if (m_nCanvasStretch == 0)// && m_nMaxPSVersion_DX9 > 0)
+  if (m_nCanvasStretch == 0)  // && m_nMaxPSVersion_DX9 > 0)
   {
     // put cards on this list if you see them successfully run ps_2_0 (using override)
     // and they run well at a low resolution (512x512 or less).
     if (
-      strstr(szGPU, "GeForce 4") ||    // probably not even ps_2_0
-      strstr(szGPU, "GeForce FX 52") ||    // chip's computer (FX 5200) - does do ps_2_0, but slow
-      strstr(szGPU, "GeForce FX 53") ||
-      strstr(szGPU, "GeForce FX 54") ||
-      strstr(szGPU, "GeForce FX 55") ||   //GeForce FX 5600 is 13 GB/s - 2.5x as fast as my 6200!
-      strstr(szGPU, "GeForce FX 56") ||
-      //...GeForce FX 5700 and up, we let those run at full-res on ps_2_0...
-      strstr(szGPU, "GeForce FX 56") ||
-      strstr(szGPU, "GeForce FX 56") ||
-      strstr(szGPU, "SiS 300/305/630/540/730") ||    // mom's computer - just slow.
-      strstr(szGPU, "Radeon 8") ||    // no shader model 2.
-      strstr(szGPU, "Radeon 90") ||    // from Valve.  no shader model 2.
-      strstr(szGPU, "Radeon 91") ||    // no shader model 2.
-      strstr(szGPU, "Radeon 92") ||    // from Valve.  no shader model 2.
-      strstr(szGPU, "Radeon 93") ||    // no shader model 2.
-      strstr(szGPU, "Radeon 94") ||    // no shader model 2.
-      // guessing that 9500+ are ok - they're all ps_2_0 and the 9600 is like an FX 5900.
-      strstr(szGPU, "Radeon 9550") ||  // *maybe* - kiv - super budget R200 chip.  def. ps_2_0 but possibly very slow.
-      strstr(szGPU, "Radeon X300") ||  // *maybe* - kiv - super budget R200 chip   def. ps_2_0 but possibly very slow.
-      0) {
+        strstr(szGPU, "GeForce 4") ||      // probably not even ps_2_0
+        strstr(szGPU, "GeForce FX 52") ||  // chip's computer (FX 5200) - does do ps_2_0, but slow
+        strstr(szGPU, "GeForce FX 53") ||
+        strstr(szGPU, "GeForce FX 54") ||
+        strstr(szGPU, "GeForce FX 55") ||  // GeForce FX 5600 is 13 GB/s - 2.5x as fast as my 6200!
+        strstr(szGPU, "GeForce FX 56") ||
+        //...GeForce FX 5700 and up, we let those run at full-res on ps_2_0...
+        strstr(szGPU, "GeForce FX 56") ||
+        strstr(szGPU, "GeForce FX 56") ||
+        strstr(szGPU, "SiS 300/305/630/540/730") ||  // mom's computer - just slow.
+        strstr(szGPU, "Radeon 8") ||                 // no shader model 2.
+        strstr(szGPU, "Radeon 90") ||                // from Valve.  no shader model 2.
+        strstr(szGPU, "Radeon 91") ||                // no shader model 2.
+        strstr(szGPU, "Radeon 92") ||                // from Valve.  no shader model 2.
+        strstr(szGPU, "Radeon 93") ||                // no shader model 2.
+        strstr(szGPU, "Radeon 94") ||                // no shader model 2.
+        // guessing that 9500+ are ok - they're all ps_2_0 and the 9600 is like an FX 5900.
+        strstr(szGPU, "Radeon 9550") ||  // *maybe* - kiv - super budget R200 chip.  def. ps_2_0 but possibly very slow.
+        strstr(szGPU, "Radeon X300") ||  // *maybe* - kiv - super budget R200 chip   def. ps_2_0 but possibly very slow.
+        0) {
       nNewCanvasStretch = 200;
     }
   }
@@ -325,27 +322,27 @@ int CPlugin::AllocateMyDX9Stuff() {
   // There shouldn't be much on this list... feel free to put anything you KNOW doesn't do ps_2_0 (why not),
   // and to put anything that is slow to begin with, and HAS BUGGY DRIVERS (INTEL).
   if (m_nMaxPSVersion_ConfigPanel == -1) {
-    if (strstr(szGPU, "GeForce2") ||    // from Valve
-      strstr(szGPU, "GeForce3") ||    // from Valve
-      strstr(szGPU, "GeForce4") ||    // from Valve
-      strstr(szGPU, "Radeon 7") ||    // from Valve
-      strstr(szGPU, "Radeon 8") ||
-      strstr(szGPU, "SiS 661FX_760_741") ||    // from Valve
-      //FOR NOW, FOR THESE, ASSUME INTEL EITHER DOESN'T DO PS_2_0,
-      //OR DRIVERS SUCK AND IT WOULDN'T WORK ANYWAY!
-      (strstr(szGPU, "Intel") && strstr(szGPU, "945G")) ||
-      (strstr(szGPU, "Intel") && strstr(szGPU, "915G")) ||  // ben allison's laptop - snow, freezing when you try ps_2_0
-      (strstr(szGPU, "Intel") && strstr(szGPU, "910G")) ||
-      (strstr(szGPU, "Intel") && strstr(szGPU, "8291")) ||     // gonna guess that this supports ps_2_0 but is SLOW
-      (strstr(szGPU, "Intel") && strstr(szGPU, "8281")) ||     // definitely DOESN'T support pixel shaders
-      (strstr(szGPU, "Intel") && strstr(szGPU, "8283")) ||     // definitely DOESN'T support pixel shaders
-      (strstr(szGPU, "Intel") && strstr(szGPU, "8284")) ||     // definitely DOESN'T support pixel shaders
-      (strstr(szGPU, "Intel") && strstr(szGPU, "8285")) ||     // definitely DOESN'T support pixel shaders
-      (strstr(szGPU, "Intel") && strstr(szGPU, "8286")) ||     // definitely DOESN'T support pixel shaders.  Ben Allison's desktop (865) - no image w/ps_2_0.  Plus Nes's desktop - no ps_2_0.
-      0) {
+    if (strstr(szGPU, "GeForce2") ||  // from Valve
+        strstr(szGPU, "GeForce3") ||  // from Valve
+        strstr(szGPU, "GeForce4") ||  // from Valve
+        strstr(szGPU, "Radeon 7") ||  // from Valve
+        strstr(szGPU, "Radeon 8") ||
+        strstr(szGPU, "SiS 661FX_760_741") ||  // from Valve
+        // FOR NOW, FOR THESE, ASSUME INTEL EITHER DOESN'T DO PS_2_0,
+        // OR DRIVERS SUCK AND IT WOULDN'T WORK ANYWAY!
+        (strstr(szGPU, "Intel") && strstr(szGPU, "945G")) ||
+        (strstr(szGPU, "Intel") && strstr(szGPU, "915G")) ||  // ben allison's laptop - snow, freezing when you try ps_2_0
+        (strstr(szGPU, "Intel") && strstr(szGPU, "910G")) ||
+        (strstr(szGPU, "Intel") && strstr(szGPU, "8291")) ||  // gonna guess that this supports ps_2_0 but is SLOW
+        (strstr(szGPU, "Intel") && strstr(szGPU, "8281")) ||  // definitely DOESN'T support pixel shaders
+        (strstr(szGPU, "Intel") && strstr(szGPU, "8283")) ||  // definitely DOESN'T support pixel shaders
+        (strstr(szGPU, "Intel") && strstr(szGPU, "8284")) ||  // definitely DOESN'T support pixel shaders
+        (strstr(szGPU, "Intel") && strstr(szGPU, "8285")) ||  // definitely DOESN'T support pixel shaders
+        (strstr(szGPU, "Intel") && strstr(szGPU, "8286")) ||  // definitely DOESN'T support pixel shaders.  Ben Allison's desktop (865) - no image w/ps_2_0.  Plus Nes's desktop - no ps_2_0.
+        0) {
       m_nMaxPSVersion = MD2_PS_NONE;
-      //if (m_nCanvasStretch==0)
-      //    nNewCanvasStretch = 100;
+      // if (m_nCanvasStretch==0)
+      //     nNewCanvasStretch = 100;
     }
   }
 
@@ -392,14 +389,19 @@ int CPlugin::AllocateMyDX9Stuff() {
     if (!RecompilePShader(m_szDefaultWarpPShaderText, &m_fallbackShaders_ps.warp, SHADER_WARP, true, PSVersion, false)) {
       wchar_t szSM[64];
       switch (m_nMaxPSVersion_DX9) {
-      case MD2_PS_2_0:
-      case MD2_PS_2_X:
-        wasabiApiLangString(IDS_SHADER_MODEL_2, szSM, 64); break;
-      case MD2_PS_3_0: wasabiApiLangString(IDS_SHADER_MODEL_3, szSM, 64); break;
-      case MD2_PS_4_0: wasabiApiLangString(IDS_SHADER_MODEL_4, szSM, 64); break;
-      default:
-        swprintf(szSM, wasabiApiLangString(IDS_UKNOWN_CASE_X), m_nMaxPSVersion_DX9);
-        break;
+        case MD2_PS_2_0:
+        case MD2_PS_2_X:
+          wasabiApiLangString(IDS_SHADER_MODEL_2, szSM, 64);
+          break;
+        case MD2_PS_3_0:
+          wasabiApiLangString(IDS_SHADER_MODEL_3, szSM, 64);
+          break;
+        case MD2_PS_4_0:
+          wasabiApiLangString(IDS_SHADER_MODEL_4, szSM, 64);
+          break;
+        default:
+          swprintf(szSM, wasabiApiLangString(IDS_UKNOWN_CASE_X), m_nMaxPSVersion_DX9);
+          break;
       }
       if (m_nMaxPSVersion_ConfigPanel >= MD2_PS_NONE && m_nMaxPSVersion_DX9 < m_nMaxPSVersion_ConfigPanel)
         swprintf(buf, wasabiApiLangString(IDS_FAILED_TO_COMPILE_PIXEL_SHADERS_USING_X), szSM, PSVersion);
@@ -478,8 +480,7 @@ int CPlugin::AllocateMyDX9Stuff() {
       //        which will work, although it will lead to stretching.
       m_nTexSizeX = GetWidth();
       m_nTexSizeY = GetHeight();
-    }
-    else if (m_bTexSizeWasAutoPow2) {
+    } else if (m_bTexSizeWasAutoPow2) {
       m_nTexSizeX = log2texsize;
       m_nTexSizeY = log2texsize;
     }
@@ -508,17 +509,29 @@ int CPlugin::AllocateMyDX9Stuff() {
     // determine format for VS1/VS2
     D3DFORMAT fmt;
     switch (m_nTexBitsPerCh) {
-    case 5:  fmt = D3DFMT_R5G6B5; break;
-    case 8:  fmt = D3DFMT_X8R8G8B8; break;
-    case 10: fmt = D3DFMT_A2R10G10B10; break;  // D3DFMT_A2W10V10U10 or D3DFMT_A2R10G10B10 or D3DFMT_A2B10G10R10
-    case 16: fmt = D3DFMT_A16B16G16R16F; break;
-    case 32: fmt = D3DFMT_A32B32G32R32F; break; //FIXME
-    default: fmt = D3DFMT_X8R8G8B8; break;
+      case 5:
+        fmt = D3DFMT_R5G6B5;
+        break;
+      case 8:
+        fmt = D3DFMT_X8R8G8B8;
+        break;
+      case 10:
+        fmt = D3DFMT_A2R10G10B10;
+        break;  // D3DFMT_A2W10V10U10 or D3DFMT_A2R10G10B10 or D3DFMT_A2B10G10R10
+      case 16:
+        fmt = D3DFMT_A16B16G16R16F;
+        break;
+      case 32:
+        fmt = D3DFMT_A32B32G32R32F;
+        break;  // FIXME
+      default:
+        fmt = D3DFMT_X8R8G8B8;
+        break;
     }
 
     // reallocate
     bool bSuccess = false;
-    DWORD vs_flags = D3DUSAGE_RENDERTARGET;// | D3DUSAGE_AUTOGENMIPMAP;//FIXME! (make automipgen optional)
+    DWORD vs_flags = D3DUSAGE_RENDERTARGET;  // | D3DUSAGE_AUTOGENMIPMAP;//FIXME! (make automipgen optional)
     bool bRevertedBitDepth = false;
     do {
       SafeRelease(m_lpVS[0]);
@@ -543,24 +556,21 @@ int CPlugin::AllocateMyDX9Stuff() {
             m_nTexSizeY /= 2;
             m_nTexSizeX = ((m_nTexSizeX + 15) / 16) * 16;
             m_nTexSizeY = ((m_nTexSizeY + 15) / 16) * 16;
-          }
-          else {
+          } else {
             m_nTexSizeX = log2texsize;
             m_nTexSizeY = log2texsize;
             m_bTexSizeWasAutoExact = false;
             m_bTexSizeWasAutoPow2 = true;
           }
-        }
-        else if (m_bTexSizeWasAutoPow2) {
+        } else if (m_bTexSizeWasAutoPow2) {
           if (m_nTexSizeX > 256) {
             m_nTexSizeX /= 2;
             m_nTexSizeY /= 2;
-          }
-          else
+          } else
             break;
         }
       }
-    } while (!bSuccess);// && m_nTexSizeX >= 256 && (m_bTexSizeWasAutoExact || m_bTexSizeWasAutoPow2));
+    } while (!bSuccess);  // && m_nTexSizeX >= 256 && (m_bTexSizeWasAutoExact || m_bTexSizeWasAutoPow2));
 
     if (!bSuccess) {
       wchar_t buf[2048];
@@ -573,8 +583,7 @@ int CPlugin::AllocateMyDX9Stuff() {
       dumpmsg(buf);
       MessageBoxW(GetPluginWindow(), buf, wasabiApiLangString(IDS_MILKDROP_ERROR, title, 64), MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
       return false;
-    }
-    else {
+    } else {
       swprintf(buf, wasabiApiLangString(IDS_SUCCESSFULLY_CREATED_VS0_VS1), m_nTexSizeX, m_nTexSizeY, GetWidth(), GetHeight());
       dumpmsg(buf);
     }
@@ -589,10 +598,10 @@ int CPlugin::AllocateMyDX9Stuff() {
     }/**/
 
     // create blur textures w/same format.  A complete mip chain costs 33% more video mem then 1 full-sized VS.
-#if (NUM_BLUR_TEX>0)
+#if (NUM_BLUR_TEX > 0)
     int w = m_nTexSizeX;
     int h = m_nTexSizeY;
-    DWORD blurtex_flags = D3DUSAGE_RENDERTARGET;// | D3DUSAGE_AUTOGENMIPMAP;//FIXME! (make automipgen optional)
+    DWORD blurtex_flags = D3DUSAGE_RENDERTARGET;  // | D3DUSAGE_AUTOGENMIPMAP;//FIXME! (make automipgen optional)
     for (int i = 0; i < NUM_BLUR_TEX; i++) {
       // main VS = 1024
       // blur0 = 512
@@ -614,7 +623,7 @@ int CPlugin::AllocateMyDX9Stuff() {
         m_nBlurTexW[i] = 1;
         m_nBlurTexH[i] = 1;
         MessageBoxW(GetPluginWindow(), wasabiApiLangString(IDS_ERROR_CREATING_BLUR_TEXTURES, buf, sizeof(buf)),
-          wasabiApiLangString(IDS_MILKDROP_WARNING, title, sizeof(title)), MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
+                    wasabiApiLangString(IDS_MILKDROP_WARNING, title, sizeof(title)), MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
         break;
       }
 
@@ -622,7 +631,7 @@ int CPlugin::AllocateMyDX9Stuff() {
       TexInfo x;
       swprintf(x.texname, L"blur%d%s", i / 2 + 1, (i % 2) ? L"" : L"doNOTuseME");
       x.texptr = m_lpBlur[i];
-      //x.texsize_param = NULL;
+      // x.texsize_param = NULL;
       x.w = w2;
       x.h = h2;
       x.d = 1;
@@ -633,7 +642,6 @@ int CPlugin::AllocateMyDX9Stuff() {
     }
 #endif
   }
-
 
   m_fAspectX = (m_nTexSizeY > m_nTexSizeX) ? m_nTexSizeX / (float)m_nTexSizeY : 1.0f;
   m_fAspectY = (m_nTexSizeX > m_nTexSizeY) ? m_nTexSizeY / (float)m_nTexSizeX : 1.0f;
@@ -649,7 +657,7 @@ int CPlugin::AllocateMyDX9Stuff() {
   LPDIRECT3DDEVICE9EX pDev = GetDevice();
   if (pDev) {
     pDev->CreateTexture(m_nVideoCaptureWidth, m_nVideoCaptureHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &m_pVideoCaptureTexture, NULL);
-  
+
     // Create FFT spectrum texture (4096x2, R32F: row0=smoothed, row1=peak hold)
     if (pDev->CreateTexture(MY_FFT_SHADER_BINS, 2, 1, D3DUSAGE_DYNAMIC, D3DFMT_R32F, D3DPOOL_DEFAULT, &m_lpFFTTexture, NULL) == D3D_OK)
       milkwave->LogInfo(L"FFT texture created successfully");
@@ -663,20 +671,18 @@ int CPlugin::AllocateMyDX9Stuff() {
     if (!m_pVideoCapture->Start()) {
       m_bVideoInputEnabled = false;
       milkwave->LogInfo(L"Failed to restart video capture after device reset");
-    }
-    else {
+    } else {
       milkwave->LogInfo(L"Successfully restarted video capture after device reset");
     }
   }
 
-
   // BUILD VERTEX LIST for final composite blit
-//   note the +0.5-texel offset!
-//   (otherwise, a 1-pixel-wide line of the image would wrap at the top and left edges).
+  //   note the +0.5-texel offset!
+  //   (otherwise, a 1-pixel-wide line of the image would wrap at the top and left edges).
   ZeroMemory(m_comp_verts, sizeof(MYVERTEX) * FCGSX * FCGSY);
-  //float fOnePlusInvWidth  = 1.0f + 1.0f/(float)GetWidth();
-  //float fOnePlusInvHeight = 1.0f + 1.0f/(float)GetHeight();
-  float fHalfTexelW = 0.5f / (float)GetWidth();   // 2.5: 2 pixels bad @ bottom right
+  // float fOnePlusInvWidth  = 1.0f + 1.0f/(float)GetWidth();
+  // float fOnePlusInvHeight = 1.0f + 1.0f/(float)GetHeight();
+  float fHalfTexelW = 0.5f / (float)GetWidth();  // 2.5: 2 pixels bad @ bottom right
   float fHalfTexelH = 0.5f / (float)GetHeight();
   float fDivX = 1.0f / (float)(FCGSX - 2);
   float fDivY = 1.0f / (float)(FCGSY - 2);
@@ -684,12 +690,12 @@ int CPlugin::AllocateMyDX9Stuff() {
     int j2 = j - j / (FCGSY / 2);
     float v = j2 * fDivY;
     v = SquishToCenter(v, 3.0f);
-    float sy = -((v - fHalfTexelH) * 2 - 1);//fOnePlusInvHeight*v*2-1;
+    float sy = -((v - fHalfTexelH) * 2 - 1);  // fOnePlusInvHeight*v*2-1;
     for (int i = 0; i < FCGSX; i++) {
       int i2 = i - i / (FCGSX / 2);
       float u = i2 * fDivX;
       u = SquishToCenter(u, 3.0f);
-      float sx = (u - fHalfTexelW) * 2 - 1;//fOnePlusInvWidth*u*2-1;
+      float sx = (u - fHalfTexelW) * 2 - 1;  // fOnePlusInvWidth*u*2-1;
       MYVERTEX* p = &m_comp_verts[i + j * FCGSX];
       p->x = sx;
       p->y = sy;
@@ -706,8 +712,7 @@ int CPlugin::AllocateMyDX9Stuff() {
           ang = 3.1415926535898f * 0.75f;
         else
           ang = 3.1415926535898f * 0.5f;
-      }
-      else if (i == FCGSX / 2) {
+      } else if (i == FCGSX / 2) {
         if (j < FCGSY / 2 - 1)
           ang = 3.1415926535898f * 1.5f;
         else if (j == FCGSY / 2 - 1)
@@ -716,8 +721,7 @@ int CPlugin::AllocateMyDX9Stuff() {
           ang = 3.1415926535898f * 0.25f;
         else
           ang = 3.1415926535898f * 0.5f;
-      }
-      else if (j == FCGSY / 2 - 1) {
+      } else if (j == FCGSY / 2 - 1) {
         if (i < FCGSX / 2 - 1)
           ang = 3.1415926535898f * 1.0f;
         else if (i == FCGSX / 2 - 1)
@@ -726,8 +730,7 @@ int CPlugin::AllocateMyDX9Stuff() {
           ang = 3.1415926535898f * 1.75f;
         else
           ang = 3.1415926535898f * 2.0f;
-      }
-      else if (j == FCGSY / 2) {
+      } else if (j == FCGSY / 2) {
         if (i < FCGSX / 2 - 1)
           ang = 3.1415926535898f * 1.0f;
         else if (i == FCGSX / 2 - 1)
@@ -739,8 +742,8 @@ int CPlugin::AllocateMyDX9Stuff() {
       }
       p->tu = u;
       p->tv = v;
-      //p->tu_orig = u;
-      //p->tv_orig = v;
+      // p->tu_orig = u;
+      // p->tv_orig = v;
       p->rad = rad;
       p->ang = ang;
       p->Diffuse = 0xFFFFFFFF;
@@ -768,8 +771,7 @@ int CPlugin::AllocateMyDX9Stuff() {
         *(cur_index + 3) = (y + 1) * FCGSX + (x + 1);
         *(cur_index + 4) = (y + 1) * FCGSX + (x);
         *(cur_index + 5) = (y)*FCGSX + (x);
-      }
-      else {
+      } else {
         *(cur_index + 0) = (y + 1) * FCGSX + (x);
         *(cur_index + 1) = (y)*FCGSX + (x);
         *(cur_index + 2) = (y)*FCGSX + (x + 1);
@@ -783,23 +785,23 @@ int CPlugin::AllocateMyDX9Stuff() {
 
   // -----------------
 
-/*if (m_bFixSlowText && !m_bSeparateTextWindow)
-{
-      if (D3DXCreateTexture(GetDevice(), GetWidth(), GetHeight(), 1, D3DUSAGE_RENDERTARGET, GetBackBufFormat(), D3DPOOL_DEFAULT, &m_lpDDSText) != D3D_OK)
+  /*if (m_bFixSlowText && !m_bSeparateTextWindow)
   {
-          char buf[2048];
-    dumpmsg("Init: -WARNING-:");
-    sprintf(buf, "WARNING: Not enough video memory to make a dedicated text surface; \rtext will still be drawn directly to the back buffer.\r\rTo avoid seeing this error again, uncheck the 'fix slow text' option.");
-    dumpmsg(buf);
-    if (!m_bWarningsDisabled)
-      MessageBox(GetPluginWindow(), buf, "WARNING", MB_OK|MB_SETFOREGROUND|MB_TOPMOST );
-    m_lpDDSText = NULL;
-  }
-}*/
+        if (D3DXCreateTexture(GetDevice(), GetWidth(), GetHeight(), 1, D3DUSAGE_RENDERTARGET, GetBackBufFormat(), D3DPOOL_DEFAULT, &m_lpDDSText) != D3D_OK)
+    {
+            char buf[2048];
+      dumpmsg("Init: -WARNING-:");
+      sprintf(buf, "WARNING: Not enough video memory to make a dedicated text surface; \rtext will still be drawn directly to the back buffer.\r\rTo avoid seeing this error again, uncheck the 'fix slow text' option.");
+      dumpmsg(buf);
+      if (!m_bWarningsDisabled)
+        MessageBox(GetPluginWindow(), buf, "WARNING", MB_OK|MB_SETFOREGROUND|MB_TOPMOST );
+      m_lpDDSText = NULL;
+    }
+  }*/
 
-// -----------------
+  // -----------------
 
-// reallocate the texture for font titles + custom msgs (m_lpDDSTitle)
+  // reallocate the texture for font titles + custom msgs (m_lpDDSTitle)
   {
     m_nTitleTexSizeX = max(m_nTexSizeX, m_nTexSizeY);
     m_nTitleTexSizeY = m_nTitleTexSizeX / 4;
@@ -810,7 +812,7 @@ int CPlugin::AllocateMyDX9Stuff() {
     // int sizeX = m_nTitleTexSizeX;
     // int sizeY = m_nTitleTexSizeY;
 
-    //dumpmsg("Init: [re]allocating title surface");
+    // dumpmsg("Init: [re]allocating title surface");
 
     // [DEPRECATED as of transition to dx9:]
     // We could just create one title surface, but this is a problem because many
@@ -829,8 +831,7 @@ int CPlugin::AllocateMyDX9Stuff() {
         if (hr != D3D_OK) {
           if (m_nTitleTexSizeY < m_nTitleTexSizeX) {
             m_nTitleTexSizeY *= 2;
-          }
-          else {
+          } else {
             m_nTitleTexSizeX /= 2;
             m_nTitleTexSizeY /= 2;
           }
@@ -839,16 +840,15 @@ int CPlugin::AllocateMyDX9Stuff() {
     }
 
     if (hr != D3D_OK) {
-      //dumpmsg("Init: -WARNING-: Title texture could not be created!");
+      // dumpmsg("Init: -WARNING-: Title texture could not be created!");
       for (int i = 0; i < NUM_SUPERTEXTS; i++) {
         m_lpDDSTitle[i] = NULL;
       }
-      //SafeRelease(m_lpDDSTitle);
-      //return true;
-    }
-    else {
-      //sprintf(buf, "Init: title texture size is %dx%d (ideal size was %dx%d)", m_nTitleTexSizeX, m_nTitleTexSizeY, m_nTexSize, m_nTexSize/4);
-      //dumpmsg(buf);
+      // SafeRelease(m_lpDDSTitle);
+      // return true;
+    } else {
+      // sprintf(buf, "Init: title texture size is %dx%d (ideal size was %dx%d)", m_nTitleTexSizeX, m_nTitleTexSizeY, m_nTexSize, m_nTexSize/4);
+      // dumpmsg(buf);
       for (int i = 0; i < NUM_SUPERTEXTS; i++) {
         if (m_supertexts[i].fStartTime != -1.0f) {
           m_supertexts[i].bRedrawSuperText = true;
@@ -863,28 +863,27 @@ int CPlugin::AllocateMyDX9Stuff() {
   int songtitle_font_size = m_fontinfo[SONGTITLE_FONT].nSize * m_nTitleTexSizeX / 256;
   if (songtitle_font_size < 6) songtitle_font_size = 6;
   if (!(m_gdi_title_font_doublesize = CreateFontW(songtitle_font_size, 0, 0, 0, m_fontinfo[SONGTITLE_FONT].bBold ? 900 : 400,
-    m_fontinfo[SONGTITLE_FONT].bItalic, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, m_fontinfo[SONGTITLE_FONT].bAntiAliased ? ANTIALIASED_QUALITY : DEFAULT_QUALITY, DEFAULT_PITCH, m_fontinfo[SONGTITLE_FONT].szFace))) {
+                                                  m_fontinfo[SONGTITLE_FONT].bItalic, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, m_fontinfo[SONGTITLE_FONT].bAntiAliased ? ANTIALIASED_QUALITY : DEFAULT_QUALITY, DEFAULT_PITCH, m_fontinfo[SONGTITLE_FONT].szFace))) {
     MessageBoxW(NULL, wasabiApiLangString(IDS_ERROR_CREATING_DOUBLE_SIZED_GDI_TITLE_FONT),
-      wasabiApiLangString(IDS_MILKDROP_ERROR, title, sizeof(title)),
-      MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
+                wasabiApiLangString(IDS_MILKDROP_ERROR, title, sizeof(title)),
+                MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
     return false;
   }
 
   if (D3DXCreateFontW(GetDevice(),
-    songtitle_font_size,
-    0,
-    m_fontinfo[SONGTITLE_FONT].bBold ? 900 : 400,
-    1,
-    m_fontinfo[SONGTITLE_FONT].bItalic,
-    DEFAULT_CHARSET,
-    OUT_DEFAULT_PRECIS,
-    ANTIALIASED_QUALITY,//DEFAULT_QUALITY,
-    DEFAULT_PITCH,
-    m_fontinfo[SONGTITLE_FONT].szFace,
-    &m_d3dx_title_font_doublesize
-  ) != D3D_OK) {
+                      songtitle_font_size,
+                      0,
+                      m_fontinfo[SONGTITLE_FONT].bBold ? 900 : 400,
+                      1,
+                      m_fontinfo[SONGTITLE_FONT].bItalic,
+                      DEFAULT_CHARSET,
+                      OUT_DEFAULT_PRECIS,
+                      ANTIALIASED_QUALITY,  // DEFAULT_QUALITY,
+                      DEFAULT_PITCH,
+                      m_fontinfo[SONGTITLE_FONT].szFace,
+                      &m_d3dx_title_font_doublesize) != D3D_OK) {
     MessageBoxW(GetPluginWindow(), wasabiApiLangString(IDS_ERROR_CREATING_DOUBLE_SIZED_D3DX_TITLE_FONT),
-      wasabiApiLangString(IDS_MILKDROP_ERROR, title, sizeof(title)), MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
+                wasabiApiLangString(IDS_MILKDROP_ERROR, title, sizeof(title)), MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
     return false;
   }
 
@@ -892,7 +891,7 @@ int CPlugin::AllocateMyDX9Stuff() {
 
   m_texmgr.Init(GetDevice());
 
-  //dumpmsg("Init: mesh allocation");
+  // dumpmsg("Init: mesh allocation");
   m_verts = new MYVERTEX[(m_nGridX + 1) * (m_nGridY + 1)];
   m_verts_temp = new MYVERTEX[(m_nGridX + 2) * 4];
   m_vertinfo = new td_vertinfo[(m_nGridX + 1) * (m_nGridY + 1)];
@@ -923,11 +922,10 @@ int CPlugin::AllocateMyDX9Stuff() {
 
       if (y == m_nGridY / 2 && x == m_nGridX / 2)
         m_vertinfo[nVert].ang = 0.0f;
+      else if (m_bScreenDependentRenderMode)
+        m_vertinfo[nVert].ang = atan2f(m_verts[nVert].y, m_verts[nVert].x);
       else
-        if (m_bScreenDependentRenderMode)
-          m_vertinfo[nVert].ang = atan2f(m_verts[nVert].y, m_verts[nVert].x);
-        else
-          m_vertinfo[nVert].ang = atan2f(m_verts[nVert].y * m_fAspectY, m_verts[nVert].x * m_fAspectX);
+        m_vertinfo[nVert].ang = atan2f(m_verts[nVert].y * m_fAspectY, m_verts[nVert].x * m_fAspectX);
 
       m_vertinfo[nVert].a = 1;
       m_vertinfo[nVert].c = 0;
@@ -947,7 +945,7 @@ int CPlugin::AllocateMyDX9Stuff() {
     m_nMixType = m_nMilk2MixType;
     srand(m_nMilk2PatternSeed);
     bool bSavedLoading = m_bLoadingMilk2;
-    m_bLoadingMilk2 = true; // Temporary flag so RandomizeBlendPattern reads the MILK2 variables correctly
+    m_bLoadingMilk2 = true;  // Temporary flag so RandomizeBlendPattern reads the MILK2 variables correctly
     RandomizeBlendPattern();
     m_bLoadingMilk2 = bSavedLoading;
     srand((unsigned int)GetTickCount());
@@ -1020,7 +1018,7 @@ int CPlugin::AllocateMyDX9Stuff() {
   }
 
   if (!m_bInitialPresetSelected) {
-    UpdatePresetList(true); //...just does its initial burst!
+    UpdatePresetList(true);  //...just does its initial burst!
     if (m_bEnablePresetStartup && wcslen(m_szPresetStartup) > 0) {
       LoadPreset(m_szPresetStartup, 0.0f);
 
@@ -1033,8 +1031,7 @@ int CPlugin::AllocateMyDX9Stuff() {
         sPath = message.substr(0, pos + 1);
         // Extract the filename after the last separator
         sFilename = message.substr(pos + 1);
-      }
-      else {
+      } else {
         // If no separator is found, assume the fullPath is just a filename
         sFilename = message;
       }
@@ -1046,15 +1043,13 @@ int CPlugin::AllocateMyDX9Stuff() {
           break;
         }
       }
-    }
-    else {
+    } else {
       LoadRandomPreset(0.0f);
     }
     if (m_bAutoLockPresetWhenNoMusic)
       m_bPresetLockedByUser = false;
     m_bInitialPresetSelected = true;
-  }
-  else {
+  } else {
     LoadShaders(&m_shaders, m_pState, false, false);  // Also force-load the shaders - otherwise they'd only get compiled on a preset switch.
 
     // .milk2: restore permanent blend state after resize
@@ -1074,7 +1069,6 @@ int CPlugin::AllocateMyDX9Stuff() {
 
   return true;
 }
-
 
 bool CPlugin::AddNoiseTex(const wchar_t* szTexName, int size, int zoom_factor) {
   // size = width & height of the texture;
@@ -1096,8 +1090,7 @@ bool CPlugin::AddNoiseTex(const wchar_t* szTexName, int size, int zoom_factor) {
         MessageBoxW(GetPluginWindow(), buf, wasabiApiLangString(IDS_MILKDROP_ERROR, title, 64), MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
         return false;
       }
-    }
-    else
+    } else
       break;
   }
 
@@ -1127,9 +1120,9 @@ bool CPlugin::AddNoiseTex(const wchar_t* szTexName, int size, int zoom_factor) {
     int x;
     for (x = 0; x < size; x++) {
       dst[x] = (((DWORD)(rand() % RANGE) + RANGE / 2) << 24) |
-        (((DWORD)(rand() % RANGE) + RANGE / 2) << 16) |
-        (((DWORD)(rand() % RANGE) + RANGE / 2) << 8) |
-        (((DWORD)(rand() % RANGE) + RANGE / 2));
+               (((DWORD)(rand() % RANGE) + RANGE / 2) << 16) |
+               (((DWORD)(rand() % RANGE) + RANGE / 2) << 8) |
+               (((DWORD)(rand() % RANGE) + RANGE / 2));
     }
     // swap some pixels randomly, to improve 'randomness'
     for (x = 0; x < size; x++) {
@@ -1179,7 +1172,6 @@ bool CPlugin::AddNoiseTex(const wchar_t* szTexName, int size, int zoom_factor) {
 
           dst[y * dwords_per_line + x] = result;
         }
-
   }
 
   // unlock texture
@@ -1189,7 +1181,7 @@ bool CPlugin::AddNoiseTex(const wchar_t* szTexName, int size, int zoom_factor) {
   TexInfo x;
   lstrcpyW(x.texname, szTexName);
   x.texptr = pNoiseTex;
-  //x.texsize_param = NULL;
+  // x.texsize_param = NULL;
   x.w = size;
   x.h = size;
   x.d = 1;
@@ -1200,7 +1192,6 @@ bool CPlugin::AddNoiseTex(const wchar_t* szTexName, int size, int zoom_factor) {
 
   return true;
 }
-
 
 bool CPlugin::AddNoiseVol(const wchar_t* szTexName, int size, int zoom_factor) {
   // size = width & height & depth of the texture;
@@ -1223,8 +1214,7 @@ bool CPlugin::AddNoiseVol(const wchar_t* szTexName, int size, int zoom_factor) {
         MessageBoxW(GetPluginWindow(), buf, wasabiApiLangString(IDS_MILKDROP_ERROR, title, 64), MB_OK | MB_SETFOREGROUND | MB_TOPMOST);
         return false;
       }
-    }
-    else
+    } else
       break;
   }
   D3DLOCKED_BOX r;
@@ -1253,9 +1243,9 @@ bool CPlugin::AddNoiseVol(const wchar_t* szTexName, int size, int zoom_factor) {
       int x;
       for (x = 0; x < size; x++) {
         dst[x] = (((DWORD)(rand() % RANGE) + RANGE / 2) << 24) |
-          (((DWORD)(rand() % RANGE) + RANGE / 2) << 16) |
-          (((DWORD)(rand() % RANGE) + RANGE / 2) << 8) |
-          (((DWORD)(rand() % RANGE) + RANGE / 2));
+                 (((DWORD)(rand() % RANGE) + RANGE / 2) << 16) |
+                 (((DWORD)(rand() % RANGE) + RANGE / 2) << 8) |
+                 (((DWORD)(rand() % RANGE) + RANGE / 2));
       }
       // swap some pixels randomly, to improve 'randomness'
       for (x = 0; x < size; x++) {
@@ -1329,7 +1319,6 @@ bool CPlugin::AddNoiseVol(const wchar_t* szTexName, int size, int zoom_factor) {
 
             dst[z * dwords_per_slice + base_y + x] = result;
           }
-
   }
 
   // unlock texture
@@ -1339,7 +1328,7 @@ bool CPlugin::AddNoiseVol(const wchar_t* szTexName, int size, int zoom_factor) {
   TexInfo x;
   lstrcpyW(x.texname, szTexName);
   x.texptr = pNoiseTex;
-  //x.texsize_param = NULL;
+  // x.texsize_param = NULL;
   x.w = size;
   x.h = size;
   x.d = size;
@@ -1350,7 +1339,6 @@ bool CPlugin::AddNoiseVol(const wchar_t* szTexName, int size, int zoom_factor) {
 
   return true;
 }
-
 
 void CPlugin::CleanUpMyDX9Stuff(int final_cleanup) {
   // Clean up all your DX9 and D3DX textures, fonts, buffers, etc. here.
@@ -1375,8 +1363,6 @@ void CPlugin::CleanUpMyDX9Stuff(int final_cleanup) {
   //   windowed modes, or resizes the window.  Basically, on these events,
   //   the base class calls CleanUpMyDX9Stuff before Reset()ing the DirectX
   //   device, and then calls AllocateMyDX9Stuff afterwards.
-
-
 
   // One funky thing here: if we're switching between fullscreen and windowed,
   //  or doing any other thing that causes all this stuff to get reloaded in a second,
@@ -1410,9 +1396,9 @@ void CPlugin::CleanUpMyDX9Stuff(int final_cleanup) {
   m_textures.clear();
 
   // DON'T RELEASE blur textures - they were already released because they're in m_textures[].
-#if (NUM_BLUR_TEX>0)
+#if (NUM_BLUR_TEX > 0)
   for (i = 0; i < NUM_BLUR_TEX; i++)
-    m_lpBlur[i] = NULL;//SafeRelease(m_lpBlur[i]);
+    m_lpBlur[i] = NULL;  // SafeRelease(m_lpBlur[i]);
 #endif
 
   // NOTE: not necessary; shell does this for us.
@@ -1453,8 +1439,8 @@ void CPlugin::CleanUpMyDX9Stuff(int final_cleanup) {
   SafeRelease( m_fallbackShaders_ps.warp.ptr );
   */
   SafeRelease(m_pShaderCompileErrors);
-  //SafeRelease( m_pCompiledFragments );
-  //SafeRelease( m_pFragmentLinker );
+  // SafeRelease( m_pCompiledFragments );
+  // SafeRelease( m_pFragmentLinker );
 
   // 2. release stuff
   SafeRelease(m_lpFFTTexture);
@@ -1507,4 +1493,3 @@ void CPlugin::CleanUpMyDX9Stuff(int final_cleanup) {
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
-

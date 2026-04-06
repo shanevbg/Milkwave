@@ -91,29 +91,28 @@ int texmgr::LoadTex(wchar_t* szFilename, int iSlot, char* szInitCode, char* szCo
 
     D3DXIMAGE_INFO info;
     HRESULT hr = D3DXCreateTextureFromFileExW(
-      m_lpDD,
-      szFilename,
-      D3DX_DEFAULT,
-      D3DX_DEFAULT,
-      D3DX_DEFAULT, // create a mip chain
-      0,
-      D3DFMT_UNKNOWN,
-      D3DPOOL_DEFAULT,
-      D3DX_DEFAULT,
-      D3DX_DEFAULT,
-      0xFF000000 | ck,
-      &info,
-      NULL,
-      &m_tex[iSlot].pSurface
-    );
+        m_lpDD,
+        szFilename,
+        D3DX_DEFAULT,
+        D3DX_DEFAULT,
+        D3DX_DEFAULT,  // create a mip chain
+        0,
+        D3DFMT_UNKNOWN,
+        D3DPOOL_DEFAULT,
+        D3DX_DEFAULT,
+        D3DX_DEFAULT,
+        0xFF000000 | ck,
+        &info,
+        NULL,
+        &m_tex[iSlot].pSurface);
 
     if (hr != D3D_OK) {
       switch (hr) {
-      case E_OUTOFMEMORY:
-      case D3DERR_OUTOFVIDEOMEMORY:
-        return TEXMGR_ERR_OUTOFMEM;
-      default:
-        return TEXMGR_ERR_BADFILE;
+        case E_OUTOFMEMORY:
+        case D3DERR_OUTOFVIDEOMEMORY:
+          return TEXMGR_ERR_OUTOFMEM;
+        default:
+          return TEXMGR_ERR_BADFILE;
       }
     }
 
@@ -126,7 +125,7 @@ int texmgr::LoadTex(wchar_t* szFilename, int iSlot, char* szInitCode, char* szCo
 
   int ret = TEXMGR_ERR_SUCCESS;
 
-  // compile & run init. code:	
+  // compile & run init. code:
   if (!RunInitCode(iSlot, szInitCode))
     ret |= TEXMGR_WARN_ERROR_IN_INIT_CODE;
 
@@ -136,7 +135,7 @@ int texmgr::LoadTex(wchar_t* szFilename, int iSlot, char* szInitCode, char* szCo
   if (!RecompileExpressions(iSlot))
     ret |= TEXMGR_WARN_ERROR_IN_REG_CODE;
 
-  //g_dumpmsg("texmgr: success");
+  // g_dumpmsg("texmgr: success");
 
   return ret;
 }
@@ -174,8 +173,7 @@ void texmgr::StripLinefeedCharsAndComments(char* src, char* dest) {
     if (bComment) {
       if (src[i] == LINEFEED_CONTROL_CHAR)
         bComment = false;
-    }
-    else {
+    } else {
       if ((src[i] == '\\' && src[i + 1] == '\\') || (src[i] == '/' && src[i + 1] == '/'))
         bComment = true;
       else if (src[i] != LINEFEED_CONTROL_CHAR)
@@ -227,7 +225,7 @@ bool texmgr::RunInitCode(int iSlot, char* szInitCode) {
 bool texmgr::RecompileExpressions(int iSlot) {
   char* expr = m_tex[iSlot].m_szExpr;
 
-  // QUICK FIX: if the string ONLY has spaces and linefeeds, erase it, 
+  // QUICK FIX: if the string ONLY has spaces and linefeeds, erase it,
   // because for some strange reason this would cause an error in compileCode().
   {
     char* p = expr;
@@ -245,27 +243,25 @@ bool texmgr::RecompileExpressions(int iSlot) {
   // This was missing in BeatDrop
   if (buf[0]) {
 #ifndef _NO_EXPR_
-    //resetVars(m_tex[iSlot].m_vars);
-    //g_dumpmsg("texmgr: compiling string: ");
-    //g_dumpmsg(buf);
+    // resetVars(m_tex[iSlot].m_vars);
+    // g_dumpmsg("texmgr: compiling string: ");
+    // g_dumpmsg(buf);
     if (!(m_tex[iSlot].m_codehandle = NSEEL_code_compile(m_tex[iSlot].tex_eel_ctx, buf))) {
-      //g_dumpmsg(" -error!");
-      //MessageBox( NULL, "error in per-frame code", "MILKDROP ERROR", MB_OK|MB_SETFOREGROUND|MB_TOPMOST );
-      //sprintf(pg->m_szUserMessage, "warning: preset \"%s\": error in 'per_frame' code", m_szDesc);
-      //pg->m_fShowUserMessageUntilThisTime = pg->m_fAnimTime + 6.0f;
+      // g_dumpmsg(" -error!");
+      // MessageBox( NULL, "error in per-frame code", "MILKDROP ERROR", MB_OK|MB_SETFOREGROUND|MB_TOPMOST );
+      // sprintf(pg->m_szUserMessage, "warning: preset \"%s\": error in 'per_frame' code", m_szDesc);
+      // pg->m_fShowUserMessageUntilThisTime = pg->m_fAnimTime + 6.0f;
+    } else {
+      // g_dumpmsg(" -ok!");
+      // pg->m_fShowUserMessageUntilThisTime = pg->m_fAnimTime;	// clear any old error msg.
     }
-    else {
-      //g_dumpmsg(" -ok!");
-      //pg->m_fShowUserMessageUntilThisTime = pg->m_fAnimTime;	// clear any old error msg.
-    }
-    //resetVars(NULL);
+    // resetVars(NULL);
 
     return (m_tex[iSlot].m_codehandle != 0);
 
 #endif
   }
   // ====================================
-
 
   return true;
 }

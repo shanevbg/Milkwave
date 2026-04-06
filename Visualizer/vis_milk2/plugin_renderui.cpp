@@ -11,112 +11,161 @@
 #include "wasabi.h"
 
 #define MTO_UPPER_RIGHT 0
-#define MTO_UPPER_LEFT  1
+#define MTO_UPPER_LEFT 1
 #define MTO_LOWER_RIGHT 2
-#define MTO_LOWER_LEFT  3
+#define MTO_LOWER_LEFT 3
 
-#define SelectFont(n) { \
-    pFont = GetFont(n); \
+#define SelectFont(n)     \
+  {                       \
+    pFont = GetFont(n);   \
     h = GetFontHeight(n); \
-}
+  }
 
-#define MyTextOut_BGCOLOR(str, corner, bDarkBox, boxColor) { \
-    SetRect(&r, 0, 0, xR-xL, 2048); \
-	m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT)?0:DT_SINGLELINE) | DT_WORD_ELLIPSIS | DT_CALCRECT | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), 0xFFFFFFFF, false, boxColor); \
-    int w = r.right - r.left; \
-    if      (corner == MTO_UPPER_LEFT ) SetRect(&r, xL, *upper_left_corner_y, xL+w, *upper_left_corner_y + h); \
-    else if (corner == MTO_UPPER_RIGHT) SetRect(&r, xR-w, *upper_right_corner_y, xR, *upper_right_corner_y + h); \
-    else if (corner == MTO_LOWER_LEFT ) SetRect(&r, xL, *lower_left_corner_y - h, xL+w, *lower_left_corner_y); \
-    else if (corner == MTO_LOWER_RIGHT) SetRect(&r, xR-w, *lower_right_corner_y - h, xR, *lower_right_corner_y); \
-	m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT)?0:DT_SINGLELINE) | DT_WORD_ELLIPSIS | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT: 0), 0xFFFFFFFF, bDarkBox, boxColor); \
-    if      (corner == MTO_UPPER_LEFT ) *upper_left_corner_y  += h; \
-    else if (corner == MTO_UPPER_RIGHT) *upper_right_corner_y += h; \
-    else if (corner == MTO_LOWER_LEFT ) *lower_left_corner_y  -= h; \
-    else if (corner == MTO_LOWER_RIGHT) *lower_right_corner_y -= h; \
-}
+#define MyTextOut_BGCOLOR(str, corner, bDarkBox, boxColor)                                                                                                                                                              \
+  {                                                                                                                                                                                                                     \
+    SetRect(&r, 0, 0, xR - xL, 2048);                                                                                                                                                                                   \
+    m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT) ? 0 : DT_SINGLELINE) | DT_WORD_ELLIPSIS | DT_CALCRECT | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), 0xFFFFFFFF, false, boxColor); \
+    int w = r.right - r.left;                                                                                                                                                                                           \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                                                                                       \
+      SetRect(&r, xL, *upper_left_corner_y, xL + w, *upper_left_corner_y + h);                                                                                                                                          \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                                                                                                 \
+      SetRect(&r, xR - w, *upper_right_corner_y, xR, *upper_right_corner_y + h);                                                                                                                                        \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                                                                                                  \
+      SetRect(&r, xL, *lower_left_corner_y - h, xL + w, *lower_left_corner_y);                                                                                                                                          \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                                                                                                 \
+      SetRect(&r, xR - w, *lower_right_corner_y - h, xR, *lower_right_corner_y);                                                                                                                                        \
+    m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT) ? 0 : DT_SINGLELINE) | DT_WORD_ELLIPSIS | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), 0xFFFFFFFF, bDarkBox, boxColor);            \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                                                                                       \
+      *upper_left_corner_y += h;                                                                                                                                                                                        \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                                                                                                 \
+      *upper_right_corner_y += h;                                                                                                                                                                                       \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                                                                                                  \
+      *lower_left_corner_y -= h;                                                                                                                                                                                        \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                                                                                                 \
+      *lower_right_corner_y -= h;                                                                                                                                                                                       \
+  }
 
-#define MyTextOut_Color(str, corner, color) { \
-    SetRect(&r, 0, 0, xR-xL, 2048); \
-	m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT)?0:DT_SINGLELINE) | DT_WORD_ELLIPSIS | DT_CALCRECT | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), color, false, 0xFF000000); \
-    int w = r.right - r.left; \
-    if      (corner == MTO_UPPER_LEFT ) SetRect(&r, xL, *upper_left_corner_y, xL+w, *upper_left_corner_y + h); \
-    else if (corner == MTO_UPPER_RIGHT) SetRect(&r, xR-w, *upper_right_corner_y, xR, *upper_right_corner_y + h); \
-    else if (corner == MTO_LOWER_LEFT ) SetRect(&r, xL, *lower_left_corner_y - h, xL+w, *lower_left_corner_y); \
-    else if (corner == MTO_LOWER_RIGHT) SetRect(&r, xR-w, *lower_right_corner_y - h, xR, *lower_right_corner_y); \
-	m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT)?0:DT_SINGLELINE) | DT_WORD_ELLIPSIS | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT: 0), color, false, 0xFF000000); \
-    if      (corner == MTO_UPPER_LEFT ) *upper_left_corner_y  += h; \
-    else if (corner == MTO_UPPER_RIGHT) *upper_right_corner_y += h; \
-    else if (corner == MTO_LOWER_LEFT ) *lower_left_corner_y  -= h; \
-    else if (corner == MTO_LOWER_RIGHT) *lower_right_corner_y -= h; \
-}
+#define MyTextOut_Color(str, corner, color)                                                                                                                                                                          \
+  {                                                                                                                                                                                                                  \
+    SetRect(&r, 0, 0, xR - xL, 2048);                                                                                                                                                                                \
+    m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT) ? 0 : DT_SINGLELINE) | DT_WORD_ELLIPSIS | DT_CALCRECT | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), color, false, 0xFF000000); \
+    int w = r.right - r.left;                                                                                                                                                                                        \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                                                                                    \
+      SetRect(&r, xL, *upper_left_corner_y, xL + w, *upper_left_corner_y + h);                                                                                                                                       \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                                                                                              \
+      SetRect(&r, xR - w, *upper_right_corner_y, xR, *upper_right_corner_y + h);                                                                                                                                     \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                                                                                               \
+      SetRect(&r, xL, *lower_left_corner_y - h, xL + w, *lower_left_corner_y);                                                                                                                                       \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                                                                                              \
+      SetRect(&r, xR - w, *lower_right_corner_y - h, xR, *lower_right_corner_y);                                                                                                                                     \
+    m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT) ? 0 : DT_SINGLELINE) | DT_WORD_ELLIPSIS | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), color, false, 0xFF000000);               \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                                                                                    \
+      *upper_left_corner_y += h;                                                                                                                                                                                     \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                                                                                              \
+      *upper_right_corner_y += h;                                                                                                                                                                                    \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                                                                                               \
+      *lower_left_corner_y -= h;                                                                                                                                                                                     \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                                                                                              \
+      *lower_right_corner_y -= h;                                                                                                                                                                                    \
+  }
 
 #define MyTextOut(str, corner, bDarkBox) MyTextOut_BGCOLOR(str, corner, bDarkBox, 0xFF000000)
 
-#define MyTextOut_Color_Box(str, corner, color) { \
-    SetRect(&r, 0, 0, xR-xL, 2048); \
-	m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT)?0:DT_SINGLELINE) | DT_WORD_ELLIPSIS | DT_CALCRECT | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), color, false, 0xFF000000); \
-    int w = r.right - r.left; \
-    if      (corner == MTO_UPPER_LEFT ) SetRect(&r, xL, *upper_left_corner_y, xL+w, *upper_left_corner_y + h); \
-    else if (corner == MTO_UPPER_RIGHT) SetRect(&r, xR-w, *upper_right_corner_y, xR, *upper_right_corner_y + h); \
-    else if (corner == MTO_LOWER_LEFT ) SetRect(&r, xL, *lower_left_corner_y - h, xL+w, *lower_left_corner_y); \
-    else if (corner == MTO_LOWER_RIGHT) SetRect(&r, xR-w, *lower_right_corner_y - h, xR, *lower_right_corner_y); \
-	m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT)?0:DT_SINGLELINE) | DT_WORD_ELLIPSIS | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT: 0), color, true, 0xFF000000); \
-    if      (corner == MTO_UPPER_LEFT ) *upper_left_corner_y  += h; \
-    else if (corner == MTO_UPPER_RIGHT) *upper_right_corner_y += h; \
-    else if (corner == MTO_LOWER_LEFT ) *lower_left_corner_y  -= h; \
-    else if (corner == MTO_LOWER_RIGHT) *lower_right_corner_y -= h; \
-}
+#define MyTextOut_Color_Box(str, corner, color)                                                                                                                                                                      \
+  {                                                                                                                                                                                                                  \
+    SetRect(&r, 0, 0, xR - xL, 2048);                                                                                                                                                                                \
+    m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT) ? 0 : DT_SINGLELINE) | DT_WORD_ELLIPSIS | DT_CALCRECT | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), color, false, 0xFF000000); \
+    int w = r.right - r.left;                                                                                                                                                                                        \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                                                                                    \
+      SetRect(&r, xL, *upper_left_corner_y, xL + w, *upper_left_corner_y + h);                                                                                                                                       \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                                                                                              \
+      SetRect(&r, xR - w, *upper_right_corner_y, xR, *upper_right_corner_y + h);                                                                                                                                     \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                                                                                               \
+      SetRect(&r, xL, *lower_left_corner_y - h, xL + w, *lower_left_corner_y);                                                                                                                                       \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                                                                                              \
+      SetRect(&r, xR - w, *lower_right_corner_y - h, xR, *lower_right_corner_y);                                                                                                                                     \
+    m_text.DrawTextW(pFont, str, -1, &r, DT_NOPREFIX | ((corner == MTO_UPPER_RIGHT) ? 0 : DT_SINGLELINE) | DT_WORD_ELLIPSIS | ((corner == MTO_UPPER_RIGHT) ? DT_RIGHT : 0), color, true, 0xFF000000);                \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                                                                                    \
+      *upper_left_corner_y += h;                                                                                                                                                                                     \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                                                                                              \
+      *upper_right_corner_y += h;                                                                                                                                                                                    \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                                                                                               \
+      *lower_left_corner_y -= h;                                                                                                                                                                                     \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                                                                                              \
+      *lower_right_corner_y -= h;                                                                                                                                                                                    \
+  }
 
-#define MyTextOut_Shadow(str, corner) { \
-    /* calc rect size */        \
-    SetRect(&r, 0, 0, xR-xL, 2048); \
-	m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS | DT_CALCRECT, 0xFFFFFFFF, false, 0xFF000000); \
-    int w = r.right - r.left; \
-    /* first the shadow */         \
-    if      (corner == MTO_UPPER_LEFT ) SetRect(&r, xL, *upper_left_corner_y, xL+w, *upper_left_corner_y + h); \
-    else if (corner == MTO_UPPER_RIGHT) SetRect(&r, xR-w, *upper_right_corner_y, xR, *upper_right_corner_y + h); \
-    else if (corner == MTO_LOWER_LEFT ) SetRect(&r, xL, *lower_left_corner_y - h, xL+w, *lower_left_corner_y); \
-    else if (corner == MTO_LOWER_RIGHT) SetRect(&r, xR-w, *lower_right_corner_y - h, xR, *lower_right_corner_y); \
-    r.top += 1; r.left += 1;      \
-    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, 0xFF000000, false, 0xFF000000); \
-    /* now draw real text */            \
-    r.top -= 1; r.left -= 1;       \
-	m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, 0xFFFFFFFF, false, 0xFF000000); \
-    if      (corner == MTO_UPPER_LEFT ) *upper_left_corner_y  += h; \
-    else if (corner == MTO_UPPER_RIGHT) *upper_right_corner_y += h; \
-    else if (corner == MTO_LOWER_LEFT ) *lower_left_corner_y  -= h; \
-    else if (corner == MTO_LOWER_RIGHT) *lower_right_corner_y -= h; \
-}
+#define MyTextOut_Shadow(str, corner)                                                                                                            \
+  {                                                                                                                                              \
+    /* calc rect size */                                                                                                                         \
+    SetRect(&r, 0, 0, xR - xL, 2048);                                                                                                            \
+    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS | DT_CALCRECT, 0xFFFFFFFF, false, 0xFF000000); \
+    int w = r.right - r.left;                                                                                                                    \
+    /* first the shadow */                                                                                                                       \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                \
+      SetRect(&r, xL, *upper_left_corner_y, xL + w, *upper_left_corner_y + h);                                                                   \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                          \
+      SetRect(&r, xR - w, *upper_right_corner_y, xR, *upper_right_corner_y + h);                                                                 \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                           \
+      SetRect(&r, xL, *lower_left_corner_y - h, xL + w, *lower_left_corner_y);                                                                   \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                          \
+      SetRect(&r, xR - w, *lower_right_corner_y - h, xR, *lower_right_corner_y);                                                                 \
+    r.top += 1;                                                                                                                                  \
+    r.left += 1;                                                                                                                                 \
+    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, 0xFF000000, false, 0xFF000000);               \
+    /* now draw real text */                                                                                                                     \
+    r.top -= 1;                                                                                                                                  \
+    r.left -= 1;                                                                                                                                 \
+    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, 0xFFFFFFFF, false, 0xFF000000);               \
+    if (corner == MTO_UPPER_LEFT)                                                                                                                \
+      *upper_left_corner_y += h;                                                                                                                 \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                          \
+      *upper_right_corner_y += h;                                                                                                                \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                           \
+      *lower_left_corner_y -= h;                                                                                                                 \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                          \
+      *lower_right_corner_y -= h;                                                                                                                \
+  }
 
-#define MyTextOut_Shadow_Color(str, corner, color) { \
-    /* calc rect size */        \
-    SetRect(&r, 0, 0, xR-xL, 2048); \
-	m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS | DT_CALCRECT, color, false, 0xFF000000); \
-    int w = r.right - r.left; \
-    /* first the shadow */         \
-    if      (corner == MTO_UPPER_LEFT ) SetRect(&r, xL, *upper_left_corner_y, xL+w, *upper_left_corner_y + h); \
-    else if (corner == MTO_UPPER_RIGHT) SetRect(&r, xR-w, *upper_right_corner_y, xR, *upper_right_corner_y + h); \
-    else if (corner == MTO_LOWER_LEFT ) SetRect(&r, xL, *lower_left_corner_y - h, xL+w, *lower_left_corner_y); \
-    else if (corner == MTO_LOWER_RIGHT) SetRect(&r, xR-w, *lower_right_corner_y - h, xR, *lower_right_corner_y); \
-    r.top += 1; r.left += 1;      \
-    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, 0xFF000000, false, 0xFF000000); \
-    /* now draw real text */            \
-    r.top -= 1; r.left -= 1;       \
-	m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, color, false, 0xFF000000); \
-    if      (corner == MTO_UPPER_LEFT ) *upper_left_corner_y  += h; \
-    else if (corner == MTO_UPPER_RIGHT) *upper_right_corner_y += h; \
-    else if (corner == MTO_LOWER_LEFT ) *lower_left_corner_y  -= h; \
-    else if (corner == MTO_LOWER_RIGHT) *lower_right_corner_y -= h; \
-}
+#define MyTextOut_Shadow_Color(str, corner, color)                                                                                          \
+  {                                                                                                                                         \
+    /* calc rect size */                                                                                                                    \
+    SetRect(&r, 0, 0, xR - xL, 2048);                                                                                                       \
+    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS | DT_CALCRECT, color, false, 0xFF000000); \
+    int w = r.right - r.left;                                                                                                               \
+    /* first the shadow */                                                                                                                  \
+    if (corner == MTO_UPPER_LEFT)                                                                                                           \
+      SetRect(&r, xL, *upper_left_corner_y, xL + w, *upper_left_corner_y + h);                                                              \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                     \
+      SetRect(&r, xR - w, *upper_right_corner_y, xR, *upper_right_corner_y + h);                                                            \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                      \
+      SetRect(&r, xL, *lower_left_corner_y - h, xL + w, *lower_left_corner_y);                                                              \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                     \
+      SetRect(&r, xR - w, *lower_right_corner_y - h, xR, *lower_right_corner_y);                                                            \
+    r.top += 1;                                                                                                                             \
+    r.left += 1;                                                                                                                            \
+    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, 0xFF000000, false, 0xFF000000);          \
+    /* now draw real text */                                                                                                                \
+    r.top -= 1;                                                                                                                             \
+    r.left -= 1;                                                                                                                            \
+    m_text.DrawTextW(pFont, (wchar_t*)str, -1, &r, DT_NOPREFIX | DT_SINGLELINE | DT_WORD_ELLIPSIS, color, false, 0xFF000000);               \
+    if (corner == MTO_UPPER_LEFT)                                                                                                           \
+      *upper_left_corner_y += h;                                                                                                            \
+    else if (corner == MTO_UPPER_RIGHT)                                                                                                     \
+      *upper_right_corner_y += h;                                                                                                           \
+    else if (corner == MTO_LOWER_LEFT)                                                                                                      \
+      *lower_left_corner_y -= h;                                                                                                            \
+    else if (corner == MTO_LOWER_RIGHT)                                                                                                     \
+      *lower_right_corner_y -= h;                                                                                                           \
+  }
 
 void CPlugin::MyRenderUI(
-  int* upper_left_corner_y,  // increment me!
-  int* upper_right_corner_y, // increment me!
-  int* lower_left_corner_y,  // decrement me!
-  int* lower_right_corner_y, // decrement me!
-  int xL,
-  int xR
-) {
+    int* upper_left_corner_y,   // increment me!
+    int* upper_right_corner_y,  // increment me!
+    int* lower_left_corner_y,   // decrement me!
+    int* lower_right_corner_y,  // decrement me!
+    int xL,
+    int xR) {
   // draw text messages directly to the back buffer.
   // when you draw text into one of the four corners,
   //   draw the text at the current 'y' value for that corner
@@ -141,8 +190,8 @@ void CPlugin::MyRenderUI(
   //   texture each frame.  This is how the help screen is done; see
   //   pluginshell.cpp for example code.
 
-  RECT r = { 0 };
-  wchar_t buf[512] = { 0 };
+  RECT r = {0};
+  wchar_t buf[512] = {0};
   LPD3DXFONT pFont = GetFont(DECORATIVE_FONT);
   int h = GetFontHeight(DECORATIVE_FONT);
 
@@ -159,10 +208,10 @@ void CPlugin::MyRenderUI(
     if (m_bShowPresetInfo && !m_blackmode) {
       SelectFont(DECORATIVE_FONT);
       swprintf(
-        buf,
-        L"%s %s ",
-        (m_bPresetLockedByUser || m_bPresetLockedByCode) && m_ShowLockSymbol ? L"\xD83D\xDD12" : L"",
-        (m_nLoadingPreset != 0) ? m_pNewState->m_szDesc : m_pState->m_szDesc);
+          buf,
+          L"%s %s ",
+          (m_bPresetLockedByUser || m_bPresetLockedByCode) && m_ShowLockSymbol ? L"\xD83D\xDD12" : L"",
+          (m_nLoadingPreset != 0) ? m_pNewState->m_szDesc : m_pState->m_szDesc);
 
       DWORD alpha = 255;
       DWORD cr = m_fontinfo[DECORATIVE_FONT].R;
@@ -185,7 +234,7 @@ void CPlugin::MyRenderUI(
     // c) fps display
     if (m_bShowFPS) {
       SelectFont(SIMPLE_FONT);
-      swprintf(buf, L"%s: %4.2f ", wasabiApiLangString(IDS_FPS), GetFps()); // leave extra space @ end, so italicized fonts don't get clipped
+      swprintf(buf, L"%s: %4.2f ", wasabiApiLangString(IDS_FPS), GetFps());  // leave extra space @ end, so italicized fonts don't get clipped
       MyTextOut_Shadow(buf, MTO_UPPER_RIGHT);
     }
 
@@ -244,14 +293,14 @@ void CPlugin::MyRenderUI(
 
   // 3. render text in lower-left corner
   {
-    wchar_t buf2[512] = { 0 };
-    wchar_t buf3[512 + 1] = { 0 }; // add two extra spaces to end, so italicized fonts don't get clipped
+    wchar_t buf2[512] = {0};
+    wchar_t buf3[512 + 1] = {0};  // add two extra spaces to end, so italicized fonts don't get clipped
 
     // render song title in lower-left corner:
     if (m_bShowSongTitle) {
-      wchar_t buf4[512] = { 0 };
+      wchar_t buf4[512] = {0};
       SelectFont(DECORATIVE_FONT);
-      GetSongTitle(buf4, sizeof(buf4)); // defined in utility.h/cpp
+      GetSongTitle(buf4, sizeof(buf4));  // defined in utility.h/cpp
 
       MyTextOut_Shadow(buf4, MTO_LOWER_LEFT);
     }
@@ -282,9 +331,9 @@ void CPlugin::MyRenderUI(
 
   // 4. render text in upper-left corner
   {
-    wchar_t buf[64000] = { 0 };  // must fit the longest strings (code strings are 32768 chars)
+    wchar_t buf[64000] = {0};  // must fit the longest strings (code strings are 32768 chars)
     // AND leave extra space for &->&&, and [,[,& insertion
-    char bufA[64000] = { 0 };
+    char bufA[64000] = {0};
 
     SelectFont(SIMPLE_FONT);
 
@@ -300,8 +349,7 @@ void CPlugin::MyRenderUI(
       if (bIsWarp || bIsComp) {
         if (m_bShowShaderHelp) {
           MyTextOut(wasabiApiLangString(IDS_PRESS_F9_TO_HIDE_SHADER_QREF), MTO_UPPER_LEFT, true);
-        }
-        else {
+        } else {
           MyTextOut(wasabiApiLangString(IDS_PRESS_F9_TO_SHOW_SHADER_QREF), MTO_UPPER_LEFT, true);
         }
         *upper_left_corner_y += h * 2 / 3;
@@ -328,8 +376,7 @@ void CPlugin::MyRenderUI(
             MyTextOut(wasabiApiLangString(IDS_STRING626), MTO_UPPER_LEFT, false);
             MyTextOut(wasabiApiLangString(IDS_STRING627), MTO_UPPER_LEFT, false);
             MyTextOut(wasabiApiLangString(IDS_STRING628), MTO_UPPER_LEFT, false);
-          }
-          else if (bIsComp) {
+          } else if (bIsComp) {
             MyTextOut(wasabiApiLangString(IDS_STRING629), MTO_UPPER_LEFT, false);
             MyTextOut(wasabiApiLangString(IDS_STRING630), MTO_UPPER_LEFT, false);
             MyTextOut(wasabiApiLangString(IDS_STRING631), MTO_UPPER_LEFT, false);
@@ -340,9 +387,8 @@ void CPlugin::MyRenderUI(
           }
           *upper_left_corner_y += h * 2 / 3;
         }
-      }
-      else if (m_UI_mode == UI_SAVEAS && (m_bWarpShaderLock || m_bCompShaderLock)) {
-        wchar_t buf[256] = { 0 };
+      } else if (m_UI_mode == UI_SAVEAS && (m_bWarpShaderLock || m_bCompShaderLock)) {
+        wchar_t buf[256] = {0};
         int shader_msg_id = IDS_COMPOSITE_SHADER_LOCKED;
         if (m_bWarpShaderLock && m_bCompShaderLock)
           shader_msg_id = IDS_WARP_AND_COMPOSITE_SHADERS_LOCKED;
@@ -354,17 +400,15 @@ void CPlugin::MyRenderUI(
         wasabiApiLangString(shader_msg_id, buf, 256);
         MyTextOut_BGCOLOR(buf, MTO_UPPER_LEFT, true, 0xFF000000);
         *upper_left_corner_y += h * 2 / 3;
-      }
-      else
+      } else
         *upper_left_corner_y += h * 2 / 3;
-
 
       // 2. reformat the waitstring text for display
       int bBrackets = m_waitstring.nSelAnchorPos != -1 && m_waitstring.nSelAnchorPos != m_waitstring.nCursorPos;
       int bCursorBlink = (!bBrackets &&
-        ((int)(GetTime() * 270.0f) % 100 > 50)
-        //((GetFrame() % 3) >= 2)
-        );
+                          ((int)(GetTime() * 270.0f) % 100 > 50)
+                          //((GetFrame() % 3) >= 2)
+      );
 
       lstrcpyW(buf, m_waitstring.szText);
       lstrcpyA(bufA, (char*)m_waitstring.szText);
@@ -389,8 +433,7 @@ void CPlugin::MyRenderUI(
             bufA[i + 1] = bufA[i];
           bufA[start] = '[';
           len++;
-        }
-        else {
+        } else {
           // insert [] around the selection
           int start = (temp_cursor_pos < temp_anchor_pos) ? temp_cursor_pos : temp_anchor_pos;
           int end = (temp_cursor_pos > temp_anchor_pos) ? temp_cursor_pos - 1 : temp_anchor_pos - 1;
@@ -407,76 +450,66 @@ void CPlugin::MyRenderUI(
           buf[start] = L'[';
           len++;
         }
-      }
-      else {
+      } else {
         // underline the current cursor position by rapidly toggling the character with an underscore
         if (m_waitstring.bDisplayAsCode) {
           if (bCursorBlink) {
             if (bufA[temp_cursor_pos] == 0) {
               bufA[temp_cursor_pos] = '_';
               bufA[temp_cursor_pos + 1] = 0;
-            }
-            else if (bufA[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
+            } else if (bufA[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
               for (int i = strlen(bufA); i >= temp_cursor_pos; i--)
                 bufA[i + 1] = bufA[i];
               bufA[temp_cursor_pos] = '_';
-            }
-            else if (bufA[temp_cursor_pos] == '_')
+            } else if (bufA[temp_cursor_pos] == '_')
               bufA[temp_cursor_pos] = ' ';
-            else // it's a space or symbol or alphanumeric.
+            else  // it's a space or symbol or alphanumeric.
               bufA[temp_cursor_pos] = '_';
-          }
-          else {
+          } else {
             if (bufA[temp_cursor_pos] == 0) {
               bufA[temp_cursor_pos] = ' ';
               bufA[temp_cursor_pos + 1] = 0;
-            }
-            else if (bufA[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
+            } else if (bufA[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
               for (int i = strlen(bufA); i >= temp_cursor_pos; i--)
                 bufA[i + 1] = bufA[i];
               bufA[temp_cursor_pos] = ' ';
             }
-            //else if (buf[temp_cursor_pos] == '_')
-              // do nothing
-            //else // it's a space or symbol or alphanumeric.
-              // do nothing
+            // else if (buf[temp_cursor_pos] == '_')
+            //  do nothing
+            // else // it's a space or symbol or alphanumeric.
+            //  do nothing
           }
-        }
-        else {
+        } else {
           if (bCursorBlink) {
             if (buf[temp_cursor_pos] == 0) {
               buf[temp_cursor_pos] = L'_';
               buf[temp_cursor_pos + 1] = 0;
-            }
-            else if (buf[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
+            } else if (buf[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
               for (int i = wcslen(buf); i >= temp_cursor_pos; i--)
                 buf[i + 1] = buf[i];
               buf[temp_cursor_pos] = L'_';
-            }
-            else if (buf[temp_cursor_pos] == L'_')
+            } else if (buf[temp_cursor_pos] == L'_')
               buf[temp_cursor_pos] = L' ';
-            else // it's a space or symbol or alphanumeric.
+            else  // it's a space or symbol or alphanumeric.
               buf[temp_cursor_pos] = L'_';
-          }
-          else {
+          } else {
             if (buf[temp_cursor_pos] == 0) {
               buf[temp_cursor_pos] = L' ';
               buf[temp_cursor_pos + 1] = 0;
-            }
-            else if (buf[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
+            } else if (buf[temp_cursor_pos] == LINEFEED_CONTROL_CHAR) {
               for (int i = wcslen(buf); i >= temp_cursor_pos; i--)
                 buf[i + 1] = buf[i];
               buf[temp_cursor_pos] = L' ';
             }
-            //else if (buf[temp_cursor_pos] == '_')
-              // do nothing
-            //else // it's a space or symbol or alphanumeric.
-              // do nothing
+            // else if (buf[temp_cursor_pos] == '_')
+            //  do nothing
+            // else // it's a space or symbol or alphanumeric.
+            //  do nothing
           }
         }
       }
 
-      RECT rect = { 0 };
+      RECT rect = {0};
       SetRect(&rect, xL, *upper_left_corner_y, xR, *lower_left_corner_y);
       rect.top += PLAYLIST_INNER_MARGIN;
       rect.left += PLAYLIST_INNER_MARGIN;
@@ -485,11 +518,11 @@ void CPlugin::MyRenderUI(
 
       // then draw the edit string
       if (m_waitstring.bDisplayAsCode) {
-        char buf2[8192] = { 0 };
+        char buf2[8192] = {0};
         int top_of_page_pos = 0;
 
         // compute top_of_page_pos so that the line the cursor is on will show.
-                // also compute dims of the black rectangle while we're at it.
+        // also compute dims of the black rectangle while we're at it.
         {
           int start = 0;
           int pos = 0;
@@ -509,7 +542,7 @@ void CPlugin::MyRenderUI(
 
             char ch = bufA[pos];
             bufA[pos] = 0;
-            sprintf(buf2, "   %sX", &bufA[start]); // put a final 'X' instead of ' ' b/c CALCRECT returns w==0 if string is entirely whitespace!
+            sprintf(buf2, "   %sX", &bufA[start]);  // put a final 'X' instead of ' ' b/c CALCRECT returns w==0 if string is entirely whitespace!
             RECT r2 = rect;
             r2.bottom = 4096;
             m_text.DrawTextA(GetFont(SIMPLE_FONT), buf2, -1, &r2, DT_CALCRECT /*| DT_WORDBREAK*/, 0xFFFFFFFF, false);
@@ -517,13 +550,13 @@ void CPlugin::MyRenderUI(
             ypixels += h;
             bufA[pos] = ch;
 
-            if (start > m_waitstring.nCursorPos) // make sure 'box' gets updated for each line on this page
+            if (start > m_waitstring.nCursorPos)  // make sure 'box' gets updated for each line on this page
               exit_on_next_page = 1;
 
-            if (ypixels > rect.bottom - rect.top) // this line belongs on the next page
+            if (ypixels > rect.bottom - rect.top)  // this line belongs on the next page
             {
               if (exit_on_next_page) {
-                bufA[start] = 0; // so text stops where the box stops, when we draw the text
+                bufA[start] = 0;  // so text stops where the box stops, when we draw the text
                 break;
               }
 
@@ -568,7 +601,7 @@ void CPlugin::MyRenderUI(
             DWORD color = MENU_COLOR;
             if (m_waitstring.nCursorPos >= start && m_waitstring.nCursorPos <= pos)
               color = MENU_HILITE_COLOR;
-            rect.top += m_text.DrawTextA(GetFont(SIMPLE_FONT), buf2, -1, &rect, 0/*DT_WORDBREAK*/, color, false);
+            rect.top += m_text.DrawTextA(GetFont(SIMPLE_FONT), buf2, -1, &rect, 0 /*DT_WORDBREAK*/, color, false);
             bufA[pos] = ch;
 
             if (rect.top > rect.bottom)
@@ -579,9 +612,8 @@ void CPlugin::MyRenderUI(
           }
         }
         // note: *upper_left_corner_y is updated above, when the dark box is drawn.
-      }
-      else {
-        wchar_t buf2[8192] = { 0 };
+      } else {
+        wchar_t buf2[8192] = {0};
 
         // display on one line
         RECT box = rect;
@@ -600,12 +632,11 @@ void CPlugin::MyRenderUI(
         swprintf(buf2, L"    %s ", buf);
         m_text.DrawTextW(GetFont(SIMPLE_FONT), buf2, -1, &rect, 0, MENU_COLOR, false);
       }
-    }
-    else if (m_UI_mode == UI_MENU) {
+    } else if (m_UI_mode == UI_MENU) {
       assert(m_pCurMenu);
       SetRect(&r, xL, *upper_left_corner_y, xR, *lower_left_corner_y);
 
-      RECT darkbox = { 0 };
+      RECT darkbox = {0};
       m_pCurMenu->DrawMenu(r, xR, *lower_right_corner_y, 1, &darkbox);
       *upper_left_corner_y += darkbox.bottom - darkbox.top + PLAYLIST_INNER_MARGIN * 3;
 
@@ -618,81 +649,76 @@ void CPlugin::MyRenderUI(
       r.right += PLAYLIST_INNER_MARGIN;
       r.bottom += PLAYLIST_INNER_MARGIN;
       m_pCurMenu->DrawMenu(r, xR, *lower_right_corner_y);
-    }
-    else if (m_UI_mode == UI_UPGRADE_PIXEL_SHADER) {
-      RECT rect = { 0 };
+    } else if (m_UI_mode == UI_UPGRADE_PIXEL_SHADER) {
+      RECT rect = {0};
       SetRect(&rect, xL, *upper_left_corner_y, xR, *lower_left_corner_y);
 
       if (m_pState->m_nWarpPSVersion >= m_nMaxPSVersion &&
-        m_pState->m_nCompPSVersion >= m_nMaxPSVersion) {
+          m_pState->m_nCompPSVersion >= m_nMaxPSVersion) {
         assert(m_pState->m_nMaxPSVersion == m_nMaxPSVersion);
-        wchar_t buf[1024] = { 0 };
+        wchar_t buf[1024] = {0};
         swprintf(buf, wasabiApiLangString(IDS_PRESET_USES_HIGHEST_PIXEL_SHADER_VERSION), m_nMaxPSVersion);
         rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), buf, -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
         rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESS_ESC_TO_RETURN), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-      }
-      else {
+      } else {
         if (m_pState->m_nMinPSVersion != m_pState->m_nMaxPSVersion) {
           switch (m_pState->m_nMinPSVersion) {
-          case MD2_PS_NONE:
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_HAS_MIXED_VERSIONS_OF_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_SHADERS_TO_USE_PS2), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            break;
-          case MD2_PS_2_0:
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_HAS_MIXED_VERSIONS_OF_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_SHADERS_TO_USE_PS2X), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            break;
-          case MD2_PS_2_X:
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_HAS_MIXED_VERSIONS_OF_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_SHADERS_TO_USE_PS3), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            break;
-          case MD2_PS_3_0:
-            assert(false);
-            break;
-          default:
-            assert(0);
-            break;
+            case MD2_PS_NONE:
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_HAS_MIXED_VERSIONS_OF_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_SHADERS_TO_USE_PS2), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              break;
+            case MD2_PS_2_0:
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_HAS_MIXED_VERSIONS_OF_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_SHADERS_TO_USE_PS2X), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              break;
+            case MD2_PS_2_X:
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_HAS_MIXED_VERSIONS_OF_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_SHADERS_TO_USE_PS3), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              break;
+            case MD2_PS_3_0:
+              assert(false);
+              break;
+            default:
+              assert(0);
+              break;
           }
-        }
-        else {
+        } else {
           switch (m_pState->m_nMinPSVersion) {
-          case MD2_PS_NONE:
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_DOES_NOT_USE_PIXEL_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS2), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            break;
-          case MD2_PS_2_0:
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_CURRENTLY_USES_PS2), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS2X), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            break;
-          case MD2_PS_2_X:
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_CURRENTLY_USES_PS2X), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS3), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            break;
-          case MD2_PS_3_0:
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_CURRENTLY_USES_PS3), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS4), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
-            break;
-          default:
-            assert(0);
-            break;
+            case MD2_PS_NONE:
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_DOES_NOT_USE_PIXEL_SHADERS), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS2), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              break;
+            case MD2_PS_2_0:
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_CURRENTLY_USES_PS2), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS2X), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              break;
+            case MD2_PS_2_X:
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_CURRENTLY_USES_PS2X), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS3), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              break;
+            case MD2_PS_3_0:
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_PRESET_CURRENTLY_USES_PS3), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_UPGRADE_TO_USE_PS4), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_OLD_GPU_MIGHT_NOT_WORK_WITH_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
+              break;
+            default:
+              assert(0);
+              break;
           }
         }
       }
       *upper_left_corner_y = rect.top;
-    }
-    else if (m_UI_mode == UI_LOAD_DEL) {
+    } else if (m_UI_mode == UI_LOAD_DEL) {
       RECT rect;
       SetRect(&rect, xL, *upper_left_corner_y, xR, *lower_left_corner_y);
       rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_ARE_YOU_SURE_YOU_WANT_TO_DELETE_PRESET), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
       swprintf(buf, wasabiApiLangString(IDS_PRESET_TO_DELETE), m_presets[m_nPresetListCurPos].szFilename.c_str());
       rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), buf, -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
       *upper_left_corner_y = rect.top;
-    }
-    else if (m_UI_mode == UI_SAVE_OVERWRITE) {
+    } else if (m_UI_mode == UI_SAVE_OVERWRITE) {
       RECT rect;
       SetRect(&rect, xL, *upper_left_corner_y, xR, *lower_left_corner_y);
       rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_FILE_ALREADY_EXISTS_OVERWRITE_IT), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, MENU_COLOR, true);
@@ -703,17 +729,15 @@ void CPlugin::MyRenderUI(
       if (m_bCompShaderLock)
         rect.top += m_text.DrawTextW(GetFont(SIMPLE_FONT), wasabiApiLangString(IDS_WARNING_DO_NOT_FORGET_COMPOSITE_SHADER_WAS_LOCKED), -1, &rect, DT_SINGLELINE | DT_END_ELLIPSIS | DT_NOPREFIX, 0xFFFFFFFF, true, 0xFFCC0000);
       *upper_left_corner_y = rect.top;
-    }
-    else if (m_UI_mode == UI_MASHUP) {
+    } else if (m_UI_mode == UI_MASHUP) {
       if (m_nPresets - m_nDirs == 0) {
         // note: this error message is repeated in milkdrop.cpp in LoadRandomPreset()
         wchar_t buf[1024];
         swprintf(buf, wasabiApiLangString(IDS_ERROR_NO_PRESET_FILE_FOUND_IN_X_MILK), m_szPresetDir);
         AddError(buf, 6.0f, ERR_MISC, true);
         m_UI_mode = UI_REGULAR;
-      }
-      else {
-        UpdatePresetList(true); // make sure list is completely ready
+      } else {
+        UpdatePresetList(true);  // make sure list is completely ready
 
         // quick checks
         int mash;
@@ -729,11 +753,21 @@ void CPlugin::MyRenderUI(
             // import just a fragment of a preset!!
             DWORD ApplyFlags = 0;
             switch (mash) {
-            case 0: ApplyFlags = STATE_GENERAL; break;
-            case 1: ApplyFlags = STATE_MOTION; break;
-            case 2: ApplyFlags = STATE_WAVE; break;
-            case 3: ApplyFlags = STATE_WARP; break;
-            case 4: ApplyFlags = STATE_COMP; break;
+              case 0:
+                ApplyFlags = STATE_GENERAL;
+                break;
+              case 1:
+                ApplyFlags = STATE_MOTION;
+                break;
+              case 2:
+                ApplyFlags = STATE_WAVE;
+                break;
+              case 3:
+                ApplyFlags = STATE_WARP;
+                break;
+              case 4:
+                ApplyFlags = STATE_COMP;
+                break;
             }
 
             wchar_t szFile[MAX_PATH];
@@ -811,13 +845,13 @@ void CPlugin::MyRenderUI(
         box.right = rect.left;
         box.bottom = rect.top;
 
-        int mashNames[MASH_SLOTS] = { IDS_MASHUP_GENERAL_POSTPROC,
-                        IDS_MASHUP_MOTION_EQUATIONS,
-                                              IDS_MASHUP_WAVEFORMS_SHAPES,
-                                              IDS_MASHUP_WARP_SHADER,
-                        IDS_MASHUP_COMP_SHADER,
+        int mashNames[MASH_SLOTS] = {
+            IDS_MASHUP_GENERAL_POSTPROC,
+            IDS_MASHUP_MOTION_EQUATIONS,
+            IDS_MASHUP_WAVEFORMS_SHAPES,
+            IDS_MASHUP_WARP_SHADER,
+            IDS_MASHUP_COMP_SHADER,
         };
-
 
         int pass;
         for (pass = 0; pass < 2; pass++) {
@@ -831,7 +865,7 @@ void CPlugin::MyRenderUI(
 
             wchar_t buf[1024];
             // SPOUT
-                        // swprintf(buf, L"%s%s", wasabiApiLangString(mashNames[mash]), m_presets[idx].szFilename);
+            // swprintf(buf, L"%s%s", wasabiApiLangString(mashNames[mash]), m_presets[idx].szFilename);
             swprintf(buf, L"%s%s", wasabiApiLangString(mashNames[mash]), m_presets[idx].szFilename.c_str());
             RECT r2 = orig_rect;
             r2.top += h;
@@ -842,8 +876,7 @@ void CPlugin::MyRenderUI(
             box.right = box.left + w;
             box.bottom = box.top + h;
             DrawDarkTranslucentBox(&box);
-          }
-          else
+          } else
             orig_rect.top += h;
         }
 
@@ -855,13 +888,13 @@ void CPlugin::MyRenderUI(
 
         // draw a directory listing box right after...
         for (pass = 0; pass < 2; pass++) {
-          //if (pass==1)
-          //    GetFont(SIMPLE_FONT)->Begin();
+          // if (pass==1)
+          //     GetFont(SIMPLE_FONT)->Begin();
 
           rect = orig_rect;
           for (i = first_line; i < last_line && m_presets[i].szFilename.c_str(); i++) {
             // remove the extension before displaying the filename.  also pad w/spaces.
-            //lstrcpy(str, m_pPresetAddr[i]);
+            // lstrcpy(str, m_pPresetAddr[i]);
             bool bIsDir = (m_presets[i].szFilename.c_str()[0] == '*');
             bool bIsRunning = false;
             bool bIsSelected = (i == m_nMashPreset[m_nMashSlot]);
@@ -872,8 +905,7 @@ void CPlugin::MyRenderUI(
                 swprintf(str2, L" [ %s ] (%s) ", m_presets[i].szFilename.c_str() + 1, wasabiApiLangString(IDS_PARENT_DIRECTORY));
               else
                 swprintf(str2, L" [ %s ] ", m_presets[i].szFilename.c_str() + 1);
-            }
-            else {
+            } else {
               // preset file
               lstrcpyW(str, m_presets[i].szFilename.c_str());
               RemoveExtension(str);
@@ -902,8 +934,8 @@ void CPlugin::MyRenderUI(
             }
           }
 
-          //if (pass==1)
-          //    GetFont(SIMPLE_FONT)->End();
+          // if (pass==1)
+          //     GetFont(SIMPLE_FONT)->End();
 
           if (pass == 0)  // calculating dark box
           {
@@ -913,24 +945,20 @@ void CPlugin::MyRenderUI(
             box.bottom += PLAYLIST_INNER_MARGIN;
             DrawDarkTranslucentBox(&box);
             *upper_left_corner_y = box.bottom + PLAYLIST_INNER_MARGIN;
-          }
-          else
+          } else
             orig_rect.top += box.bottom - box.top;
         }
 
         orig_rect.top += PLAYLIST_INNER_MARGIN;
-
       }
-    }
-    else if (m_UI_mode == UI_LOAD) {
+    } else if (m_UI_mode == UI_LOAD) {
       if (m_nPresets == 0) {
         // note: this error message is repeated in milkdrop.cpp in LoadRandomPreset()
         wchar_t buf[1024];
         swprintf(buf, wasabiApiLangString(IDS_ERROR_NO_PRESET_FILE_FOUND_IN_X_MILK), m_szPresetDir);
         AddError(buf, 6.0f, ERR_MISC, true);
         m_UI_mode = UI_REGULAR;
-      }
-      else {
+      } else {
         SelectFont(PLAYLIST_FONT);
         DWORD menuColor = GetFontColor(PLAYLIST_FONT);
         MyTextOut_Color_Box(wasabiApiLangString(IDS_LOAD_WHICH_PRESET_PLUS_COMMANDS), MTO_UPPER_LEFT, menuColor);
@@ -964,7 +992,7 @@ void CPlugin::MyRenderUI(
             m_nPresetListCurPos = m_nPresets - 1;
 
           // remember this preset's name so the next time they hit 'L' it jumps straight to it
-          //lstrcpy(m_szLastPresetSelected, m_presets[m_nPresetListCurPos].szFilename.c_str());
+          // lstrcpy(m_szLastPresetSelected, m_presets[m_nPresetListCurPos].szFilename.c_str());
 
           m_bUserPagedDown = false;
         }
@@ -975,7 +1003,7 @@ void CPlugin::MyRenderUI(
             m_nPresetListCurPos = 0;
 
           // remember this preset's name so the next time they hit 'L' it jumps straight to it
-          //lstrcpy(m_szLastPresetSelected, m_presets[m_nPresetListCurPos].szFilename.c_str());
+          // lstrcpy(m_szLastPresetSelected, m_presets[m_nPresetListCurPos].szFilename.c_str());
 
           m_bUserPagedUp = false;
         }
@@ -999,7 +1027,11 @@ void CPlugin::MyRenderUI(
           r2.right = xR - TEXT_MARGIN;
           r2.left = r2.right - (r.right - r.left);
           r2.top = r2.bottom - (r.bottom - r.top);
-          RECT r3 = r2; r3.left -= 4; r3.top -= 2; r3.right += 2; r3.bottom += 2;
+          RECT r3 = r2;
+          r3.left -= 4;
+          r3.top -= 2;
+          r3.right += 2;
+          r3.bottom += 2;
           DrawDarkTranslucentBox(&r3);
           m_text.DrawTextW(GetFont(PLAYLIST_FONT), buf, -1, &r2, 0, GetFontColor(PLAYLIST_FONT), false);
         }
@@ -1013,15 +1045,15 @@ void CPlugin::MyRenderUI(
         box.bottom = rect.top;
 
         for (int pass = 0; pass < 2; pass++) {
-          //if (pass==1)
-          //    GetFont(SIMPLE_FONT)->Begin();
+          // if (pass==1)
+          //     GetFont(SIMPLE_FONT)->Begin();
 
           rect = orig_rect;
           for (i = first_line; i < last_line && m_presets[i].szFilename.c_str(); i++) {
             // remove the extension before displaying the filename.  also pad w/spaces.
-            //lstrcpy(str, m_pPresetAddr[i]);
+            // lstrcpy(str, m_pPresetAddr[i]);
             bool bIsDir = (m_presets[i].szFilename.c_str()[0] == '*');
-            bool bIsRunning = (i == m_nCurrentPreset);//false;
+            bool bIsRunning = (i == m_nCurrentPreset);  // false;
             bool bIsSelected = (i == m_nPresetListCurPos);
 
             if (bIsDir) {
@@ -1030,15 +1062,14 @@ void CPlugin::MyRenderUI(
                 swprintf(str2, L" [ %s ] (%s) ", m_presets[i].szFilename.c_str() + 1, wasabiApiLangString(IDS_PARENT_DIRECTORY));
               else
                 swprintf(str2, L" [ %s ] ", m_presets[i].szFilename.c_str() + 1);
-            }
-            else {
+            } else {
               // preset file
               lstrcpyW(str, m_presets[i].szFilename.c_str());
               RemoveExtension(str);
               swprintf(str2, L" %s ", str);
 
-              //if (lstrcmp(m_pState->m_szDesc, str)==0)
-            //    bIsRunning = true;
+              // if (lstrcmp(m_pState->m_szDesc, str)==0)
+              //    bIsRunning = true;
             }
 
             if (bIsRunning && m_bPresetLockedByUser)
@@ -1060,8 +1091,8 @@ void CPlugin::MyRenderUI(
             }
           }
 
-          //if (pass==1)
-          //    GetFont(SIMPLE_FONT)->End();
+          // if (pass==1)
+          //     GetFont(SIMPLE_FONT)->End();
 
           if (pass == 0)  // calculating dark box
           {
@@ -1081,7 +1112,7 @@ void CPlugin::MyRenderUI(
   {
     // e) custom timed message:
     if (!m_bWarningsDisabled2) {
-      wchar_t buf[512] = { 0 };
+      wchar_t buf[512] = {0};
       float t = GetTime();
       int N = m_errors.size();
       for (int i = 0; i < N; i++) {
@@ -1101,28 +1132,22 @@ void CPlugin::MyRenderUI(
             DWORD alpha = 0;
             if (age_rel >= 0.0f && age_rel < 0.05f) {
               alpha = (DWORD)(255 * (age_rel / 0.05f));
-            }
-            else if (age_rel > 0.8f && age_rel <= 1.0f) {
+            } else if (age_rel > 0.8f && age_rel <= 1.0f) {
               alpha = (DWORD)(255 * ((1.0f - age_rel) / 0.2f));
-            }
-            else if (age_rel >= 0.05f && age_rel <= 0.8f) {
+            } else if (age_rel >= 0.05f && age_rel <= 0.8f) {
               alpha = 255;
             }
             DWORD z = (alpha << 24) | (cr << 16) | (cg << 8) | cb;
             if (m_SongInfoDisplayCorner == 1) {
               MyTextOut_Color(buf, MTO_UPPER_LEFT, z);
-            }
-            else if (m_SongInfoDisplayCorner == 2) {
+            } else if (m_SongInfoDisplayCorner == 2) {
               MyTextOut_Color(buf, MTO_UPPER_RIGHT, z);
-            }
-            else if (m_SongInfoDisplayCorner == 4) {
+            } else if (m_SongInfoDisplayCorner == 4) {
               MyTextOut_Color(buf, MTO_LOWER_RIGHT, z);
-            }
-            else {
+            } else {
               MyTextOut_Color(buf, MTO_LOWER_LEFT, z);
             }
-          }
-          else {
+          } else {
             float age = t - m_errors[i].birthTime;
             if (!m_errors[i].bSentToRemote) {
               // send once
@@ -1143,11 +1168,9 @@ void CPlugin::MyRenderUI(
               DWORD z = 0xFF000000 | (cr << 16) | (cg << 8) | cb;
               MyTextOut_BGCOLOR(buf, MTO_UPPER_RIGHT, false, m_errors[i].bBold ? z : 0xFF000000);
               */
-
             }
           }
-        }
-        else {
+        } else {
           m_errors.erase(m_errors.begin() + i);
           i--;
           N--;
@@ -1156,4 +1179,3 @@ void CPlugin::MyRenderUI(
     }
   }
 }
-

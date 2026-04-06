@@ -127,12 +127,11 @@ static void ShiftDown(wchar_t* str) {
 void RemoveSingleAmpersands(wchar_t* str) {
   while (*str) {
     if (str[0] == L'&') {
-      if (str[1] == L'&') // two in a row: replace with single ampersand, move on
+      if (str[1] == L'&')  // two in a row: replace with single ampersand, move on
         str++;
 
       ShiftDown(str);
-    }
-    else
+    } else
       str = CharNextW(str);
   }
 }
@@ -144,7 +143,7 @@ void TextToGuid(char* str, GUID* pGUID) {
   DWORD d[11];
 
   sscanf(str, "%X %X %X %X %X %X %X %X %X %X %X",
-    &d[0], &d[1], &d[2], &d[3], &d[4], &d[5], &d[6], &d[7], &d[8], &d[9], &d[10]);
+         &d[0], &d[1], &d[2], &d[3], &d[4], &d[5], &d[6], &d[7], &d[8], &d[9], &d[10]);
 
   pGUID->Data1 = (DWORD)d[0];
   pGUID->Data2 = (WORD)d[1];
@@ -180,7 +179,7 @@ void GuidToText(GUID* pGUID, char* str, int nStrLen) {
   d[10] = (DWORD)pGUID->Data4[7];
 
   sprintf(str, "%08X %04X %04X %02X %02X %02X %02X %02X %02X %02X %02X",
-    d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10]);
+          d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8], d[9], d[10]);
 }
 
 /*
@@ -262,23 +261,23 @@ void DownloadDirectX(HWND hwnd) {
   if (ret <= 32) {
     wchar_t buf[1024];
     switch (ret) {
-    case SE_ERR_FNF:
-    case SE_ERR_PNF:
-      swprintf(buf, wasabiApiLangString(IDS_URL_COULD_NOT_OPEN), szUrl);
-      break;
-    case SE_ERR_ACCESSDENIED:
-    case SE_ERR_SHARE:
-      swprintf(buf, wasabiApiLangString(IDS_ACCESS_TO_URL_WAS_DENIED), szUrl);
-      break;
-    case SE_ERR_NOASSOC:
-      swprintf(buf, wasabiApiLangString(IDS_ACCESS_TO_URL_FAILED_DUE_TO_NO_ASSOC), szUrl);
-      break;
-    default:
-      swprintf(buf, wasabiApiLangString(IDS_ACCESS_TO_URL_FAILED_CODE_X), szUrl, ret);
-      break;
+      case SE_ERR_FNF:
+      case SE_ERR_PNF:
+        swprintf(buf, wasabiApiLangString(IDS_URL_COULD_NOT_OPEN), szUrl);
+        break;
+      case SE_ERR_ACCESSDENIED:
+      case SE_ERR_SHARE:
+        swprintf(buf, wasabiApiLangString(IDS_ACCESS_TO_URL_WAS_DENIED), szUrl);
+        break;
+      case SE_ERR_NOASSOC:
+        swprintf(buf, wasabiApiLangString(IDS_ACCESS_TO_URL_FAILED_DUE_TO_NO_ASSOC), szUrl);
+        break;
+      default:
+        swprintf(buf, wasabiApiLangString(IDS_ACCESS_TO_URL_FAILED_CODE_X), szUrl, ret);
+        break;
     }
     MessageBoxW(hwnd, buf, wasabiApiLangString(IDS_ERROR_OPENING_URL),
-      MB_OK | MB_SETFOREGROUND | MB_TOPMOST | MB_TASKMODAL);
+                MB_OK | MB_SETFOREGROUND | MB_TOPMOST | MB_TASKMODAL);
   }
 }
 
@@ -287,27 +286,27 @@ void MissingDirectX(HWND hwnd) {
   wchar_t title[128];
   int ret = MessageBoxW(hwnd,
 #ifndef D3D_SDK_VERSION
-    -- - error; you need to #include <d3d9.h> -- -
+                        -- -error;
+                        you need to #include<d3d9.h> -- -
 #endif
-#if (D3D_SDK_VERSION==120)
-    // plugin was *built* using the DirectX 9.0 sdk, therefore,
-    // the dx9.0 runtime is missing or corrupt
-    "Failed to initialize DirectX 9.0 or later.\n"
-    "Milkdrop requires d3dx9_31.dll to be installed.\n"
-    "\n"
-    "Would you like to be taken to:\n"
-    "http://www.microsoft.com/download/details.aspx?id=35,\n"
-    "where you can update DirectX 9.0?\n"
-    XXXXXXX
+#if (D3D_SDK_VERSION == 120)
+                        // plugin was *built* using the DirectX 9.0 sdk, therefore,
+                        // the dx9.0 runtime is missing or corrupt
+                        "Failed to initialize DirectX 9.0 or later.\n"
+                        "Milkdrop requires d3dx9_31.dll to be installed.\n"
+                        "\n"
+                        "Would you like to be taken to:\n"
+                        "http://www.microsoft.com/download/details.aspx?id=35,\n"
+                        "where you can update DirectX 9.0?\n" XXXXXXX
 #else
-    // plugin was *built* using some other version of the DirectX9 sdk, such as
-    // 9.1b; therefore, we don't know exactly what version to tell them they need
-    // to install; so we ask them to go get the *latest* version.
-    wasabiApiLangString(IDS_DIRECTX_MISSING_OR_CORRUPT_TEXT)
+                        // plugin was *built* using some other version of the DirectX9 sdk, such as
+                        // 9.1b; therefore, we don't know exactly what version to tell them they need
+                        // to install; so we ask them to go get the *latest* version.
+                        wasabiApiLangString(IDS_DIRECTX_MISSING_OR_CORRUPT_TEXT)
 #endif
-    ,
-    wasabiApiLangString(IDS_DIRECTX_MISSING_OR_CORRUPT, title, 128),
-    MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST | MB_TASKMODAL);
+                        ,
+                        wasabiApiLangString(IDS_DIRECTX_MISSING_OR_CORRUPT, title, 128),
+                        MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST | MB_TASKMODAL);
 
   if (ret == IDYES)
     DownloadDirectX(hwnd);
@@ -321,7 +320,7 @@ bool CheckForMMX() {
 
 bool CheckForSSE() {
 #ifdef _WIN64
-  return true; // All x64 processors support SSE
+  return true;  // All x64 processors support SSE
 #else
   /*
   The SSE instruction set was introduced with the Pentium III and features:
@@ -353,7 +352,7 @@ bool CheckForSSE() {
 #endif
 }
 
-void GetDesktopFolder(char* szDesktopFolder) // should be MAX_PATH len.
+void GetDesktopFolder(char* szDesktopFolder)  // should be MAX_PATH len.
 {
   // returns the path to the desktop folder, WITHOUT a trailing backslash.
   szDesktopFolder[0] = 0;
@@ -386,7 +385,7 @@ void ExecutePidl(LPITEMIDLIST pidl, char* szPathAndFile, char* szWorkingDirector
   for (int verb_pass = 0; verb_pass < 2; verb_pass++) {
     for (int ntry = 0; ntry < 3; ntry++) {
       for (int context_pass = 0; context_pass < 2; context_pass++) {
-        SHELLEXECUTEINFO sei = { sizeof(sei) };
+        SHELLEXECUTEINFO sei = {sizeof(sei)};
         sei.hwnd = hWnd;
         sei.fMask = SEE_MASK_FLAG_NO_UI;
         if (context_pass == 1)
@@ -399,12 +398,10 @@ void ExecutePidl(LPITEMIDLIST pidl, char* szPathAndFile, char* szWorkingDirector
           // this case works for most non-shortcuts
           sei.fMask |= SEE_MASK_IDLIST;
           sei.lpIDList = pidl;
-        }
-        else if (ntry == 1) {
+        } else if (ntry == 1) {
           // this case is required for *shortcuts to folders* to work
           sei.lpFile = szPathAndFile;
-        }
-        else if (ntry == 2) {
+        } else if (ntry == 2) {
           // this case is required for *shortcuts to files* to work
           sei.lpFile = szFilename2;
         }
@@ -416,37 +413,37 @@ void ExecutePidl(LPITEMIDLIST pidl, char* szPathAndFile, char* szWorkingDirector
   }
 }
 
-WNDPROC        g_pOldWndProc;
+WNDPROC g_pOldWndProc;
 LPCONTEXTMENU2 g_pIContext2or3;
 
 LRESULT CALLBACK HookWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
-  //UINT uItem;
-  //TCHAR szBuf[MAX_PATH];
+  // UINT uItem;
+  // TCHAR szBuf[MAX_PATH];
 
   switch (msg) {
-  case WM_DRAWITEM:
-  case WM_MEASUREITEM:
-    if (wp) break; // not menu related
-  case WM_INITMENUPOPUP:
-    g_pIContext2or3->HandleMenuMsg(msg, wp, lp);
-    return (msg == WM_INITMENUPOPUP ? 0 : TRUE); // handled
+    case WM_DRAWITEM:
+    case WM_MEASUREITEM:
+      if (wp) break;  // not menu related
+    case WM_INITMENUPOPUP:
+      g_pIContext2or3->HandleMenuMsg(msg, wp, lp);
+      return (msg == WM_INITMENUPOPUP ? 0 : TRUE);  // handled
 
-    /*case WM_MENUSELECT:
-       // if this is a shell item, get its descriptive text
-       uItem = (UINT) LOWORD(wp);
-       if(0 == (MF_POPUP & HIWORD(wp)) && uItem >= 1 && uItem <= 0x7fff)
-       {
-          g_pIContext2or3->GetCommandString(uItem-1, GCS_HELPTEXT,
-             NULL, szBuf, sizeof(szBuf)/sizeof(szBuf[0]) );
+      /*case WM_MENUSELECT:
+         // if this is a shell item, get its descriptive text
+         uItem = (UINT) LOWORD(wp);
+         if(0 == (MF_POPUP & HIWORD(wp)) && uItem >= 1 && uItem <= 0x7fff)
+         {
+            g_pIContext2or3->GetCommandString(uItem-1, GCS_HELPTEXT,
+               NULL, szBuf, sizeof(szBuf)/sizeof(szBuf[0]) );
 
-          // set the status bar text
-          ((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->SetMessageText(szBuf);
-          return 0;
-       }
-       break;*/
+            // set the status bar text
+            ((CFrameWnd*)(AfxGetApp()->m_pMainWnd))->SetMessageText(szBuf);
+            return 0;
+         }
+         break;*/
 
-  default:
-    break;
+    default:
+      break;
   }
 
   // for all untreated messages, call the original wndproc
@@ -456,7 +453,7 @@ LRESULT CALLBACK HookWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp) {
 BOOL DoExplorerMenu(HWND hwnd, LPITEMIDLIST pidlMain, POINT point) {
   LPMALLOC pMalloc;
   LPSHELLFOLDER psfFolder, psfNextFolder;
-  LPITEMIDLIST pidlItem, pidlNextItem, * ppidl;
+  LPITEMIDLIST pidlItem, pidlNextItem, *ppidl;
   LPCONTEXTMENU pContextMenu;
   CMINVOKECOMMANDINFO ici;
   UINT nCount, nCmd;
@@ -477,7 +474,7 @@ BOOL DoExplorerMenu(HWND hwnd, LPITEMIDLIST pidlMain, POINT point) {
     return bResult;
   }
 
-  if (nCount = GetItemCount(pidlMain)) // nCount must be > 0
+  if (nCount = GetItemCount(pidlMain))  // nCount must be > 0
   {
     //
     // Initialize psfFolder with a pointer to the IShellFolder
@@ -533,7 +530,7 @@ BOOL DoExplorerMenu(HWND hwnd, LPITEMIDLIST pidlMain, POINT point) {
     // IContextMenu::QueryContextMenu to initialize a context menu.
     //
     ppidl = &pidlItem;
-    if (SUCCEEDED(psfFolder->GetUIObjectOf(hwnd, 1, (LPCITEMIDLIST*)ppidl, IID_IContextMenu, NULL, (void**)&pContextMenu)))   // modified by RG
+    if (SUCCEEDED(psfFolder->GetUIObjectOf(hwnd, 1, (LPCITEMIDLIST*)ppidl, IID_IContextMenu, NULL, (void**)&pContextMenu)))  // modified by RG
     {
       // try to see if we can upgrade to an IContextMenu3
       // or IContextMenu2 interface pointer:
@@ -543,8 +540,7 @@ BOOL DoExplorerMenu(HWND hwnd, LPITEMIDLIST pidlMain, POINT point) {
         pContextMenu->Release();
         pContextMenu = (LPCONTEXTMENU)pCM;
         level = 3;
-      }
-      else if (pContextMenu->QueryInterface(IID_IContextMenu2, &pCM) == NOERROR) {
+      } else if (pContextMenu->QueryInterface(IID_IContextMenu2, &pCM) == NOERROR) {
         pContextMenu->Release();
         pContextMenu = (LPCONTEXTMENU)pCM;
         level = 2;
@@ -557,9 +553,8 @@ BOOL DoExplorerMenu(HWND hwnd, LPITEMIDLIST pidlMain, POINT point) {
         // install the subclassing "hook", for versions 2 or 3
         if (level >= 2) {
           g_pOldWndProc = (WNDPROC)SetWindowLongPtr(hwnd, GWLP_WNDPROC, (DWORD_PTR)HookWndProc);
-          g_pIContext2or3 = (LPCONTEXTMENU2)pContextMenu; // cast ok for ICMv3
-        }
-        else {
+          g_pIContext2or3 = (LPCONTEXTMENU2)pContextMenu;  // cast ok for ICMv3
+        } else {
           g_pOldWndProc = NULL;
           g_pIContext2or3 = NULL;
         }
@@ -567,9 +562,8 @@ BOOL DoExplorerMenu(HWND hwnd, LPITEMIDLIST pidlMain, POINT point) {
         //
         // Display the context menu.
         //
-        nCmd = TrackPopupMenu(hMenu, TPM_LEFTALIGN |
-          TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD,
-          point.x, point.y, 0, hwnd, NULL);
+        nCmd = TrackPopupMenu(hMenu, TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+                              point.x, point.y, 0, hwnd, NULL);
 
         // restore old wndProc
         if (g_pOldWndProc) {
@@ -582,14 +576,14 @@ BOOL DoExplorerMenu(HWND hwnd, LPITEMIDLIST pidlMain, POINT point) {
         if (nCmd >= 1 && nCmd <= 0x7fff) {
           ZeroMemory(&ici, sizeof(ici));
           ici.cbSize = sizeof(CMINVOKECOMMANDINFO);
-          //ici.fMask           = 0;
+          // ici.fMask           = 0;
           ici.hwnd = hwnd;
           ici.lpVerb = MAKEINTRESOURCE(nCmd - 1);
-          //ici.lpParameters    = NULL;
-          //ici.lpDirectory     = NULL;
+          // ici.lpParameters    = NULL;
+          // ici.lpDirectory     = NULL;
           ici.nShow = SW_SHOWNORMAL;
-          //ici.dwHotKey        = 0;
-          //ici.hIcon           = NULL;
+          // ici.dwHotKey        = 0;
+          // ici.hIcon           = NULL;
 
           if (SUCCEEDED(pContextMenu->InvokeCommand(&ici)))
             bResult = TRUE;
@@ -702,7 +696,7 @@ LPITEMIDLIST DuplicateItem(LPMALLOC pMalloc, LPITEMIDLIST pidl) {
     return NULL;
 
   pidlNew = (LPITEMIDLIST)pMalloc->Alloc(
-    nLen + sizeof(USHORT));
+      nLen + sizeof(USHORT));
   if (pidlNew == NULL)
     return NULL;
 
@@ -726,20 +720,20 @@ void FindDesktopWindows(HWND* desktop_progman, HWND* desktopview_wnd, HWND* list
 
   *desktop_progman = FindWindow(NULL, ("Program Manager"));
   if (*desktop_progman == NULL) {
-    //MessageBox(NULL, "Unable to get the handle to the Program Manager.", "Fatal error", MB_OK|MB_ICONERROR);
+    // MessageBox(NULL, "Unable to get the handle to the Program Manager.", "Fatal error", MB_OK|MB_ICONERROR);
     return;
   }
 
   *desktopview_wnd = FindWindowEx(*desktop_progman, NULL, "SHELLDLL_DefView", NULL);
   if (*desktopview_wnd == NULL) {
-    //MessageBox(NULL, "Unable to get the handle to the desktopview.", "Fatal error", MB_OK|MB_ICONERROR);
+    // MessageBox(NULL, "Unable to get the handle to the desktopview.", "Fatal error", MB_OK|MB_ICONERROR);
     return;
   }
 
   // Thanks ef_ef_ef@yahoo.com for pointing out this works in NT 4 and not the way I did it originally.
   *listview_wnd = FindWindowEx(*desktopview_wnd, NULL, "SysListView32", NULL);
   if (*listview_wnd == NULL) {
-    //MessageBox(NULL, "Unable to get the handle to the folderview.", "Fatal error", MB_OK|MB_ICONERROR);
+    // MessageBox(NULL, "Unable to get the handle to the folderview.", "Fatal error", MB_OK|MB_ICONERROR);
     return;
   }
 }
@@ -757,7 +751,7 @@ int GetDesktopIconSize() {
 
   if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_CURRENT_USER, "Control Panel\\Desktop\\WindowMetrics", 0, KEY_READ, &key)) {
     if (ERROR_SUCCESS == RegQueryValueEx(key, "Shell Icon Size", NULL, &type, (unsigned char*)buf, &len) &&
-      type == REG_SZ) {
+        type == REG_SZ) {
       int x = _atoi_l((char*)buf, g_use_C_locale);
       if (x > 0 && x <= 128)
         ret = x;

@@ -67,7 +67,7 @@
 // Licencing :
 //
 // BeatDrop Copyright (c) 2018 Maxim Volskiy and individual contributors
-// licenced with the 3-Clause BSD License (https://opensource.org/licenses/BSD-3-Clause) 
+// licenced with the 3-Clause BSD License (https://opensource.org/licenses/BSD-3-Clause)
 // with the exception of where otherwise noted.
 //
 // Original MilkDrop code by Ryan Geiss and Rovastar (John Baker)
@@ -81,10 +81,10 @@
 //
 // Redistribution and use in source and binary forms, with or without modification,
 // are permitted provided that the following conditions are met :
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice,
 // this list of conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 // this list of conditions and the following disclaimer in the documentation
 // and/or other materials provided with the distribution.
@@ -102,7 +102,7 @@
 // INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
 // LIABILITY, OR TORT(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // =================================================================
 
 #ifdef DEBUG
@@ -111,20 +111,20 @@
 
 // Define VK_B if it is not already defined
 #ifndef VK_B
-#define VK_B 0x42 // ASCII code for 'B'
+#define VK_B 0x42  // ASCII code for 'B'
 #endif
 
 // Define VK_C if it is not already defined
 #ifndef VK_C
-#define VK_C 0x43 // ASCII code for 'C'
+#define VK_C 0x43  // ASCII code for 'C'
 #endif
 
 #ifndef VK_D
-#define VK_D 0x44 // ASCII code for 'D'
+#define VK_D 0x44  // ASCII code for 'D'
 #endif
 
 #ifndef VK_M
-#define VK_M 0x4D // ASCII code for 'M'
+#define VK_M 0x4D  // ASCII code for 'M'
 #endif
 
 #include <stdlib.h>
@@ -137,8 +137,8 @@
 #include <math.h>
 #include <dwmapi.h>
 
-#include <ShellScalingApi.h> // for dpi awareness
-#pragma comment(lib, "shcore.lib") // for dpi awareness
+#include <ShellScalingApi.h>        // for dpi awareness
+#pragma comment(lib, "shcore.lib")  // for dpi awareness
 // older Windows versions: Entry Point Not Found Fix
 
 #include "plugin.h"
@@ -149,9 +149,9 @@
 #include <mutex>
 #include <atomic>
 
-//#include <core/sdk/constants.h>
-//#include <core/sdk/IPcmVisualizer.h>
-//#include <core/sdk/IPlaybackRemote.h>
+// #include <core/sdk/constants.h>
+// #include <core/sdk/IPcmVisualizer.h>
+// #include <core/sdk/IPlaybackRemote.h>
 
 #include "..\audio\common.h"
 #include "milkwave.h"
@@ -160,12 +160,12 @@
 #define _SILENCE_ALL_MS_EXT_DEPRECATION_WARNINGS
 #include <locale>
 #include <codecvt>
-#include "Milkdrop2PcmVisualizer.h"
+#include "MilkwaveVisualizer.h"
 
 namespace fs = std::filesystem;
 
 #define DLL_EXPORT __declspec(dllexport)
-//#define COMPILE_AS_DLL
+// #define COMPILE_AS_DLL
 #define SAMPLE_SIZE 576
 #define DEFAULT_WIDTH 720;
 #define DEFAULT_HEIGHT 720;
@@ -179,8 +179,8 @@ char keyMappings[8];
 
 // SPOUT
 // ===============================================
-static int nBeatDrops = 0; // Number of BeatDrop instances already running
-BOOL CALLBACK GetWindowNames(HWND h, LPARAM l); // Window enumerator callback
+static int nBeatDrops = 0;                       // Number of BeatDrop instances already running
+BOOL CALLBACK GetWindowNames(HWND h, LPARAM l);  // Window enumerator callback
 // ===============================================
 
 // SPOUT - DX9EX
@@ -194,7 +194,7 @@ static bool fullscreen = false;
 static bool stretch = false;
 static bool borderless = false;
 static bool clickthrough = false;
-static RECT lastRect = { 0 };
+static RECT lastRect = {0};
 
 static HMODULE module = nullptr;
 static std::atomic<HANDLE> threadRender = nullptr;
@@ -214,7 +214,6 @@ HANDLE hThreadLoopbackCapture;
 bool pauseRender = false;
 
 static HICON icon = nullptr;
-
 
 // SPOUT
 // ===============================================
@@ -239,10 +238,9 @@ BOOL CALLBACK GetWindowNames(HWND h, LPARAM l) {
 
 // SPOUT - DX9EX
 void InitD3d(HWND hwnd, int width, int height) {
-
   HRESULT Hr = Direct3DCreate9Ex(D3D_SDK_VERSION, &pD3D9);
   if (Hr != S_OK) {
-    printf("Milkdrop2PcmVisualizer::InitD3d - Direct3DCreate9Ex error\n");
+    printf("MilkwaveVisualizer::InitD3d - Direct3DCreate9Ex error\n");
     return;
   }
 
@@ -261,20 +259,19 @@ void InitD3d(HWND hwnd, int width, int height) {
   memset(&g_plugin.d3dPp, 0, sizeof(g_plugin.d3dPp));
 
   g_plugin.d3dPp.BackBufferCount = 1;
-  g_plugin.d3dPp.BackBufferFormat = D3DFMT_UNKNOWN;// mode.Format;
+  g_plugin.d3dPp.BackBufferFormat = D3DFMT_UNKNOWN;  // mode.Format;
 
   if (g_plugin.IsSpoutActiveAndFixed()) {
     g_plugin.d3dPp.BackBufferWidth = width;
     g_plugin.d3dPp.BackBufferHeight = height;
-  }
-  else {
+  } else {
     g_plugin.SetVariableBackBuffer(width, height);
   }
 
   g_plugin.d3dPp.SwapEffect = D3DSWAPEFFECT_COPY;
   g_plugin.d3dPp.Flags = 0;
-  g_plugin.d3dPp.EnableAutoDepthStencil = FALSE;// TRUE;
-  g_plugin.d3dPp.AutoDepthStencilFormat = D3DFMT_D24S8;// D3DFMT_D24X8;
+  g_plugin.d3dPp.EnableAutoDepthStencil = FALSE;         // TRUE;
+  g_plugin.d3dPp.AutoDepthStencilFormat = D3DFMT_D24S8;  // D3DFMT_D24X8;
   g_plugin.d3dPp.Windowed = TRUE;
   g_plugin.d3dPp.PresentationInterval = D3DPRESENT_INTERVAL_ONE;
   g_plugin.d3dPp.MultiSampleType = D3DMULTISAMPLE_NONE;
@@ -283,7 +280,7 @@ void InitD3d(HWND hwnd, int width, int height) {
   // Test for hardware vertex processing capability and set up as needed
   // D3DCREATE_MULTITHREADED required by interop spec
   if (pD3D9->GetDeviceCaps(adapterId, D3DDEVTYPE_HAL, &d3dCaps) != S_OK) {
-    printf("Milkdrop2PcmVisualizer::CreateDX9device - GetDeviceCaps error\n");
+    printf("MilkwaveVisualizer::CreateDX9device - GetDeviceCaps error\n");
     return;
   }
 
@@ -294,21 +291,20 @@ void InitD3d(HWND hwnd, int width, int height) {
     dwBehaviorFlags |= D3DCREATE_SOFTWARE_VERTEXPROCESSING;
 
   Hr = pD3D9->CreateDeviceEx(
-    adapterId,
-    D3DDEVTYPE_HAL,
-    (HWND)hwnd,
-    dwBehaviorFlags,
-    &g_plugin.d3dPp,
-    NULL,
-    &pD3DDevice);
+      adapterId,
+      D3DDEVTYPE_HAL,
+      (HWND)hwnd,
+      dwBehaviorFlags,
+      &g_plugin.d3dPp,
+      NULL,
+      &pD3DDevice);
 }
 
 void DeinitD3d() {
   if (pD3DDevice) {
     __try {
       pD3DDevice->Release();
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER) {
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
       wchar_t msg[256];
       swprintf_s(msg, L"DeinitD3d - Exception during device Release (0x%X)", GetExceptionCode());
       milkwave.LogInfo(msg);
@@ -319,8 +315,7 @@ void DeinitD3d() {
   if (pD3D9) {
     __try {
       pD3D9->Release();
-    }
-    __except (EXCEPTION_EXECUTE_HANDLER) {
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
       wchar_t msg[256];
       swprintf_s(msg, L"DeinitD3d - Exception during D3D9 Release (0x%X)", GetExceptionCode());
       milkwave.LogInfo(msg);
@@ -341,7 +336,7 @@ static bool SafeResetDevice() {
   return false;
 }
 
-//Multiple monitor stretch - Credit to @milkdropper for the code!
+// Multiple monitor stretch - Credit to @milkdropper for the code!
 void ToggleStretch(HWND hwnd) {
   if (!stretch) {
     ShowCursor(FALSE);
@@ -367,8 +362,7 @@ void ToggleStretch(HWND hwnd) {
     DragAcceptFiles(hwnd, TRUE);
 
     stretch = true;
-  }
-  else {
+  } else {
     ShowCursor(TRUE);
 
     int x = lastRect.left;
@@ -396,10 +390,8 @@ void ToggleStretch(HWND hwnd) {
 
 static void ToggleClickThrough(HWND hWnd) {
   try {
-
-
     // Retrieve the current alpha value
-    BYTE currentAlpha = 255; // Default to fully opaque
+    BYTE currentAlpha = 255;  // Default to fully opaque
     DWORD flags = 0;
     COLORREF colorKey = 0;
     if (GetLayeredWindowAttributes(hWnd, &colorKey, &currentAlpha, &flags)) {
@@ -409,11 +401,10 @@ static void ToggleClickThrough(HWND hWnd) {
     if (clickthrough) {
       // Make the window normal while retaining WS_EX_LAYERED
       LONG_PTR style = GetWindowLongPtr(hWnd, GWL_EXSTYLE);
-      style &= ~WS_EX_TRANSPARENT; // Remove click-through
+      style &= ~WS_EX_TRANSPARENT;  // Remove click-through
       SetWindowLongPtr(hWnd, GWL_EXSTYLE, style);
       SetLayeredWindowAttributes(hWnd, 0, currentAlpha, LWA_ALPHA);
-    }
-    else {
+    } else {
       // Make the window click-through
       LONG_PTR style = GetWindowLongPtr(hWnd, GWL_EXSTYLE);
       style |= WS_EX_LAYERED | WS_EX_TRANSPARENT;
@@ -428,13 +419,13 @@ static void ToggleClickThrough(HWND hWnd) {
 
 static void ToggleBorderlessFullscreen(HWND hWnd, bool watermarkMode) {
   try {
-    static bool previousClickthrough = false; // Store the previous clickthrough state
-    static float previousOpacity = 1.0f; // Store the previous opacity (fully opaque by default)
+    static bool previousClickthrough = false;  // Store the previous clickthrough state
+    static float previousOpacity = 1.0f;       // Store the previous opacity (fully opaque by default)
 
     bool isShiftPressed = watermarkMode;
 
     // Get the work area of the monitor (excluding the taskbar)
-    MONITORINFO monitorInfo = { sizeof(MONITORINFO) };
+    MONITORINFO monitorInfo = {sizeof(MONITORINFO)};
     HMONITOR hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
     if (GetMonitorInfo(hMonitor, &monitorInfo)) {
       RECT workArea = monitorInfo.rcWork;
@@ -444,23 +435,22 @@ static void ToggleBorderlessFullscreen(HWND hWnd, bool watermarkMode) {
       GetWindowRect(hWnd, &currentRect);
 
       if (currentRect.left == workArea.left &&
-        currentRect.top == workArea.top &&
-        currentRect.right == workArea.right &&
-        currentRect.bottom == workArea.bottom) {
+          currentRect.top == workArea.top &&
+          currentRect.right == workArea.right &&
+          currentRect.bottom == workArea.bottom) {
         // window appears to be borderless fullscreen
         // Restore the previous window dimensions, borderless state, clickthrough state, and opacity
         LONG_PTR style = GetWindowLongPtr(hWnd, GWL_STYLE);
         if (g_plugin.m_WindowBorderless) {
-          style = WS_POPUP | WS_VISIBLE; // Restore borderless style
-        }
-        else {
-          style = WS_OVERLAPPEDWINDOW | WS_VISIBLE; // Restore normal window style
+          style = WS_POPUP | WS_VISIBLE;  // Restore borderless style
+        } else {
+          style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;  // Restore normal window style
         }
         SetWindowLongPtr(hWnd, GWL_STYLE, style);
 
         // Check if the saved dimensions are the same as the current dimensions
         if (g_plugin.m_WindowWidth == (currentRect.right - currentRect.left) &&
-          g_plugin.m_WindowHeight == (currentRect.bottom - currentRect.top)) {
+            g_plugin.m_WindowHeight == (currentRect.bottom - currentRect.top)) {
           // Reduce the dimensions by 50%
           g_plugin.m_WindowWidth /= 2;
           g_plugin.m_WindowHeight /= 2;
@@ -471,14 +461,13 @@ static void ToggleBorderlessFullscreen(HWND hWnd, bool watermarkMode) {
         }
 
         SetWindowPos(
-          hWnd,
-          g_plugin.m_WindowBorderless ? HWND_TOPMOST : HWND_NOTOPMOST,
-          g_plugin.m_WindowX,
-          g_plugin.m_WindowY,
-          g_plugin.m_WindowWidth,
-          g_plugin.m_WindowHeight,
-          SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOACTIVATE
-        );
+            hWnd,
+            g_plugin.m_WindowBorderless ? HWND_TOPMOST : HWND_NOTOPMOST,
+            g_plugin.m_WindowX,
+            g_plugin.m_WindowY,
+            g_plugin.m_WindowWidth,
+            g_plugin.m_WindowHeight,
+            SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOACTIVATE);
 
         // Restore the previous clickthrough state
         if (clickthrough != previousClickthrough) {
@@ -493,10 +482,9 @@ static void ToggleBorderlessFullscreen(HWND hWnd, bool watermarkMode) {
         // Restore the previous opacity
         // SetLayeredWindowAttributes(hWnd, 0, previousOpacity, LWA_ALPHA);
 
-        borderless = g_plugin.m_WindowBorderless; // Restore the borderless state
+        borderless = g_plugin.m_WindowBorderless;  // Restore the borderless state
         fullscreen = false;
-      }
-      else {
+      } else {
         // not in borderless fullscreen mode, so toggle to it
         // Save the current window dimensions, borderless state, clickthrough state, and opacity
         RECT currentWindowRect;
@@ -505,27 +493,26 @@ static void ToggleBorderlessFullscreen(HWND hWnd, bool watermarkMode) {
         g_plugin.m_WindowY = currentWindowRect.top;
         g_plugin.m_WindowWidth = currentWindowRect.right - currentWindowRect.left;
         g_plugin.m_WindowHeight = currentWindowRect.bottom - currentWindowRect.top;
-        g_plugin.m_WindowBorderless = borderless; // Save the current borderless state
+        g_plugin.m_WindowBorderless = borderless;  // Save the current borderless state
 
-        previousClickthrough = clickthrough; // Save the current clickthrough state
+        previousClickthrough = clickthrough;  // Save the current clickthrough state
         previousOpacity = g_plugin.fOpacity;
 
         // Set the window style to borderless
         LONG_PTR style = GetWindowLongPtr(hWnd, GWL_STYLE);
-        style &= ~(WS_OVERLAPPEDWINDOW); // Remove standard window styles
-        style |= WS_POPUP; // Add popup style for borderless
+        style &= ~(WS_OVERLAPPEDWINDOW);  // Remove standard window styles
+        style |= WS_POPUP;                // Add popup style for borderless
         SetWindowLongPtr(hWnd, GWL_STYLE, style);
 
         // Set the window position and size to fit the work area
         SetWindowPos(
-          hWnd,
-          isShiftPressed ? HWND_TOPMOST : HWND_NOTOPMOST,
-          workArea.left,
-          workArea.top,
-          workArea.right - workArea.left,
-          workArea.bottom - workArea.top,
-          SWP_FRAMECHANGED | SWP_NOACTIVATE
-        );
+            hWnd,
+            isShiftPressed ? HWND_TOPMOST : HWND_NOTOPMOST,
+            workArea.left,
+            workArea.top,
+            workArea.right - workArea.left,
+            workArea.bottom - workArea.top,
+            SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
         // If Shift is pressed, enable clickthrough
         if (isShiftPressed) {
@@ -534,10 +521,10 @@ static void ToggleBorderlessFullscreen(HWND hWnd, bool watermarkMode) {
           }
           g_plugin.fOpacity = g_plugin.m_WindowWatermarkModeOpacity;
           g_plugin.SetOpacity(hWnd);
-          //SetLayeredWindowAttributes(hWnd, 0, (BYTE)(g_plugin.m_WindowWatermarkModeOpacity * 255), LWA_ALPHA);
+          // SetLayeredWindowAttributes(hWnd, 0, (BYTE)(g_plugin.m_WindowWatermarkModeOpacity * 255), LWA_ALPHA);
         }
 
-        g_plugin.m_bAlwaysOnTop = isShiftPressed; // Set always on top based on Shift key state
+        g_plugin.m_bAlwaysOnTop = isShiftPressed;  // Set always on top based on Shift key state
         borderless = true;
       }
     }
@@ -550,8 +537,7 @@ static void ToggleFullScreen(HWND hwnd) {
   if (g_plugin.IsBorderlessFullscreen(hwnd)) {
     // ShowCursor(TRUE);
     ToggleBorderlessFullscreen(hwnd, false);
-  }
-  else if (!fullscreen) {
+  } else if (!fullscreen) {
     ShowCursor(FALSE);
 
     if (!stretch) {
@@ -582,15 +568,14 @@ static void ToggleFullScreen(HWND hwnd) {
       SetWindowLongW(hwnd, GWL_STYLE, lastWindowStyle);
       SetWindowLongW(hwnd, GWL_EXSTYLE, lastWindowStyleEx);
       SetWindowPos(hwnd, HWND_NOTOPMOST, lastRect.left, lastRect.top,
-        lastRect.right - lastRect.left, lastRect.bottom - lastRect.top,
-        SWP_DRAWFRAME | SWP_FRAMECHANGED);
+                   lastRect.right - lastRect.left, lastRect.bottom - lastRect.top,
+                   SWP_DRAWFRAME | SWP_FRAMECHANGED);
     }
 
     SetThreadExecutionState(ES_DISPLAY_REQUIRED | ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
     DragAcceptFiles(hwnd, TRUE);
     fullscreen = true;
-  }
-  else {
+  } else {
     ShowCursor(TRUE);
 
     int x = lastRect.left;
@@ -649,7 +634,7 @@ void ResetWindow(HWND hwnd) {
 
   // Remove any transparency or click-through flags
   LONG_PTR exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-  exStyle &= ~(WS_EX_LAYERED | WS_EX_TRANSPARENT); // Remove transparency and click-through
+  exStyle &= ~(WS_EX_LAYERED | WS_EX_TRANSPARENT);  // Remove transparency and click-through
   SetWindowLongPtr(hwnd, GWL_EXSTYLE, exStyle);
 
   // Reset the window style to a standard overlapped window
@@ -669,7 +654,7 @@ void ResetWindow(HWND hwnd) {
 }
 
 static void ToggleBorderlessWindow(HWND hwnd) {
-  static RECT lastRect = { 0 }; // Store the previous window position and size
+  static RECT lastRect = {0};  // Store the previous window position and size
   GetWindowRect(hwnd, &lastRect);
   int x = lastRect.left;
   int y = lastRect.top;
@@ -677,14 +662,14 @@ static void ToggleBorderlessWindow(HWND hwnd) {
   int height = lastRect.bottom - lastRect.top;
   GetWindowRect(hwnd, &lastRect);
 
-  static bool wasTransparent = false; // Track if the window was transparent before toggling
+  static bool wasTransparent = false;  // Track if the window was transparent before toggling
 
   // Check if the window currently has transparency
-  BYTE currentAlpha = 255; // Default to fully opaque
+  BYTE currentAlpha = 255;  // Default to fully opaque
   DWORD flags = 0;
   COLORREF colorKey = 0;
   if (GetLayeredWindowAttributes(hwnd, &colorKey, &currentAlpha, &flags)) {
-    wasTransparent = (flags & LWA_COLORKEY) != 0; // Check if LWA_COLORKEY is set
+    wasTransparent = (flags & LWA_COLORKEY) != 0;  // Check if LWA_COLORKEY is set
   }
 
   // --- Preserve current topmost state ---
@@ -709,8 +694,7 @@ static void ToggleBorderlessWindow(HWND hwnd) {
 
     SetWindowPos(hwnd, hInsertAfter, x, y, width, height, SWP_DRAWFRAME | SWP_FRAMECHANGED);
     borderless = true;
-  }
-  else {
+  } else {
     // Restore the previous window style and position
     SetWindowLongW(hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 
@@ -725,17 +709,15 @@ static void ToggleBorderlessWindow(HWND hwnd) {
   g_plugin.m_WindowBorderless = borderless;
 }
 
-
 HRESULT GetDefaultAudioDeviceName(IMMDevice** ppMMDevice, std::wstring* m_szAudioDeviceDisplayName) {
   HRESULT hr = S_OK;
   IMMDeviceEnumerator* pMMDeviceEnumerator;
 
   // activate a device enumerator
   hr = CoCreateInstance(
-    __uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL,
-    __uuidof(IMMDeviceEnumerator),
-    (void**)&pMMDeviceEnumerator
-  );
+      __uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL,
+      __uuidof(IMMDeviceEnumerator),
+      (void**)&pMMDeviceEnumerator);
   if (FAILED(hr)) {
     ERR(L"CoCreateInstance(IMMDeviceEnumerator) failed: hr = 0x%08x", hr);
     return hr;
@@ -759,7 +741,8 @@ HRESULT GetDefaultAudioDeviceName(IMMDevice** ppMMDevice, std::wstring* m_szAudi
   ReleaseOnExit releasePropertyStore(pPropertyStore);
 
   // get the long name property
-  PROPVARIANT pv; PropVariantInit(&pv);
+  PROPVARIANT pv;
+  PropVariantInit(&pv);
   hr = pPropertyStore->GetValue(PKEY_Device_FriendlyName, &pv);
   if (FAILED(hr)) {
     ERR(L"IPropertyStore::GetValue failed: hr = 0x%08x", hr);
@@ -777,191 +760,197 @@ HRESULT GetDefaultAudioDeviceName(IMMDevice** ppMMDevice, std::wstring* m_szAudi
 }
 
 LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-
-  static bool rightMouseButtonHeld = false; // Track the state of the right mouse button  
+  static bool rightMouseButtonHeld = false;  // Track the state of the right mouse button
 
   switch (uMsg) {
-  case WM_CLOSE:
-  {
-    g_plugin.SaveWindowSizeAndPosition(hWnd);
-    DestroyWindow(hWnd);
-    UnregisterClassW(L"Direct3DWindowClass", NULL);
-    return 0;
-  }
-
-  case WM_DESTROY:
-  {
-    PostQuitMessage(0);
-    break;
-  }
-
-  case WM_MOVE:
-  {
-    // Get the current window rectangle
-    RECT windowRect;
-    GetWindowRect(hWnd, &windowRect);
-
-    // Get the virtual screen area (spanning all monitors)
-    int virtualLeft = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    int virtualTop = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    int virtualWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    int virtualHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-
-    int virtualRight = virtualLeft + virtualWidth;
-    int virtualBottom = virtualTop + virtualHeight;
-
-    int windowWidth = windowRect.right - windowRect.left;
-    int windowHeight = windowRect.bottom - windowRect.top;
-
-    // Constrain the window to stay within the virtual screen area
-    int newX = windowRect.left;
-    int newY = windowRect.top;
-
-    if (newX < virtualLeft) {
-      newX = virtualLeft;
-    }
-    if (newY < virtualTop) {
-      newY = virtualTop;
-    }
-    if (newX + windowWidth > virtualRight) {
-      newX = virtualRight - windowWidth;
-    }
-    if (newY + windowHeight > virtualBottom) {
-      newY = virtualBottom - windowHeight;
+    case WM_CLOSE: {
+      g_plugin.SaveWindowSizeAndPosition(hWnd);
+      DestroyWindow(hWnd);
+      UnregisterClassW(L"Direct3DWindowClass", NULL);
+      return 0;
     }
 
-    // Set the new position if adjustments were made
-    if (newX != windowRect.left || newY != windowRect.top) {
-      SetWindowPos(hWnd, NULL, newX, newY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    case WM_DESTROY: {
+      PostQuitMessage(0);
+      break;
     }
-    break;
-  }
 
-  case WM_KEYDOWN:
-  {
-    g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-  }
-  if (wParam == VK_F2) {
-    bool isCtrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-    if (isCtrlPressed) {
-      bool isShiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-      if (isShiftPressed) {
-        SetWindowFixedDimensions(hWnd);
+    case WM_MOVE: {
+      // Get the current window rectangle
+      RECT windowRect;
+      GetWindowRect(hWnd, &windowRect);
+
+      // Get the virtual screen area (spanning all monitors)
+      int virtualLeft = GetSystemMetrics(SM_XVIRTUALSCREEN);
+      int virtualTop = GetSystemMetrics(SM_YVIRTUALSCREEN);
+      int virtualWidth = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+      int virtualHeight = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
+      int virtualRight = virtualLeft + virtualWidth;
+      int virtualBottom = virtualTop + virtualHeight;
+
+      int windowWidth = windowRect.right - windowRect.left;
+      int windowHeight = windowRect.bottom - windowRect.top;
+
+      // Constrain the window to stay within the virtual screen area
+      int newX = windowRect.left;
+      int newY = windowRect.top;
+
+      if (newX < virtualLeft) {
+        newX = virtualLeft;
       }
-      else {
-        ResetWindow(hWnd);
+      if (newY < virtualTop) {
+        newY = virtualTop;
       }
-    }
-    else if (!fullscreen && !stretch) {
-      ToggleBorderlessWindow(hWnd);
-    }
-  }
-  if (wParam == VK_F9) {
-    bool isCtrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-    if (isCtrlPressed) {
-      bool isShiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-      ToggleBorderlessFullscreen(hWnd, isShiftPressed);
-    }
-    else {
-      ToggleClickThrough(hWnd);
-      if (clickthrough) {
-        g_plugin.AddNotification(L"Clickthrough Mode enabled");
+      if (newX + windowWidth > virtualRight) {
+        newX = virtualRight - windowWidth;
       }
-      else {
-        g_plugin.AddNotification(L"Clickthrough Mode disabled");
+      if (newY + windowHeight > virtualBottom) {
+        newY = virtualBottom - windowHeight;
       }
-    }
-  }
-  else if (wParam == VK_B) {
-    if (GetKeyState(VK_CONTROL) & 0x8000) { // Check if Ctrl is pressed
-      g_plugin.m_SongInfoPollingEnabled = !g_plugin.m_SongInfoPollingEnabled;
-      milkwave.doPoll = g_plugin.m_SongInfoPollingEnabled;
-      if (g_plugin.m_SongInfoPollingEnabled) {
-        g_plugin.AddNotification(L"Song Info enabled");
-      }
-      else {
-        g_plugin.AddNotification(L"Song Info disabled");
-        milkwave.currentArtist = L"";
-        milkwave.currentTitle = L"";
-        milkwave.currentAlbum = L"";
-      }
-    }
-    else {
-      milkwave.doPollExplicit = true;
-    }
-    return 0;
-  }
-  else if (wParam == VK_C) {
-    if (GetKeyState(VK_CONTROL) & 0x8000) { // Check if Ctrl is pressed
-      g_plugin.m_DisplayCover = !g_plugin.m_DisplayCover;
-      milkwave.doSaveCover = g_plugin.m_DisplayCover;
-      if (g_plugin.m_DisplayCover) {
-        g_plugin.AddNotification(L"Cover Display enabled");
-      }
-      else {
-        g_plugin.AddNotification(L"Cover Display disabled");
-      }
-    }
-    else {
-      milkwave.doPollExplicit = true;
-    }
-    return 0;
-  }
-  else if (wParam == VK_D) {
-    if (GetKeyState(VK_CONTROL) & 0x8000) { // Check if Ctrl is pressed
-      bool isShiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
-      if (isShiftPressed) {
-        g_plugin.AddNotification(g_plugin.m_szAudioDeviceDisplayName);
-      }
-      else {
-        wcscpy_s(g_plugin.m_szAudioDevicePrevious, g_plugin.m_szAudioDevice);
-        g_plugin.m_nAudioDevicePreviousType = g_plugin.m_nAudioDeviceActiveType;
 
-        IMMDevice* m_pMMDevice;
-        std::wstring sAudioDeviceDisplayName;
-        GetDefaultAudioDeviceName(&m_pMMDevice, &sAudioDeviceDisplayName);
-        wcscpy(g_plugin.m_szAudioDevice, sAudioDeviceDisplayName.c_str());
-
-        g_plugin.SetAudioDeviceDisplayName(sAudioDeviceDisplayName.c_str(), true);
-
-        // Restart audio
-        g_plugin.m_nAudioDeviceRequestType = 2;
-        g_plugin.m_nAudioLoopState = 1;
+      // Set the new position if adjustments were made
+      if (newX != windowRect.left || newY != windowRect.top) {
+        SetWindowPos(hWnd, NULL, newX, newY, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
       }
+      break;
     }
-    return 0;
-  }
-  else if (wParam == VK_M) {
-    if (GetKeyState(VK_CONTROL) & 0x8000) { // Check if Ctrl is pressed
-      g_plugin.m_bEnableMouseInteraction = !g_plugin.m_bEnableMouseInteraction;
-      if (g_plugin.m_bEnableMouseInteraction) {
-        g_plugin.AddNotification(L"Mouse interaction enabled");
-      }
-      else {
-        g_plugin.AddNotification(L"Mouse interaction disabled");
-      }
+
+    case WM_KEYDOWN: {
+      g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
     }
-  }
+      if (wParam == VK_F2) {
+        bool isCtrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+        if (isCtrlPressed) {
+          bool isShiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+          if (isShiftPressed) {
+            SetWindowFixedDimensions(hWnd);
+          } else {
+            ResetWindow(hWnd);
+          }
+        } else if (!fullscreen && !stretch) {
+          ToggleBorderlessWindow(hWnd);
+        }
+      }
+      if (wParam == VK_F9) {
+        bool isCtrlPressed = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+        if (isCtrlPressed) {
+          bool isShiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+          ToggleBorderlessFullscreen(hWnd, isShiftPressed);
+        } else {
+          ToggleClickThrough(hWnd);
+          if (clickthrough) {
+            g_plugin.AddNotification(L"Clickthrough Mode enabled");
+          } else {
+            g_plugin.AddNotification(L"Clickthrough Mode disabled");
+          }
+        }
+      } else if (wParam == VK_B) {
+        if (GetKeyState(VK_CONTROL) & 0x8000) {  // Check if Ctrl is pressed
+          g_plugin.m_SongInfoPollingEnabled = !g_plugin.m_SongInfoPollingEnabled;
+          milkwave.doPoll = g_plugin.m_SongInfoPollingEnabled;
+          if (g_plugin.m_SongInfoPollingEnabled) {
+            g_plugin.AddNotification(L"Song Info enabled");
+          } else {
+            g_plugin.AddNotification(L"Song Info disabled");
+            milkwave.currentArtist = L"";
+            milkwave.currentTitle = L"";
+            milkwave.currentAlbum = L"";
+          }
+        } else {
+          milkwave.doPollExplicit = true;
+        }
+        return 0;
+      } else if (wParam == VK_C) {
+        if (GetKeyState(VK_CONTROL) & 0x8000) {  // Check if Ctrl is pressed
+          g_plugin.m_DisplayCover = !g_plugin.m_DisplayCover;
+          milkwave.doSaveCover = g_plugin.m_DisplayCover;
+          if (g_plugin.m_DisplayCover) {
+            g_plugin.AddNotification(L"Cover Display enabled");
+          } else {
+            g_plugin.AddNotification(L"Cover Display disabled");
+          }
+        } else {
+          milkwave.doPollExplicit = true;
+        }
+        return 0;
+      } else if (wParam == VK_D) {
+        if (GetKeyState(VK_CONTROL) & 0x8000) {  // Check if Ctrl is pressed
+          bool isShiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+          if (isShiftPressed) {
+            g_plugin.AddNotification(g_plugin.m_szAudioDeviceDisplayName);
+          } else {
+            wcscpy_s(g_plugin.m_szAudioDevicePrevious, g_plugin.m_szAudioDevice);
+            g_plugin.m_nAudioDevicePreviousType = g_plugin.m_nAudioDeviceActiveType;
 
-  case WM_NCHITTEST: //used for borderless window
-  {
-    // if (borderless)
-    if (!fullscreen && !stretch) {
-      // resizable borderless
-      // from https://stackoverflow.com/questions/19106047/winapi-c-reprogramming-window-resize
-#define BORDERWIDTH  10
-#define TITLEBARWIDTH  30
-      RECT rect;
-      int x, y;
-      GetWindowRect(hWnd, &rect);
+            IMMDevice* m_pMMDevice;
+            std::wstring sAudioDeviceDisplayName;
+            GetDefaultAudioDeviceName(&m_pMMDevice, &sAudioDeviceDisplayName);
+            wcscpy(g_plugin.m_szAudioDevice, sAudioDeviceDisplayName.c_str());
 
-      x = GET_X_LPARAM(lParam) - rect.left;
-      y = GET_Y_LPARAM(lParam) - rect.top;
+            g_plugin.SetAudioDeviceDisplayName(sAudioDeviceDisplayName.c_str(), true);
 
-      // When mouse interaction is enabled, let the plugin handle client-area mouse events.
-      // Still allow resizing by returning the correct HT* edge codes for the border zones.
-      if (g_plugin.m_bEnableMouseInteraction && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
-        if (x < BORDERWIDTH && y < BORDERWIDTH)
+            // Restart audio
+            g_plugin.m_nAudioDeviceRequestType = 2;
+            g_plugin.m_nAudioLoopState = 1;
+          }
+        }
+        return 0;
+      } else if (wParam == VK_M) {
+        if (GetKeyState(VK_CONTROL) & 0x8000) {  // Check if Ctrl is pressed
+          g_plugin.m_bEnableMouseInteraction = !g_plugin.m_bEnableMouseInteraction;
+          if (g_plugin.m_bEnableMouseInteraction) {
+            g_plugin.AddNotification(L"Mouse interaction enabled");
+          } else {
+            g_plugin.AddNotification(L"Mouse interaction disabled");
+          }
+        }
+      }
+
+    case WM_NCHITTEST:  // used for borderless window
+    {
+      // if (borderless)
+      if (!fullscreen && !stretch) {
+        // resizable borderless
+        // from https://stackoverflow.com/questions/19106047/winapi-c-reprogramming-window-resize
+#define BORDERWIDTH 10
+#define TITLEBARWIDTH 30
+        RECT rect;
+        int x, y;
+        GetWindowRect(hWnd, &rect);
+
+        x = GET_X_LPARAM(lParam) - rect.left;
+        y = GET_Y_LPARAM(lParam) - rect.top;
+
+        // When mouse interaction is enabled, let the plugin handle client-area mouse events.
+        // Still allow resizing by returning the correct HT* edge codes for the border zones.
+        if (g_plugin.m_bEnableMouseInteraction && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+          if (x < BORDERWIDTH && y < BORDERWIDTH)
+            return HTTOPLEFT;
+          else if (x > rect.right - rect.left - BORDERWIDTH && y < BORDERWIDTH)
+            return HTTOPRIGHT;
+          else if (x > rect.right - rect.left - BORDERWIDTH && y > rect.bottom - rect.top - BORDERWIDTH)
+            return HTBOTTOMRIGHT;
+          else if (x < BORDERWIDTH && y > rect.bottom - rect.top - BORDERWIDTH)
+            return HTBOTTOMLEFT;
+          else if (x < BORDERWIDTH)
+            return HTLEFT;
+          else if (y < BORDERWIDTH)
+            return HTTOP;
+          else if (x > rect.right - rect.left - BORDERWIDTH)
+            return HTRIGHT;
+          else if (y > rect.bottom - rect.top - BORDERWIDTH)
+            return HTBOTTOM;
+
+          // interior -> client area (so MyWindowProc receives mouse messages)
+          return HTCLIENT;
+        }
+
+        // Default (existing) behavior when mouse interaction is disabled:
+        if (x >= BORDERWIDTH && x <= rect.right - rect.left - BORDERWIDTH && y >= BORDERWIDTH && y <= TITLEBARWIDTH)
+          return HTCAPTION;
+
+        else if (x < BORDERWIDTH && y < BORDERWIDTH)
           return HTTOPLEFT;
         else if (x > rect.right - rect.left - BORDERWIDTH && y < BORDERWIDTH)
           return HTTOPRIGHT;
@@ -969,6 +958,7 @@ LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           return HTBOTTOMRIGHT;
         else if (x < BORDERWIDTH && y > rect.bottom - rect.top - BORDERWIDTH)
           return HTBOTTOMLEFT;
+
         else if (x < BORDERWIDTH)
           return HTLEFT;
         else if (y < BORDERWIDTH)
@@ -977,203 +967,164 @@ LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           return HTRIGHT;
         else if (y > rect.bottom - rect.top - BORDERWIDTH)
           return HTBOTTOM;
-
-        // interior -> client area (so MyWindowProc receives mouse messages)
-        return HTCLIENT;
-      }
-
-      // Default (existing) behavior when mouse interaction is disabled:
-      if (x >= BORDERWIDTH && x <= rect.right - rect.left - BORDERWIDTH && y >= BORDERWIDTH && y <= TITLEBARWIDTH)
         return HTCAPTION;
-
-      else if (x < BORDERWIDTH && y < BORDERWIDTH)
-        return HTTOPLEFT;
-      else if (x > rect.right - rect.left - BORDERWIDTH && y < BORDERWIDTH)
-        return HTTOPRIGHT;
-      else if (x > rect.right - rect.left - BORDERWIDTH && y > rect.bottom - rect.top - BORDERWIDTH)
-        return HTBOTTOMRIGHT;
-      else if (x < BORDERWIDTH && y > rect.bottom - rect.top - BORDERWIDTH)
-        return HTBOTTOMLEFT;
-
-      else if (x < BORDERWIDTH)
-        return HTLEFT;
-      else if (y < BORDERWIDTH)
-        return HTTOP;
-      else if (x > rect.right - rect.left - BORDERWIDTH)
-        return HTRIGHT;
-      else if (y > rect.bottom - rect.top - BORDERWIDTH)
-        return HTBOTTOM;
-      return HTCAPTION;
-    }
-    break;
-  }
-
-  case WM_NCLBUTTONDBLCLK:
-  {
-    if (fullscreen) {
-      ToggleFullScreen(hWnd);
-      return 0;
-    }
-
-    bool ctrlHeld = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-    if (ctrlHeld) {
-      ToggleBorderlessWindow(hWnd);
-      return 0;
-    }
-
-    ToggleFullScreen(hWnd);
-    return 0;
-  }
-
-  case WM_NCRBUTTONDBLCLK:
-  {
-    ToggleBorderlessWindow(hWnd);
-    break;
-  }
-
-  case WM_SYSKEYDOWN:
-  {
-    if (wParam == VK_F4) { // SPOUT ??
-      PostQuitMessage(0);
-    }
-    else if (wParam == 'S' || wParam == 's') {
-      ToggleStretch(hWnd);
-    }
-    else if (wParam == VK_RETURN) {
-      ToggleFullScreen(hWnd);
-    }
-    else {
-      g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-    break;
-  }
-
-  case WM_RBUTTONDOWN:
-  case WM_NCRBUTTONDOWN: // Right mouse button pressed
-    // If plugin-level mouse interaction is enabled, let the plugin handle the event.
-    rightMouseButtonHeld = true;
-    if (g_plugin.m_bEnableMouseInteraction) {
-      return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-    break;
-
-  case WM_RBUTTONUP:
-  case WM_NCRBUTTONUP: // Right mouse button released
-    rightMouseButtonHeld = false;
-    if (g_plugin.m_bEnableMouseInteraction) {
-      return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-    break;
-
-  case WM_LBUTTONDOWN:
-  case WM_NCLBUTTONDOWN: // Left mouse button pressed
-    if (rightMouseButtonHeld) {
-      // Right + Left
-      PostMessage(hWnd, WM_CLOSE, 0, 0); // Close the window
-    }
-    else {
-      return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-    break;
-
-  case WM_LBUTTONUP:
-  case WM_NCLBUTTONUP: // Left mouse button released
-    //if (g_plugin.m_bEnableMouseInteraction) {
-    return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-    //}
-    // no special action on left button up in existing logic
-    break;
-
-  case WM_MBUTTONDOWN:
-  case WM_NCMBUTTONDOWN: // Middle mouse button clicked
-    if (rightMouseButtonHeld) {
-      // Right + Middle
-      g_plugin.OpenMilkwaveRemote();
-    }
-    else {
-      // Middle only
-      milkwave.doPollExplicit = true;
-    }
-    break;
-
-  case WM_LBUTTONDBLCLK:
-  {
-    // If we're currently fullscreen, always exit fullscreen on a left-button double-click
-    // anywhere in the client area (there is no title bar in fullscreen).
-    if (fullscreen) {
-      ToggleFullScreen(hWnd);
-      return 0;
-    }
-
-    bool ctrlHeld = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
-    if (ctrlHeld) {
-      ToggleBorderlessWindow(hWnd);
-      return 0;
-    }
-
-    // Determine position relative to window
-    RECT rect; GetWindowRect(hWnd, &rect);
-    int y = GET_Y_LPARAM(lParam) - rect.top;
-    bool inTitle = (y <= TITLEBARWIDTH);
-
-    // If plugin mouse interaction is enabled and the dblclick is in client area,
-    // let the plugin handle it. Otherwise toggle fullscreen.
-    if (g_plugin.m_bEnableMouseInteraction && !inTitle) {
-      return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-
-    ToggleFullScreen(hWnd);
-    return 0;
-  }
-
-  case WM_RBUTTONDBLCLK:
-  {
-    if (g_plugin.m_bEnableMouseInteraction) {
-      return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-    ToggleBorderlessWindow(hWnd);
-    break;
-  }
-
-  case WM_USER_PIPE_IPC_MESSAGE:
-  {
-    // Received from pipe server — lParam is heap-allocated wchar_t*, wParam is dwData
-    wchar_t* message = (wchar_t*)lParam;
-    DWORD_PTR dwData = (DWORD_PTR)wParam;
-    if (message) {
-      if (dwData == 1) {
-        g_plugin.LaunchMessage(message);
       }
-      else if (dwData == (WM_USER + 108)) { // WM_USER_SET_SPOUT_SENDER equivalent
-        g_plugin.SetSpoutSender(message);
-      }
-      free(message);
+      break;
     }
-    return 0;
-  }
 
-  case WM_USER + 160: // SIGNAL|FULLSCREEN
-    ToggleFullScreen(hWnd);
-    return 0;
+    case WM_NCLBUTTONDBLCLK: {
+      if (fullscreen) {
+        ToggleFullScreen(hWnd);
+        return 0;
+      }
 
-  case WM_USER + 161: // SIGNAL|WATERMARK
-    ToggleBorderlessFullscreen(hWnd, true);
-    return 0;
+      bool ctrlHeld = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+      if (ctrlHeld) {
+        ToggleBorderlessWindow(hWnd);
+        return 0;
+      }
 
-  case WM_USER + 162: // SIGNAL|BORDERLESS_FS
-    ToggleBorderlessFullscreen(hWnd, false);
-    return 0;
+      ToggleFullScreen(hWnd);
+      return 0;
+    }
 
-  default:
-    return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+    case WM_NCRBUTTONDBLCLK: {
+      ToggleBorderlessWindow(hWnd);
+      break;
+    }
+
+    case WM_SYSKEYDOWN: {
+      if (wParam == VK_F4) {  // SPOUT ??
+        PostQuitMessage(0);
+      } else if (wParam == 'S' || wParam == 's') {
+        ToggleStretch(hWnd);
+      } else if (wParam == VK_RETURN) {
+        ToggleFullScreen(hWnd);
+      } else {
+        g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+      }
+      break;
+    }
+
+    case WM_RBUTTONDOWN:
+    case WM_NCRBUTTONDOWN:  // Right mouse button pressed
+      // If plugin-level mouse interaction is enabled, let the plugin handle the event.
+      rightMouseButtonHeld = true;
+      if (g_plugin.m_bEnableMouseInteraction) {
+        return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+      }
+      break;
+
+    case WM_RBUTTONUP:
+    case WM_NCRBUTTONUP:  // Right mouse button released
+      rightMouseButtonHeld = false;
+      if (g_plugin.m_bEnableMouseInteraction) {
+        return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+      }
+      break;
+
+    case WM_LBUTTONDOWN:
+    case WM_NCLBUTTONDOWN:  // Left mouse button pressed
+      if (rightMouseButtonHeld) {
+        // Right + Left
+        PostMessage(hWnd, WM_CLOSE, 0, 0);  // Close the window
+      } else {
+        return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+      }
+      break;
+
+    case WM_LBUTTONUP:
+    case WM_NCLBUTTONUP:  // Left mouse button released
+      // if (g_plugin.m_bEnableMouseInteraction) {
+      return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+      //}
+      // no special action on left button up in existing logic
+      break;
+
+    case WM_MBUTTONDOWN:
+    case WM_NCMBUTTONDOWN:  // Middle mouse button clicked
+      if (rightMouseButtonHeld) {
+        // Right + Middle
+        g_plugin.OpenMilkwaveRemote();
+      } else {
+        // Middle only
+        milkwave.doPollExplicit = true;
+      }
+      break;
+
+    case WM_LBUTTONDBLCLK: {
+      // If we're currently fullscreen, always exit fullscreen on a left-button double-click
+      // anywhere in the client area (there is no title bar in fullscreen).
+      if (fullscreen) {
+        ToggleFullScreen(hWnd);
+        return 0;
+      }
+
+      bool ctrlHeld = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+      if (ctrlHeld) {
+        ToggleBorderlessWindow(hWnd);
+        return 0;
+      }
+
+      // Determine position relative to window
+      RECT rect;
+      GetWindowRect(hWnd, &rect);
+      int y = GET_Y_LPARAM(lParam) - rect.top;
+      bool inTitle = (y <= TITLEBARWIDTH);
+
+      // If plugin mouse interaction is enabled and the dblclick is in client area,
+      // let the plugin handle it. Otherwise toggle fullscreen.
+      if (g_plugin.m_bEnableMouseInteraction && !inTitle) {
+        return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+      }
+
+      ToggleFullScreen(hWnd);
+      return 0;
+    }
+
+    case WM_RBUTTONDBLCLK: {
+      if (g_plugin.m_bEnableMouseInteraction) {
+        return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
+      }
+      ToggleBorderlessWindow(hWnd);
+      break;
+    }
+
+    case WM_USER_PIPE_IPC_MESSAGE: {
+      // Received from pipe server — lParam is heap-allocated wchar_t*, wParam is dwData
+      wchar_t* message = (wchar_t*)lParam;
+      DWORD_PTR dwData = (DWORD_PTR)wParam;
+      if (message) {
+        if (dwData == 1) {
+          g_plugin.LaunchMessage(message);
+        } else if (dwData == (WM_USER + 108)) {  // WM_USER_SET_SPOUT_SENDER equivalent
+          g_plugin.SetSpoutSender(message);
+        }
+        free(message);
+      }
+      return 0;
+    }
+
+    case WM_USER + 160:  // SIGNAL|FULLSCREEN
+      ToggleFullScreen(hWnd);
+      return 0;
+
+    case WM_USER + 161:  // SIGNAL|WATERMARK
+      ToggleBorderlessFullscreen(hWnd, true);
+      return 0;
+
+    case WM_USER + 162:  // SIGNAL|BORDERLESS_FS
+      ToggleBorderlessFullscreen(hWnd, false);
+      return 0;
+
+    default:
+      return g_plugin.PluginShellWindowProc(hWnd, uMsg, wParam, lParam);
   }
 
   return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-
 void RenderFrame() {
-
   {
     std::unique_lock<std::mutex> lock(pcmMutex);
     memcpy(pcmLeftOut, pcmLeftIn, SAMPLE_SIZE);
@@ -1233,14 +1184,12 @@ void RenderFrame() {
           wcscpy(buf, milkwave.currentArtist.c_str());
           g_plugin.AddError(buf, g_plugin.m_SongInfoDisplaySeconds, ERR_MSG_BOTTOM_EXTRA_1, false);
         }
-      }
-      else if (currentToken == "title") {
+      } else if (currentToken == "title") {
         if (milkwave.currentTitle.length() > 0) {
           wcscpy(buf, milkwave.currentTitle.c_str());
           g_plugin.AddError(buf, g_plugin.m_SongInfoDisplaySeconds, ERR_MSG_BOTTOM_EXTRA_2, false);
         }
-      }
-      else if (currentToken == "album") {
+      } else if (currentToken == "album") {
         if (milkwave.currentAlbum.length() > 0) {
           wcscpy(buf, milkwave.currentAlbum.c_str());
           g_plugin.AddError(buf, g_plugin.m_SongInfoDisplaySeconds, ERR_MSG_BOTTOM_EXTRA_3, false);
@@ -1252,13 +1201,11 @@ void RenderFrame() {
   }
 
   g_plugin.PluginRender(
-    (unsigned char*)pcmLeftOut,
-    (unsigned char*)pcmRightOut);
-
+      (unsigned char*)pcmLeftOut,
+      (unsigned char*)pcmRightOut);
 }
 
 unsigned __stdcall CreateWindowAndRun(void* data) {
-
   HINSTANCE instance = (HINSTANCE)data;
 
 #ifdef DEBUG
@@ -1268,7 +1215,7 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
 
   // SPOUT
   // Set Per Monitor awareness
-  SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE); //older Windows versions: Entry Point Not Found Fix
+  SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);  // older Windows versions: Entry Point Not Found Fix
   // SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
 
   // Register the windows class
@@ -1293,8 +1240,8 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
 
   // SPOUT
   // Make the window a fixed size
-    // The sender resolution is independent - see SpoutWidth/SpoutHeight below
-  int windowWidth = 1280; // standalone version 1280x720
+  // The sender resolution is independent - see SpoutWidth/SpoutHeight below
+  int windowWidth = 1280;  // standalone version 1280x720
   int windowHeight = 720;
 
   RECT rc;
@@ -1312,7 +1259,7 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
 
   // SPOUT
   // Remove minimize and maximize
-  //DWORD dwStyle = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME);
+  // DWORD dwStyle = (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME);
 
   // ===============================================
   // Enumerate other instances of BeatDrop to increment the title
@@ -1325,8 +1272,7 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
   while (!freeTitleFound && nBeatDrops < 100) {
     if (nBeatDrops == 0) {
       lstrcpyW(VisualizerWindowTitle, L"Milkwave Visualizer");
-    }
-    else {
+    } else {
       swprintf_s(VisualizerWindowTitle, L"Milkwave Visualizer %d", nBeatDrops + 1);
     }
 
@@ -1335,8 +1281,7 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
     if (existing != NULL) {
       nBeatDrops++;
       // Try next title
-    }
-    else {
+    } else {
       // No window with this title, so we can use it
       printf("New title [%S]\n", VisualizerWindowTitle);
       freeTitleFound = true;
@@ -1372,21 +1317,20 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
     g_plugin.m_WindowY = workArea.top + gapPx;
   }
 
-
   // Create the render window
   HWND hwnd = CreateWindowW(
-    L"Direct3DWindowClass",
-    VisualizerWindowTitle,
-    WS_OVERLAPPEDWINDOW, // SPOUT
-    //dwStyle,
-    g_plugin.m_WindowX,
-    g_plugin.m_WindowY,
-    g_plugin.m_WindowWidth,
-    g_plugin.m_WindowHeight,
-    0,
-    NULL,
-    instance,
-    0);
+      L"Direct3DWindowClass",
+      VisualizerWindowTitle,
+      WS_OVERLAPPEDWINDOW,  // SPOUT
+      // dwStyle,
+      g_plugin.m_WindowX,
+      g_plugin.m_WindowY,
+      g_plugin.m_WindowWidth,
+      g_plugin.m_WindowHeight,
+      0,
+      NULL,
+      instance,
+      0);
 
   if (!hwnd) {
     milkwave.LogInfo(L"CreateWindowAndRun: No window handle!");
@@ -1408,8 +1352,7 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
     if (!clickthrough) ToggleClickThrough(hwnd);
     g_plugin.m_bAlwaysOnTop = true;
     g_plugin.ToggleAlwaysOnTop(hwnd);
-  }
-  else {
+  } else {
     if (g_plugin.fOpacity < 1) {
       g_plugin.SetOpacity(hwnd);
     }
@@ -1417,8 +1360,7 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
 
   if (IsWindow(hwnd)) {
     ShowWindow(hwnd, SW_SHOW);
-  }
-  else {
+  } else {
     milkwave.LogInfo(L"CreateWindowAndRun: ShowWindow failed, window not created");
   }
 
@@ -1435,7 +1377,6 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
   milkwave.doSaveCover = g_plugin.m_DisplayCover;
 
   unsigned int frame = 0;
-
 
   // Milkwave: Moved to StartThreads()
   // g_plugin.PluginPreInitialize(0, 0);
@@ -1454,13 +1395,13 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
 
   milkwave.LogInfo(L"CreateWindowAndRun: PluginInitialize");
   g_plugin.PluginInitialize(
-    pD3DDevice,
-    &g_plugin.d3dPp,
-    hwnd,
-    // windowWidth,
-    // windowHeight);
-    BackbufferWidth,
-    BackbufferHeight);
+      pD3DDevice,
+      &g_plugin.d3dPp,
+      hwnd,
+      // windowWidth,
+      // windowHeight);
+      BackbufferWidth,
+      BackbufferHeight);
 
   // Start named pipe IPC server (replaces WM_COPYDATA)
   // Use WM_USER as signal base (Milkwave uses WM_USER+N, not WM_APP+N)
@@ -1478,8 +1419,7 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
         if (PeekMessage(&msg, NULL, 0U, 0U, PM_REMOVE) != 0) {
           TranslateMessage(&msg);
           DispatchMessage(&msg);
-        }
-        else if (!pauseRender) {
+        } else if (!pauseRender) {
           GetAudioBuf(pcmLeftIn, pcmRightIn, SAMPLE_SIZE);
           RenderFrame();
         }
@@ -1517,18 +1457,16 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
 
 void StartRenderThread(HINSTANCE instance) {
   threadRender = (HANDLE)_beginthreadex(
-    nullptr,
-    0,
-    &CreateWindowAndRun,
-    (void*)instance,
-    0,
-    &threadId);
+      nullptr,
+      0,
+      &CreateWindowAndRun,
+      (void*)instance,
+      0,
+      &threadId);
 }
 
 static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
-
   try {
-
     HRESULT hr = S_OK;
 
     hr = CoInitialize(NULL);
@@ -1543,7 +1481,7 @@ static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
     // argc==4 Three additional params. Output file enabled (LITTLE ENDIAN PCM).
     int argc = 1;
     // LPCWSTR argv[4] = { L"", L"--file", L"loopback-capture.wav", L"--int-16" };
-    LPCWSTR argv[4] = { L"", L"", L"", L"" };
+    LPCWSTR argv[4] = {L"", L"", L"", L""};
 
     if (wcslen(g_plugin.m_szAudioDevice) > 0) {
       argc = 3;
@@ -1589,32 +1527,30 @@ static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
     }
     CloseHandleOnExit closeStopEvent(hStopEvent);
 
-  g_plugin.SetAudioDeviceDisplayName(prefs.m_szAudioDeviceDisplayName.c_str(), prefs.m_bIsRenderDevice);
+    g_plugin.SetAudioDeviceDisplayName(prefs.m_szAudioDeviceDisplayName.c_str(), prefs.m_bIsRenderDevice);
 
     {
       const wchar_t* requestTypeText = L"auto";
       if (g_plugin.m_nAudioDeviceRequestType == 1) {
         requestTypeText = L"capture";
-      }
-      else if (g_plugin.m_nAudioDeviceRequestType == 2) {
+      } else if (g_plugin.m_nAudioDeviceRequestType == 2) {
         requestTypeText = L"render";
       }
 
       wchar_t configBuf[512];
       swprintf_s(
-        configBuf,
-        L"StartAudioCaptureThread: device='%ls' requestType=%ls isRender=%ls int16=%ls",
-        prefs.m_szAudioDeviceDisplayName.c_str(),
-        requestTypeText,
-        prefs.m_bIsRenderDevice ? L"true" : L"false",
-        prefs.m_bInt16 ? L"true" : L"false"
-      );
+          configBuf,
+          L"StartAudioCaptureThread: device='%ls' requestType=%ls isRender=%ls int16=%ls",
+          prefs.m_szAudioDeviceDisplayName.c_str(),
+          requestTypeText,
+          prefs.m_bIsRenderDevice ? L"true" : L"false",
+          prefs.m_bInt16 ? L"true" : L"false");
       milkwave.LogDebug(configBuf);
     }
 
     // create arguments for loopback capture thread
     LoopbackCaptureThreadFunctionArguments threadArgs;
-    threadArgs.hr = E_UNEXPECTED; // thread will overwrite this
+    threadArgs.hr = E_UNEXPECTED;  // thread will overwrite this
     threadArgs.pMMDevice = prefs.m_pMMDevice;
     threadArgs.bIsRenderDevice = prefs.m_bIsRenderDevice;
     threadArgs.bInt16 = prefs.m_bInt16;
@@ -1622,14 +1558,13 @@ static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
     threadArgs.hStartedEvent = hStartedEvent;
     threadArgs.hStopEvent = hStopEvent;
     threadArgs.nFrames = 0;
-    threadArgs.pMilkwave = &milkwave; // provide milkwave instance for logging from the capture thread
+    threadArgs.pMilkwave = &milkwave;  // provide milkwave instance for logging from the capture thread
 
     milkwave.LogInfo(L"StartAudioCaptureThread: CreateThread LoopbackCaptureThreadFunction");
     hThreadLoopbackCapture = CreateThread(
-      NULL, 0,
-      LoopbackCaptureThreadFunction, &threadArgs,
-      0, NULL
-    );
+        NULL, 0,
+        LoopbackCaptureThreadFunction, &threadArgs,
+        0, NULL);
     if (NULL == hThreadLoopbackCapture) {
       milkwave.LogInfo(L"StartAudioCaptureThread: CreateThread failed");
       ERR(L"CreateThread failed: last error is %u", GetLastError());
@@ -1638,12 +1573,11 @@ static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
     CloseHandleOnExit closeThread(hThreadLoopbackCapture);
 
     // wait for either capture to start or the thread to end
-    HANDLE waitArray[2] = { hStartedEvent, hThreadLoopbackCapture };
+    HANDLE waitArray[2] = {hStartedEvent, hThreadLoopbackCapture};
     DWORD dwWaitResult;
     dwWaitResult = WaitForMultipleObjects(
-      ARRAYSIZE(waitArray), waitArray,
-      FALSE, INFINITE
-    );
+        ARRAYSIZE(waitArray), waitArray,
+        FALSE, INFINITE);
 
     if (WAIT_OBJECT_0 + 1 == dwWaitResult) {
       milkwave.LogInfo(L"StartAudioCaptureThread: Thread aborted before starting to loopback capture: hr = 0x%08x");
@@ -1660,13 +1594,13 @@ static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
     // at this point capture is running
     // wait for the user to press a key or for capture to error out
 
-    // /*HANDLE thread =*/ 
+    // /*HANDLE thread =*/
     // StartRenderThread(instance);
     // WaitForSingleObject(threadRender, INFINITE);
 
-    //NEED TO STOP CAPTURE
-    // at this point capture is running
-    // wait for the user to press a key or for capture to error out
+    // NEED TO STOP CAPTURE
+    //  at this point capture is running
+    //  wait for the user to press a key or for capture to error out
     {
       WaitForSingleObjectOnExit waitForThread(hThreadLoopbackCapture);
       SetEventOnExit setStopEvent(hStopEvent);
@@ -1689,21 +1623,19 @@ static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
         if (threadRender == nullptr) {
           // render thread stopped
           bKeepWaiting = false;
-        }
-        else if (g_plugin.m_nAudioLoopState == 1) {
+        } else if (g_plugin.m_nAudioLoopState == 1) {
           // audio device changed
           bKeepWaiting = false;
           g_plugin.m_nAudioLoopState = 2;
-        }
-        else {
+        } else {
           Sleep(100);
         }
-      } // while
-    } // naked scope
+      }  // while
+    }  // naked scope
 
     // at this point the thread is definitely finished
 
-  // MessageBoxA(NULL, "capture loop finished", "loopback", MB_OK);
+    // MessageBoxA(NULL, "capture loop finished", "loopback", MB_OK);
 
     DWORD exitCode;
     if (!GetExitCodeThread(hThreadLoopbackCapture, &exitCode)) {
@@ -1744,7 +1676,7 @@ static int StartAudioCaptureThread(HINSTANCE instance, int nestingLevel) {
         g_plugin.SendMessageToMilkwaveRemote(statusMessage.data());
         */
 
-        // if result > 1, we probably encountered a disconnection error earlier (eg. Bluetooth headphone disconnection), 
+        // if result > 1, we probably encountered a disconnection error earlier (eg. Bluetooth headphone disconnection),
         // and the m_szAudioDevice was already set using Ctrl+D
         if (result < 0) {
           wcscpy_s(g_plugin.m_szAudioDevice, g_plugin.m_szAudioDevicePrevious);
@@ -1769,11 +1701,10 @@ unsigned __stdcall DoSetup(void* param) {
   bool manualTrigger = (param != nullptr);
 
   if (!manualTrigger) {
-    Sleep(3000); // wait for the render thread to initialize the plugin completely
+    Sleep(3000);  // wait for the render thread to initialize the plugin completely
   }
 
   if (manualTrigger || (g_plugin.m_ShaderCaching && g_plugin.m_ShaderPrecompileOnStartup)) {
-
     std::wstring cacheDir = std::wstring(g_plugin.m_szBaseDir) + L"cache";
     std::wstring compiledListPath = cacheDir + L"\\compiled.txt";
 
@@ -1838,7 +1769,7 @@ unsigned __stdcall DoSetup(void* param) {
 
       // Check for wildcard
       if (!wLine.empty() && wLine.back() == L'*') {
-        std::wstring dirPath = wLine.substr(0, line.length() - 1); // Remove '*'
+        std::wstring dirPath = wLine.substr(0, line.length() - 1);  // Remove '*'
         if (std::filesystem::exists(dirPath)) {
           for (const auto& entry : std::filesystem::directory_iterator(dirPath)) {
             if (entry.is_regular_file()) {
@@ -1846,8 +1777,7 @@ unsigned __stdcall DoSetup(void* param) {
             }
           }
         }
-      }
-      else {
+      } else {
         PrecompilePresetShaders(wLine, compiledList, compiledShaders);
       }
     }
@@ -1855,12 +1785,11 @@ unsigned __stdcall DoSetup(void* param) {
     file.close();
     compiledList.close();
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration<double>(end - start); // fractional seconds
+    auto duration = std::chrono::duration<double>(end - start);  // fractional seconds
     std::wstringstream ss;
     ss << std::fixed << std::setprecision(2) << duration.count();
 
-    std::wstring message = L"Precompiling " + std::to_wstring(compiledShaders)
-      + L" shaders completed in " + ss.str() + L"s";
+    std::wstring message = L"Precompiling " + std::to_wstring(compiledShaders) + L" shaders completed in " + ss.str() + L"s";
 
     wchar_t szMessage[256];
     wcsncpy_s(szMessage, message.c_str(), _TRUNCATE);
@@ -1877,8 +1806,7 @@ void PrecompilePresetShaders(std::wstring& wLine, std::wofstream& compiledList, 
     lstrcpynW(szFile, g_plugin.m_szBaseDir, MAX_PATH * 2);
     int dirLen = lstrlenW(szFile);
     lstrcpynW(szFile + dirLen, wLine.c_str(), MAX_PATH * 2 - dirLen);
-  }
-  else {
+  } else {
     lstrcpynW(szFile, wLine.c_str(), MAX_PATH * 2);
   }
 
@@ -1892,7 +1820,6 @@ void PrecompilePresetShaders(std::wstring& wLine, std::wofstream& compiledList, 
     if (durationMs > 1000) {
       // if compilation took more than 1 second, add a warning
       warn = L"!";
-
     }
     compiledList << warn << std::setw(8) << std::setfill(L' ') << durationMs << " " << szFile << std::endl;
     compiledShaders++;
@@ -1912,12 +1839,12 @@ void StartSetupThread(bool manualTrigger) {
   }
 
   HANDLE thread = (HANDLE)_beginthreadex(
-    nullptr,
-    0,
-    &DoSetup,
-    (void*)(manualTrigger ? 1 : 0),
-    0,
-    &threadId);
+      nullptr,
+      0,
+      &DoSetup,
+      (void*)(manualTrigger ? 1 : 0),
+      0,
+      &threadId);
 
   if (thread) {
     SetThreadPriority(thread, THREAD_PRIORITY_BELOW_NORMAL);
@@ -1935,8 +1862,7 @@ int StartThreads(HINSTANCE instance) {
     milkwave.logLevel = g_plugin.m_LogLevel;
     g_plugin.milkwave = &milkwave;
 
-    milkwave.LogInfo(L"Milkwave initialized, LogLevel=" + std::to_wstring(milkwave.logLevel)
-      + L" BaseDir=" + g_plugin.m_szBaseDir);
+    milkwave.LogInfo(L"Milkwave initialized, LogLevel=" + std::to_wstring(milkwave.logLevel) + L" BaseDir=" + g_plugin.m_szBaseDir);
 
     if (g_plugin.m_CheckDirectXOnStartup) {
       if (!g_plugin.CheckForDirectX9c()) {
@@ -1962,8 +1888,7 @@ int StartThreads(HINSTANCE instance) {
     if (g_plugin.m_bEnableAudioCapture) {
       milkwave.LogInfo(L"Starting audio capture thread");
       StartAudioCaptureThread(instance, 0);
-    }
-    else {
+    } else {
       milkwave.LogInfo(L"Audio capture disabled in settings");
       while (true) {
         Sleep(1000);
@@ -1990,14 +1915,13 @@ void MilkwaveTerminateHandler() {
       } catch (...) {
         milkwave.LogInfo(L"Unhandled non-std::exception in std::terminate");
       }
-    }
-    else {
+    } else {
       milkwave.LogInfo(L"std::terminate called with no active exception");
     }
   } catch (...) {
     // If logging itself throws, do nothing
   }
-  std::abort(); // Ensure abnormal termination
+  std::abort();  // Ensure abnormal termination
 }
 
 void SeTranslatorFunction(unsigned int code, _EXCEPTION_POINTERS* ep) {

@@ -546,7 +546,7 @@ SPOUT :
     Credit to Patrick Pomerleau of Nest Immersion (http://nestimmersion.ca/)
 
          Search on "DX9EX" for the changes.
-          Milkdrop2PcmVisualizer.cpp
+          MilkwaveVisualizer.cpp
           milkdropfs.cpp
           pluginshell.cpp
           pluginshell.h
@@ -567,7 +567,7 @@ SPOUT :
            Modify corresponding Spout SDK and SpoutLibrary functions
          - Rebuild VS2017 /MT Win32 with modified 2.007 SpoutLibrary
            Search on "// SPOUT DX9EX" for changes
-  29.10.19   - Milkdrop2PcmVisualizer.cpp
+  29.10.19   - MilkwaveVisualizer.cpp
              Change dpi awareness to use SetProcessDpiAwarenessContext
              for Windows 7 compatibility
            Remove #include <ShellScalingApi.h> and #pragma comment(lib, "shcore.lib")
@@ -576,7 +576,7 @@ SPOUT :
                  Changed files :
                    vis_milk2\plugin.cpp
                    vis_milk2\plugin.h
-                   vis_milk2\Milkdrop2PcmVisualizer.cpp
+                   vis_milk2\MilkwaveVisualizer.cpp
                    vis_milk2\milkdropfs.cpp
                    vis_milk2\pluginshell.h
                  nseel2/nseel-compiler.c
@@ -618,13 +618,13 @@ SPOUT :
 
 // Define custom message IDs
 #ifndef FRAND
-#define FRAND ((rand() % 7381)/7380.0f)
+#define FRAND ((rand() % 7381) / 7380.0f)
 #endif
 #ifndef clamp
 #define clamp(value, min, max) ((value) < (min) ? (min) : ((value) > (max) ? (max) : (value)))
 #endif
 
-int ToggleFPSNumPressed = 7;			// Default is Unlimited FPS.
+int ToggleFPSNumPressed = 7;  // Default is Unlimited FPS.
 int HardcutMode = 0;
 float timetick = 0;
 float timetick2 = 0;
@@ -635,7 +635,7 @@ int NumTotalPresetsLoaded = 0;
 bool AutoLockedPreset = false;
 uint64_t LastSentMilkwaveMessage = 0;
 
-//For Sample Rate auto-detection
+// For Sample Rate auto-detection
 #include <windows.h>
 #include <mmdeviceapi.h>
 #include <propsys.h>
@@ -660,39 +660,36 @@ void NSEEL_VM_resetvars(NSEEL_VMCTX ctx) {
 
 // note: these must match layouts in support.h!!
 D3DVERTEXELEMENT9 g_MyVertDecl[] =
-{
-    { 0, 0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-    { 0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,    0 },
-    { 0, 16, D3DDECLTYPE_FLOAT4,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-    { 0, 32, D3DDECLTYPE_FLOAT2,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1 },
-    D3DDECL_END()
-};
+    {
+        {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+        {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
+        {0, 16, D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+        {0, 32, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 1},
+        D3DDECL_END()};
 D3DVERTEXELEMENT9 g_WfVertDecl[] =
-{
-    { 0, 0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-    { 0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,    0 },
-    D3DDECL_END()
-};
+    {
+        {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+        {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
+        D3DDECL_END()};
 D3DVERTEXELEMENT9 g_SpriteVertDecl[] =
-{
-  // matches D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1
-  { 0, 0,  D3DDECLTYPE_FLOAT3,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
-  { 0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR,    0 },
-  { 0, 16, D3DDECLTYPE_FLOAT2,   D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
-  D3DDECL_END()
-};
+    {
+        // matches D3DFVF_XYZ | D3DFVF_DIFFUSE | D3DFVF_TEX1
+        {0, 0, D3DDECLTYPE_FLOAT3, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0},
+        {0, 12, D3DDECLTYPE_D3DCOLOR, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_COLOR, 0},
+        {0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0},
+        D3DDECL_END()};
 
-//extern CSoundData*   pg_sound;	// declared in main.cpp
-extern CPlugin g_plugin;		// declared in main.cpp (note: was 'pg')
+// extern CSoundData*   pg_sound;	// declared in main.cpp
+extern CPlugin g_plugin;  // declared in main.cpp (note: was 'pg')
 
 // from support.cpp:
 extern bool g_bDebugOutput;
 extern bool g_bDumpFileCleared;
 
 // for __UpdatePresetList:
-volatile HANDLE g_hThread;  // only r/w from our MAIN thread
-volatile bool g_bThreadAlive; // set true by MAIN thread, and set false upon exit from 2nd thread.
-volatile int  g_bThreadShouldQuit;  // set by MAIN thread to flag 2nd thread that it wants it to exit.
+volatile HANDLE g_hThread;         // only r/w from our MAIN thread
+volatile bool g_bThreadAlive;      // set true by MAIN thread, and set false upon exit from 2nd thread.
+volatile int g_bThreadShouldQuit;  // set by MAIN thread to flag 2nd thread that it wants it to exit.
 CRITICAL_SECTION g_cs;
 CRITICAL_SECTION g_csRemoteMessage;  // for thread-safe remote messaging
 
@@ -701,22 +698,262 @@ CRITICAL_SECTION g_csRemoteMessage;  // for thread-safe remote messaging
 #define IsNumericChar(x) (x >= '0' && x <= '9')
 
 const unsigned char LC2UC[256] = {
-  0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
-  17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,255,
-  33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,
-  49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,
-  97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,
-  113,114,115,116,117,118,119,120,121,122,91,92,93,94,95,96,
-  97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,
-  113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,
-  129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,
-  145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,
-  161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,
-  177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,
-  193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,
-  209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,
-  225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,
-  241,242,243,244,245,246,247,248,249,250,251,252,253,254,255,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    255,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    163,
+    164,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    178,
+    179,
+    180,
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    192,
+    193,
+    194,
+    195,
+    196,
+    197,
+    198,
+    199,
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241,
+    242,
+    243,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250,
+    251,
+    252,
+    253,
+    254,
+    255,
 };
 
 /*
@@ -774,7 +1011,7 @@ void copyStringToClipboardW(const wchar_t* source) {
  * Returns a static buffer with clipboard contents, or empty string on failure.
  */
 char* getStringFromClipboardA() {
-  static char s_emptyA[1] = { 0 };
+  static char s_emptyA[1] = {0};
   static char s_clipA[64000];
   s_clipA[0] = 0;
 
@@ -798,7 +1035,7 @@ char* getStringFromClipboardA() {
 }
 
 wchar_t* getStringFromClipboardW() {
-  static wchar_t s_emptyW[1] = { 0 };
+  static wchar_t s_emptyW[1] = {0};
   static wchar_t s_clipW[64000];
   s_clipW[0] = 0;
 
@@ -827,8 +1064,7 @@ void ConvertCRsToLFCA(const char* src, char* dst) {
     if (*src == 13 && *(src + 1) == 10) {
       *dst++ = LINEFEED_CONTROL_CHAR;
       src += 2;
-    }
-    else {
+    } else {
       *dst++ = *src++;
     }
   }
@@ -841,8 +1077,7 @@ void ConvertCRsToLFCW(const wchar_t* src, wchar_t* dst) {
     if (*src == 13 && *(src + 1) == 10) {
       *dst++ = LINEFEED_CONTROL_CHAR;
       src += 2;
-    }
-    else {
+    } else {
       *dst++ = *src++;
     }
   }
@@ -856,8 +1091,7 @@ void ConvertLFCToCRsA(const char* src, char* dst) {
       *dst++ = 13;
       *dst++ = 10;
       src++;
-    }
-    else {
+    } else {
       *dst++ = *src++;
     }
   }
@@ -871,8 +1105,7 @@ void ConvertLFCToCRsW(const wchar_t* src, wchar_t* dst) {
       *dst++ = 13;
       *dst++ = 10;
       src++;
-    }
-    else {
+    } else {
       *dst++ = *src++;
     }
   }
@@ -891,7 +1124,7 @@ int mystrcmpiW(const wchar_t* s1, const wchar_t* s2) {
   while (LC2UC[s1[i]] == LC2UC[s2[i]] && s1[i] != 0)
     i++;
 
-  //FIX THIS!
+  // FIX THIS!
 
   if (s1[i] == 0 && s2[i] == 0)
     return 0;
@@ -929,8 +1162,7 @@ bool ReadFileToString(const wchar_t* szBaseFilename, char* szDestText, int nMaxB
           bSkipChar = true;
         else
           ch = LINEFEED_CONTROL_CHAR;
-      }
-      else if (ch == 13)
+      } else if (ch == 13)
         ch = LINEFEED_CONTROL_CHAR;
     }
 
@@ -939,7 +1171,7 @@ bool ReadFileToString(const wchar_t* szBaseFilename, char* szDestText, int nMaxB
     prev_ch = orig_ch;
   }
   szDestText[len] = 0;
-  szDestText[len++] = ' ';   // make sure there is some whitespace after
+  szDestText[len++] = ' ';  // make sure there is some whitespace after
   fclose(f);
   return true;
 }
@@ -1014,7 +1246,6 @@ int g_szHelp_W = 0;
 
 //----------------------------------------------------------------------
 
-
 //----------------------------------------------------------------------
 
 void ConvertLLCto1310(char* d, const char* s) {
@@ -1025,8 +1256,7 @@ void ConvertLLCto1310(char* d, const char* s) {
     if (*s == LINEFEED_CONTROL_CHAR) {
       *d++ = 13;
       *d++ = 10;
-    }
-    else {
+    } else {
       *d++ = *s;
     }
     s++;
@@ -1043,7 +1273,7 @@ void StripComments(char* str) {
   char* dest = str;
   char* p = &str[1];
   bool bIgnoreTilEndOfLine = false;
-  bool bIgnoreTilCloseComment = false; //this one takes precedence
+  bool bIgnoreTilCloseComment = false;  // this one takes precedence
   int nCharsToSkip = 0;
   while (1) {
     // handle '//' comments
@@ -1080,7 +1310,6 @@ void StripComments(char* str) {
   *dest++ = 0;
 }
 
-
 void CancelThread(int max_wait_time_ms) {
   g_bThreadShouldQuit = true;
   int waited = 0;
@@ -1111,13 +1340,12 @@ float SquishToCenter(float x, float fExp) {
 int GetNearestPow2Size(int w, int h) {
   float fExp = logf(max(w, h) * 0.75f + 0.25f * min(w, h)) / logf(2.0f);
   float bias = 0.55f;
-  if (fExp + bias >= 11.0f)   // ..don't jump to 2048x2048 quite as readily
+  if (fExp + bias >= 11.0f)  // ..don't jump to 2048x2048 quite as readily
     bias = 0.5f;
-  int   nExp = (int)(fExp + bias);
+  int nExp = (int)(fExp + bias);
   int log2size = (int)powf(2.0f, (float)nExp);
   return log2size;
 }
-
 
 float fCubicInterpolate(float y0, float y1, float y2, float y3, float t) {
   float a0, a1, a2, a3, t2;
@@ -1128,7 +1356,7 @@ float fCubicInterpolate(float y0, float y1, float y2, float y3, float t) {
   a2 = y2 - y0;
   a3 = y1;
 
-  return(a0 * t * t2 + a1 * t2 + a2 * t + a3);
+  return (a0 * t * t2 + a1 * t2 + a2 * t + a3);
 }
 
 DWORD dwCubicInterpolate(DWORD y0, DWORD y1, DWORD y2, DWORD y3, float t) {
@@ -1137,12 +1365,11 @@ DWORD dwCubicInterpolate(DWORD y0, DWORD y1, DWORD y2, DWORD y3, float t) {
   DWORD shift = 0;
   for (int i = 0; i < 4; i++) {
     float f = fCubicInterpolate(
-      ((y0 >> shift) & 0xFF) / 255.0f,
-      ((y1 >> shift) & 0xFF) / 255.0f,
-      ((y2 >> shift) & 0xFF) / 255.0f,
-      ((y3 >> shift) & 0xFF) / 255.0f,
-      t
-    );
+        ((y0 >> shift) & 0xFF) / 255.0f,
+        ((y1 >> shift) & 0xFF) / 255.0f,
+        ((y2 >> shift) & 0xFF) / 255.0f,
+        ((y3 >> shift) & 0xFF) / 255.0f,
+        t);
     if (f < 0)
       f = 0;
     if (f > 1)
@@ -1152,7 +1379,6 @@ DWORD dwCubicInterpolate(DWORD y0, DWORD y1, DWORD y2, DWORD y3, float t) {
   }
   return ret;
 }
-
 
 //----------------------------------------------------------------------
 // Remaining utility and misc methods
@@ -1165,46 +1391,12 @@ void CPlugin::SendPresetChangedInfoToMilkwaveRemote() {
 }
 
 void CPlugin::SendPresetWaveInfoToMilkwaveRemote() {
-  std::wstring msg = L"WAVE|COLORR=" + std::to_wstring(static_cast<int>(std::ceil(g_plugin.m_pState->m_fWaveR.eval(-1) * 255)))
-    + L"|COLORG=" + std::to_wstring(static_cast<int>(std::ceil(g_plugin.m_pState->m_fWaveG.eval(-1) * 255)))
-    + L"|COLORB=" + std::to_wstring(static_cast<int>(std::ceil(g_plugin.m_pState->m_fWaveB.eval(-1) * 255)))
-    + L"|ALPHA=" + std::to_wstring(g_plugin.m_pState->m_fWaveAlpha.eval(-1))
-    + L"|MODE=" + std::to_wstring(static_cast<int>(g_plugin.m_pState->m_nWaveMode))
-    + L"|PUSHX=" + std::to_wstring(g_plugin.m_pState->m_fXPush.eval(-1))
-    + L"|PUSHY=" + std::to_wstring(g_plugin.m_pState->m_fYPush.eval(-1))
-    + L"|ZOOM=" + std::to_wstring(g_plugin.m_pState->m_fZoom.eval(-1))
-    + L"|WARP=" + std::to_wstring(g_plugin.m_pState->m_fWarpAmount.eval(-1))
-    + L"|ROTATION=" + std::to_wstring(g_plugin.m_pState->m_fRot.eval(-1))
-    + L"|DECAY=" + std::to_wstring(g_plugin.m_pState->m_fDecay.eval(-1))
-    + L"|SCALE=" + std::to_wstring(g_plugin.m_pState->m_fWaveScale.eval(-1))
-    + L"|ECHO=" + std::to_wstring(g_plugin.m_pState->m_fVideoEchoZoom.eval(-1))
-    + L"|BRIGHTEN=" + (g_plugin.m_pState->m_bBrighten ? L"1" : L"0")
-    + L"|DARKEN=" + (g_plugin.m_pState->m_bDarken ? L"1" : L"0")
-    + L"|SOLARIZE=" + (g_plugin.m_pState->m_bSolarize ? L"1" : L"0")
-    + L"|INVERT=" + (g_plugin.m_pState->m_bInvert ? L"1" : L"0")
-    + L"|ADDITIVE=" + (g_plugin.m_pState->m_bAdditiveWaves ? L"1" : L"0")
-    + L"|DOTTED=" + (g_plugin.m_pState->m_bWaveDots ? L"1" : L"0")
-    + L"|THICK=" + (g_plugin.m_pState->m_bWaveThick ? L"1" : L"0")
-    + L"|VOLALPHA=" + (g_plugin.m_pState->m_bModWaveAlphaByVolume ? L"1" : L"0");
+  std::wstring msg = L"WAVE|COLORR=" + std::to_wstring(static_cast<int>(std::ceil(g_plugin.m_pState->m_fWaveR.eval(-1) * 255))) + L"|COLORG=" + std::to_wstring(static_cast<int>(std::ceil(g_plugin.m_pState->m_fWaveG.eval(-1) * 255))) + L"|COLORB=" + std::to_wstring(static_cast<int>(std::ceil(g_plugin.m_pState->m_fWaveB.eval(-1) * 255))) + L"|ALPHA=" + std::to_wstring(g_plugin.m_pState->m_fWaveAlpha.eval(-1)) + L"|MODE=" + std::to_wstring(static_cast<int>(g_plugin.m_pState->m_nWaveMode)) + L"|PUSHX=" + std::to_wstring(g_plugin.m_pState->m_fXPush.eval(-1)) + L"|PUSHY=" + std::to_wstring(g_plugin.m_pState->m_fYPush.eval(-1)) + L"|ZOOM=" + std::to_wstring(g_plugin.m_pState->m_fZoom.eval(-1)) + L"|WARP=" + std::to_wstring(g_plugin.m_pState->m_fWarpAmount.eval(-1)) + L"|ROTATION=" + std::to_wstring(g_plugin.m_pState->m_fRot.eval(-1)) + L"|DECAY=" + std::to_wstring(g_plugin.m_pState->m_fDecay.eval(-1)) + L"|SCALE=" + std::to_wstring(g_plugin.m_pState->m_fWaveScale.eval(-1)) + L"|ECHO=" + std::to_wstring(g_plugin.m_pState->m_fVideoEchoZoom.eval(-1)) + L"|BRIGHTEN=" + (g_plugin.m_pState->m_bBrighten ? L"1" : L"0") + L"|DARKEN=" + (g_plugin.m_pState->m_bDarken ? L"1" : L"0") + L"|SOLARIZE=" + (g_plugin.m_pState->m_bSolarize ? L"1" : L"0") + L"|INVERT=" + (g_plugin.m_pState->m_bInvert ? L"1" : L"0") + L"|ADDITIVE=" + (g_plugin.m_pState->m_bAdditiveWaves ? L"1" : L"0") + L"|DOTTED=" + (g_plugin.m_pState->m_bWaveDots ? L"1" : L"0") + L"|THICK=" + (g_plugin.m_pState->m_bWaveThick ? L"1" : L"0") + L"|VOLALPHA=" + (g_plugin.m_pState->m_bModWaveAlphaByVolume ? L"1" : L"0");
   SendMessageToMilkwaveRemote(msg.c_str(), true);
 }
 
 void CPlugin::SendSettingsInfoToMilkwaveRemote() {
-  std::wstring msg = L"SETTINGS|ACTIVE=" + std::wstring(bSpoutOut ? L"1" : L"0")
-    + L"|FIXEDSIZE=" + std::wstring(bSpoutFixedSize ? L"1" : L"0")
-    + L"|FIXEDWIDTH=" + std::to_wstring(nSpoutFixedWidth)
-    + L"|FIXEDHEIGHT=" + std::to_wstring(nSpoutFixedHeight)
-    + L"|QUALITY=" + std::to_wstring(m_fRenderQuality)
-    + L"|AUTO=" + std::wstring(bQualityAuto ? L"1" : L"0")
-    + L"|HUE=" + std::to_wstring(m_ColShiftHue)
-    + L"|LOCKED=" + std::wstring(m_bPresetLockedByUser ? L"1" : L"0")
-    + L"|RANDOM=" + std::wstring(m_bSequentialPresetOrder ? L"0" : L"1")
-    + L"|INPUTTOP=" + std::wstring(m_bInputMixOnTop ? L"1" : L"0")
-    + L"|LUMAACTIVE=" + std::wstring(m_bInputMixLumaActive ? L"1" : L"0")
-    + L"|LUMATHR=" + std::to_wstring((int)(m_fInputMixLumakeyThreshold * 100.0f))
-    + L"|LUMASOFT=" + std::to_wstring((int)(m_fInputMixLumakeySoftness * 100.0f))
-    + L"|FFTATTACK=" + std::to_wstring(m_fFFTAttackGlobal)
-    + L"|FFTDECAY=" + std::to_wstring(m_fFFTDecayGlobal);
+  std::wstring msg = L"SETTINGS|ACTIVE=" + std::wstring(bSpoutOut ? L"1" : L"0") + L"|FIXEDSIZE=" + std::wstring(bSpoutFixedSize ? L"1" : L"0") + L"|FIXEDWIDTH=" + std::to_wstring(nSpoutFixedWidth) + L"|FIXEDHEIGHT=" + std::to_wstring(nSpoutFixedHeight) + L"|QUALITY=" + std::to_wstring(m_fRenderQuality) + L"|AUTO=" + std::wstring(bQualityAuto ? L"1" : L"0") + L"|HUE=" + std::to_wstring(m_ColShiftHue) + L"|LOCKED=" + std::wstring(m_bPresetLockedByUser ? L"1" : L"0") + L"|RANDOM=" + std::wstring(m_bSequentialPresetOrder ? L"0" : L"1") + L"|INPUTTOP=" + std::wstring(m_bInputMixOnTop ? L"1" : L"0") + L"|LUMAACTIVE=" + std::wstring(m_bInputMixLumaActive ? L"1" : L"0") + L"|LUMATHR=" + std::to_wstring((int)(m_fInputMixLumakeyThreshold * 100.0f)) + L"|LUMASOFT=" + std::to_wstring((int)(m_fInputMixLumakeySoftness * 100.0f)) + L"|FFTATTACK=" + std::to_wstring(m_fFFTAttackGlobal) + L"|FFTDECAY=" + std::to_wstring(m_fFFTDecayGlobal);
   SendMessageToMilkwaveRemote(msg.c_str(), true);
 }
 
@@ -1214,12 +1406,12 @@ void CPlugin::CaptureScreenshot() {
 }
 
 bool CPlugin::CaptureScreenshotWithFilename(wchar_t* outFilename, size_t outFilenameSize) {
-LPDIRECT3DDEVICE9EX pDevice = GetDevice();
-if (!pDevice) {
-  OutputDebugStringW(L"[CaptureScreenshot] ERROR: Device not available\n");
-  milkwave->LogInfo(L"CaptureScreenshot: Device not available");
-  return false;
-}
+  LPDIRECT3DDEVICE9EX pDevice = GetDevice();
+  if (!pDevice) {
+    OutputDebugStringW(L"[CaptureScreenshot] ERROR: Device not available\n");
+    milkwave->LogInfo(L"CaptureScreenshot: Device not available");
+    return false;
+  }
 
   IDirect3DSurface9* pRenderTarget = nullptr;
   HRESULT hr = pDevice->GetRenderTarget(0, &pRenderTarget);
@@ -1238,14 +1430,14 @@ if (!pDevice) {
     } else {
       filenameOnly = m_szCurrentPresetFile;
     }
-    
+
     wcsncpy_s(presetName, MAX_PATH, filenameOnly, _TRUNCATE);
-    
+
     wchar_t* ext = wcsrchr(presetName, L'.');
     if (ext) *ext = L'\0';
-    
+
     for (wchar_t* p = presetName; *p; p++) {
-      if (*p == L'/' || *p == L':' || *p == L'*' || 
+      if (*p == L'/' || *p == L':' || *p == L'*' ||
           *p == L'?' || *p == L'"' || *p == L'<' || *p == L'>' || *p == L'|') {
         *p = L'_';
       }
@@ -1254,44 +1446,44 @@ if (!pDevice) {
 
   wchar_t captureDir[MAX_PATH];
   swprintf_s(captureDir, MAX_PATH, L"%scapture\\", m_szBaseDir);
-  
+
   wchar_t debugMsg[MAX_PATH + 50];
   swprintf_s(debugMsg, MAX_PATH + 50, L"[CaptureScreenshot] BaseDir: %s\n", m_szBaseDir);
   OutputDebugStringW(debugMsg);
   swprintf_s(debugMsg, MAX_PATH + 50, L"[CaptureScreenshot] CaptureDir: %s\n", captureDir);
   OutputDebugStringW(debugMsg);
-  
+
   CreateDirectoryW(captureDir, NULL);
 
   SYSTEMTIME st;
   GetLocalTime(&st);
-  
+
   wchar_t justFilename[MAX_PATH];
   swprintf_s(justFilename, MAX_PATH, L"%04d%02d%02d-%02d%02d%02d-%s.png",
-    st.wYear, st.wMonth, st.wDay,
-    st.wHour, st.wMinute, st.wSecond,
-    presetName);
+             st.wYear, st.wMonth, st.wDay,
+             st.wHour, st.wMinute, st.wSecond,
+             presetName);
 
   wchar_t fullPath[MAX_PATH];
   swprintf_s(fullPath, MAX_PATH, L"%s%s", captureDir, justFilename);
 
   hr = D3DXSaveSurfaceToFileW(fullPath, D3DXIFF_PNG, pRenderTarget, NULL, NULL);
-  
+
   wchar_t resultMsg[MAX_PATH + 100];
   swprintf_s(resultMsg, MAX_PATH + 100, L"[CaptureScreenshot] D3DXSaveSurfaceToFileW result: 0x%08X\n", hr);
   OutputDebugStringW(resultMsg);
-  
+
   pRenderTarget->Release();
 
   if (SUCCEEDED(hr)) {
     wchar_t msg[512];
     swprintf_s(msg, 512, L"Screenshot saved: %s", fullPath);
     milkwave->LogInfo(msg);
-    
+
     wchar_t successMsg[MAX_PATH + 50];
     swprintf_s(successMsg, MAX_PATH + 50, L"[CaptureScreenshot] SUCCESS: %s\n", justFilename);
     OutputDebugStringW(successMsg);
-    
+
     if (outFilename && outFilenameSize > 0) {
       wcsncpy_s(outFilename, outFilenameSize, justFilename, _TRUNCATE);
     }
@@ -1300,11 +1492,11 @@ if (!pDevice) {
     wchar_t msg[256];
     swprintf_s(msg, 256, L"Failed to save screenshot: HRESULT 0x%08X", hr);
     milkwave->LogInfo(msg);
-    
+
     wchar_t errorMsg[100];
     swprintf_s(errorMsg, 100, L"[CaptureScreenshot] FAILED: HRESULT 0x%08X\n", hr);
     OutputDebugStringW(errorMsg);
-    
+
     return false;
   }
 }
@@ -1418,7 +1610,7 @@ bool CPlugin::LaunchSprite(int nSpriteNum, int nSlot) {
     return false;
   }
 
-  if (img[1] != L':')// || img[2] != '\\')
+  if (img[1] != L':')  // || img[2] != '\\')
   {
     // it's not in the form "x:\blah\billy.jpg" so prepend plugin dir path.
     wchar_t temp[512];
@@ -1427,11 +1619,11 @@ bool CPlugin::LaunchSprite(int nSpriteNum, int nSlot) {
   }
 
   // 2. get color key
-  //unsigned int ck_lo = (unsigned int)GetPrivateProfileInt(section, "colorkey_lo", 0x00000000, m_szImgIniFile);
-  //unsigned int ck_hi = (unsigned int)GetPrivateProfileInt(section, "colorkey_hi", 0x00202020, m_szImgIniFile);
-    // FIRST try 'colorkey_lo' (for backwards compatibility) and then try 'colorkey'
-  unsigned int ck = (unsigned int)GetPrivateProfileIntW(section, L"colorkey_lo", 0x00000000, m_szImgIniFile/*GetConfigIniFile()*/);
-  ck = (unsigned int)GetPrivateProfileIntW(section, L"colorkey", ck, m_szImgIniFile/*GetConfigIniFile()*/);
+  // unsigned int ck_lo = (unsigned int)GetPrivateProfileInt(section, "colorkey_lo", 0x00000000, m_szImgIniFile);
+  // unsigned int ck_hi = (unsigned int)GetPrivateProfileInt(section, "colorkey_hi", 0x00202020, m_szImgIniFile);
+  // FIRST try 'colorkey_lo' (for backwards compatibility) and then try 'colorkey'
+  unsigned int ck = (unsigned int)GetPrivateProfileIntW(section, L"colorkey_lo", 0x00000000, m_szImgIniFile /*GetConfigIniFile()*/);
+  ck = (unsigned int)GetPrivateProfileIntW(section, L"colorkey", ck, m_szImgIniFile /*GetConfigIniFile()*/);
 
   // 3. read in init code & per-frame code
   for (int n = 0; n < 2; n++) {
@@ -1449,22 +1641,21 @@ bool CPlugin::LaunchSprite(int nSpriteNum, int nSlot) {
       else
         sprintf(szLineName, "code_%d", line);
 
-      GetPrivateProfileString(sectionA, szLineName, "~!@#$", szTemp, 8192, AutoCharFn(m_szImgIniFile));	// fixme
+      GetPrivateProfileString(sectionA, szLineName, "~!@#$", szTemp, 8192, AutoCharFn(m_szImgIniFile));  // fixme
       len = lstrlen(szTemp);
 
-      if ((strcmp(szTemp, "~!@#$") == 0) ||		// if the key was missing,
-        (len >= 8191 - char_pos - 1))			// or if we're out of space
+      if ((strcmp(szTemp, "~!@#$") == 0) ||  // if the key was missing,
+          (len >= 8191 - char_pos - 1))      // or if we're out of space
       {
         bDone = true;
-      }
-      else {
+      } else {
         sprintf(&pStr[char_pos], "%s%c", szTemp, LINEFEED_CONTROL_CHAR);
       }
 
       char_pos += len + 1;
       line++;
     }
-    pStr[char_pos++] = 0;	// null-terminate
+    pStr[char_pos++] = 0;  // null-terminate
   }
 
   if (nSlot == -1) {
@@ -1475,8 +1666,7 @@ bool CPlugin::LaunchSprite(int nSpriteNum, int nSlot) {
       if (!m_texmgr.m_tex[x].pSurface) {
         nSlot = x;
         break;
-      }
-      else if (m_texmgr.m_tex[x].nStartFrame < oldest_frame) {
+      } else if (m_texmgr.m_tex[x].nStartFrame < oldest_frame) {
         oldest_index = x;
         oldest_frame = m_texmgr.m_tex[x].nStartFrame;
       }
@@ -1493,42 +1683,42 @@ bool CPlugin::LaunchSprite(int nSpriteNum, int nSlot) {
 
   wchar_t buf[1024];
   switch (ret & TEXMGR_ERROR_MASK) {
-  case TEXMGR_ERR_SUCCESS:
-    switch (ret & TEXMGR_WARNING_MASK) {
-    case TEXMGR_WARN_ERROR_IN_INIT_CODE:
-      swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_WARNING_ERROR_IN_INIT_CODE), nSpriteNum);
+    case TEXMGR_ERR_SUCCESS:
+      switch (ret & TEXMGR_WARNING_MASK) {
+        case TEXMGR_WARN_ERROR_IN_INIT_CODE:
+          swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_WARNING_ERROR_IN_INIT_CODE), nSpriteNum);
+          AddError(buf, 6.0f, ERR_MISC, true);
+          break;
+        case TEXMGR_WARN_ERROR_IN_REG_CODE:
+          swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_WARNING_ERROR_IN_PER_FRAME_CODE), nSpriteNum);
+          AddError(buf, 6.0f, ERR_MISC, true);
+          break;
+        default:
+          // success; no errors OR warnings.
+          break;
+      }
+      break;
+    case TEXMGR_ERR_BAD_INDEX:
+      swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_ERROR_BAD_SLOT_INDEX), nSpriteNum);
       AddError(buf, 6.0f, ERR_MISC, true);
       break;
-    case TEXMGR_WARN_ERROR_IN_REG_CODE:
-      swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_WARNING_ERROR_IN_PER_FRAME_CODE), nSpriteNum);
+      /*
+        case TEXMGR_ERR_OPENING:                sprintf(m_szUserMessage, "sprite #%d error: unable to open imagefile", nSpriteNum); break;
+      case TEXMGR_ERR_FORMAT:                 sprintf(m_szUserMessage, "sprite #%d error: file is corrupt or non-jpeg image", nSpriteNum); break;
+      case TEXMGR_ERR_IMAGE_NOT_24_BIT:       sprintf(m_szUserMessage, "sprite #%d error: image does not have 3 color channels", nSpriteNum); break;
+      case TEXMGR_ERR_IMAGE_TOO_LARGE:        sprintf(m_szUserMessage, "sprite #%d error: image is too large", nSpriteNum); break;
+      case TEXMGR_ERR_CREATESURFACE_FAILED:   sprintf(m_szUserMessage, "sprite #%d error: createsurface() failed", nSpriteNum); break;
+      case TEXMGR_ERR_LOCKSURFACE_FAILED:     sprintf(m_szUserMessage, "sprite #%d error: lock() failed", nSpriteNum); break;
+      case TEXMGR_ERR_CORRUPT_JPEG:           sprintf(m_szUserMessage, "sprite #%d error: jpeg is corrupt", nSpriteNum); break;
+        */
+    case TEXMGR_ERR_BADFILE:
+      swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_ERROR_IMAGE_FILE_MISSING_OR_CORRUPT), nSpriteNum);
       AddError(buf, 6.0f, ERR_MISC, true);
       break;
-    default:
-      // success; no errors OR warnings.
+    case TEXMGR_ERR_OUTOFMEM:
+      swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_ERROR_OUT_OF_MEM), nSpriteNum);
+      AddError(buf, 6.0f, ERR_MISC, true);
       break;
-    }
-    break;
-  case TEXMGR_ERR_BAD_INDEX:
-    swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_ERROR_BAD_SLOT_INDEX), nSpriteNum);
-    AddError(buf, 6.0f, ERR_MISC, true);
-    break;
-    /*
-      case TEXMGR_ERR_OPENING:                sprintf(m_szUserMessage, "sprite #%d error: unable to open imagefile", nSpriteNum); break;
-    case TEXMGR_ERR_FORMAT:                 sprintf(m_szUserMessage, "sprite #%d error: file is corrupt or non-jpeg image", nSpriteNum); break;
-    case TEXMGR_ERR_IMAGE_NOT_24_BIT:       sprintf(m_szUserMessage, "sprite #%d error: image does not have 3 color channels", nSpriteNum); break;
-    case TEXMGR_ERR_IMAGE_TOO_LARGE:        sprintf(m_szUserMessage, "sprite #%d error: image is too large", nSpriteNum); break;
-    case TEXMGR_ERR_CREATESURFACE_FAILED:   sprintf(m_szUserMessage, "sprite #%d error: createsurface() failed", nSpriteNum); break;
-    case TEXMGR_ERR_LOCKSURFACE_FAILED:     sprintf(m_szUserMessage, "sprite #%d error: lock() failed", nSpriteNum); break;
-    case TEXMGR_ERR_CORRUPT_JPEG:           sprintf(m_szUserMessage, "sprite #%d error: jpeg is corrupt", nSpriteNum); break;
-      */
-  case TEXMGR_ERR_BADFILE:
-    swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_ERROR_IMAGE_FILE_MISSING_OR_CORRUPT), nSpriteNum);
-    AddError(buf, 6.0f, ERR_MISC, true);
-    break;
-  case TEXMGR_ERR_OUTOFMEM:
-    swprintf(buf, wasabiApiLangString(IDS_SPRITE_X_ERROR_OUT_OF_MEM), nSpriteNum);
-    AddError(buf, 6.0f, ERR_MISC, true);
-    break;
   }
 
   return (ret & TEXMGR_ERROR_MASK) ? false : true;
@@ -1562,8 +1752,7 @@ void CPlugin::LaunchMilk2Sprites() {
       if (!m_texmgr.m_tex[x].pSurface) {
         nSlot = x;
         break;
-      }
-      else if (m_texmgr.m_tex[x].nStartFrame < oldest_frame) {
+      } else if (m_texmgr.m_tex[x].nStartFrame < oldest_frame) {
         oldest_index = x;
         oldest_frame = m_texmgr.m_tex[x].nStartFrame;
       }
@@ -1584,11 +1773,21 @@ void CPlugin::LaunchMilk2Sprites() {
     int mappedBlend = spr.nBlend;
     if (mappedBlend > 4) {
       switch (spr.nBlend) {
-      case 5:  mappedBlend = 2; break; // additive
-      case 7:  mappedBlend = 4; break; // colorkey
-      case 9:  mappedBlend = 3; break; // srccolor
-      case 10: mappedBlend = 3; break; // srccolor
-      default: mappedBlend = 4; break; // colorkey as safe default
+        case 5:
+          mappedBlend = 2;
+          break;  // additive
+        case 7:
+          mappedBlend = 4;
+          break;  // colorkey
+        case 9:
+          mappedBlend = 3;
+          break;  // srccolor
+        case 10:
+          mappedBlend = 3;
+          break;  // srccolor
+        default:
+          mappedBlend = 4;
+          break;  // colorkey as safe default
       }
     }
 
@@ -1605,38 +1804,38 @@ void CPlugin::LaunchMilk2Sprites() {
     // Pre-divide by screen aspect so SpriteSX/SY are height-relative (MD3 semantics):
     // the 2nd AR correction (y *= aspect) in DrawUserSprites then restores visual
     // circularity, and the sprite stays within screen bounds on any aspect ratio.
-    float screenAspect = (GetHeight() > 0) ? (GetWidth() / (float)GetHeight()) : 1.0f; // default to 0.8 if height is zero for some reason
+    float screenAspect = (GetHeight() > 0) ? (GetWidth() / (float)GetHeight()) : 1.0f;  // default to 0.8 if height is zero for some reason
     float adjustedSX = spr.fSX / screenAspect * 1.2f;
     float adjustedSY = spr.fSY / screenAspect * 1.2f;
 
     char initcode[8192];
     snprintf(initcode, sizeof(initcode),
-      "x=%f;%c"
-      "y=%f;%c"
-      "sx=1;%c"
-      "sy=1;%c"
-      "rot=0;%c"
-      "a=%f;%c"
-      "blendmode=%d;%c"
-      "burn=%d;%c"
-      "repeatx=%f;%c"
-      "repeaty=%f;%c"
-      "done=0;%c"
-      "_bsx=%f;%c"
-      "_bsy=%f;%c",
-      texX, LINEFEED_CONTROL_CHAR,
-      texY, LINEFEED_CONTROL_CHAR,
-      LINEFEED_CONTROL_CHAR,
-      LINEFEED_CONTROL_CHAR,
-      LINEFEED_CONTROL_CHAR,
-      spr.fAlpha, LINEFEED_CONTROL_CHAR,
-      mappedBlend, LINEFEED_CONTROL_CHAR,
-      spr.bBurn ? 1 : 0, LINEFEED_CONTROL_CHAR,
-      spr.fRepeatX, LINEFEED_CONTROL_CHAR,
-      spr.fRepeatY, LINEFEED_CONTROL_CHAR,
-      LINEFEED_CONTROL_CHAR,
-      adjustedSX, LINEFEED_CONTROL_CHAR,
-      adjustedSY, LINEFEED_CONTROL_CHAR);
+             "x=%f;%c"
+             "y=%f;%c"
+             "sx=1;%c"
+             "sy=1;%c"
+             "rot=0;%c"
+             "a=%f;%c"
+             "blendmode=%d;%c"
+             "burn=%d;%c"
+             "repeatx=%f;%c"
+             "repeaty=%f;%c"
+             "done=0;%c"
+             "_bsx=%f;%c"
+             "_bsy=%f;%c",
+             texX, LINEFEED_CONTROL_CHAR,
+             texY, LINEFEED_CONTROL_CHAR,
+             LINEFEED_CONTROL_CHAR,
+             LINEFEED_CONTROL_CHAR,
+             LINEFEED_CONTROL_CHAR,
+             spr.fAlpha, LINEFEED_CONTROL_CHAR,
+             mappedBlend, LINEFEED_CONTROL_CHAR,
+             spr.bBurn ? 1 : 0, LINEFEED_CONTROL_CHAR,
+             spr.fRepeatX, LINEFEED_CONTROL_CHAR,
+             spr.fRepeatY, LINEFEED_CONTROL_CHAR,
+             LINEFEED_CONTROL_CHAR,
+             adjustedSX, LINEFEED_CONTROL_CHAR,
+             adjustedSY, LINEFEED_CONTROL_CHAR);
 
     // Append user init code from the milk2 file
     if (spr.szInitCode[0]) {
@@ -1650,7 +1849,7 @@ void CPlugin::LaunchMilk2Sprites() {
     // SpriteSpeed is in radians/second; SpriteRot is a direction multiplier (+1/-1).
     if (spr.fRot != 0.0f && spr.fSpeed != 0.0f) {
       snprintf(code, sizeof(code), "rot=rot+%f/fps;%c",
-        spr.fSpeed * spr.fRot, LINEFEED_CONTROL_CHAR);
+               spr.fSpeed * spr.fRot, LINEFEED_CONTROL_CHAR);
     }
     // Append user per-frame code from the milk2 file
     if (spr.szCode[0]) {
@@ -1664,7 +1863,7 @@ void CPlugin::LaunchMilk2Sprites() {
     {
       char scaleCode[128];
       snprintf(scaleCode, sizeof(scaleCode), "sx=sx*_bsx;%csy=sy*_bsy;%c",
-        LINEFEED_CONTROL_CHAR, LINEFEED_CONTROL_CHAR);
+               LINEFEED_CONTROL_CHAR, LINEFEED_CONTROL_CHAR);
       size_t len = strlen(code);
       strncat_s(code, sizeof(code), scaleCode, sizeof(code) - len - 1);
     }
@@ -1672,7 +1871,7 @@ void CPlugin::LaunchMilk2Sprites() {
     int ret = m_texmgr.LoadTex(spr.szImgPath, nSlot, initcode, code, GetTime(), GetFrame(), spr.nColorKey);
     if ((ret & TEXMGR_ERROR_MASK) == TEXMGR_ERR_SUCCESS) {
       m_nMilk2SpriteSlots[si] = nSlot;
-      m_texmgr.m_tex[nSlot].nUserData = -1; // mark as milk2 sprite (not a user-launched sprite)
+      m_texmgr.m_tex[nSlot].nUserData = -1;  // mark as milk2 sprite (not a user-launched sprite)
     } else {
       wchar_t buf[1024];
       swprintf(buf, L"milk2 sprite: failed to load '%s' (error %d)", spr.szImgPath, ret);
@@ -1682,7 +1881,7 @@ void CPlugin::LaunchMilk2Sprites() {
   }
 }
 
-int SAMPLE_RATE = 44100; //Initialize sample rate globally, 44100hz is the default sample rate for MilkDrop
+int SAMPLE_RATE = 44100;  // Initialize sample rate globally, 44100hz is the default sample rate for MilkDrop
 
 HRESULT DetectSampleRate() {
   HRESULT hr = S_OK;
@@ -1698,8 +1897,8 @@ HRESULT DetectSampleRate() {
 
   // Create device enumerator
   hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL,
-    CLSCTX_ALL, __uuidof(IMMDeviceEnumerator),
-    (void**)&pEnumerator);
+                        CLSCTX_ALL, __uuidof(IMMDeviceEnumerator),
+                        (void**)&pEnumerator);
   if (FAILED(hr)) goto Cleanup;
 
   // Get default audio endpoint
@@ -1739,21 +1938,21 @@ int CPlugin::GetNextFreeSupertextIndex() {
     }
   }
   // if no text is free, we'll reset and use index=0
-  m_supertexts[index] = td_supertext(); // Reset the supertext at this index
+  m_supertexts[index] = td_supertext();  // Reset the supertext at this index
   return index;
 }
 
 void CPlugin::DoCustomSoundAnalysis() {
-  //Now uses configurations via beatdrop.ini, don't modify here.
-    //Bass
+  // Now uses configurations via beatdrop.ini, don't modify here.
+  // Bass
   int BASS_MIN = m_nBassStart;
   int BASS_MAX = m_nBassEnd;
 
-  //Middle
+  // Middle
   int MID_MIN = m_nMidStart;
   int MID_MAX = m_nMidEnd;
 
-  //Treble
+  // Treble
   int TREBLE_MIN = m_nTrebStart;
   int TREBLE_MAX = m_nTrebEnd;
 
@@ -1791,7 +1990,7 @@ void CPlugin::DoCustomSoundAnalysis() {
   // Apply FFT smoothing and upload to GPU texture
   {
     float attack = m_pState ? m_pState->m_fFFTAttack : m_fFFTAttackGlobal;
-    float decay  = m_pState ? m_pState->m_fFFTDecay : m_fFFTDecayGlobal;
+    float decay = m_pState ? m_pState->m_fFFTDecay : m_fFFTDecayGlobal;
     // Scale factor: 0.00035 was tuned empirically for the old 576-sample / NFREQ=1024 FFT.
     // New FFT has NFREQ=8192 (8Ã— larger), so raw magnitudes are ~8Ã— higher.
     // Using (old NFREQ) / (new NFREQ) = 1024/8192 as the primary correction, then Ã—4
@@ -1819,7 +2018,7 @@ void CPlugin::DoCustomSoundAnalysis() {
       // variance is higher. Blend towards more temporal smoothing above ~4 kHz
       // so high bands appear as stable as low ones when playing a steady tone.
       // Below 4 kHz: use preset attack; above 16 kHz: use ~50% of attack.
-      const float kHiFreqBinLo = 4000.0f  * (float)MY_FFT_SHADER_BINS / 22050.0f;
+      const float kHiFreqBinLo = 4000.0f * (float)MY_FFT_SHADER_BINS / 22050.0f;
       const float kHiFreqBinHi = 16000.0f * (float)MY_FFT_SHADER_BINS / 22050.0f;
       float hiBlend = clamp((float)(fi - kHiFreqBinLo) / (kHiFreqBinHi - kHiFreqBinLo), 0.0f, 1.0f);
       float eff_attack = attack * (1.0f - 0.5f * hiBlend);
@@ -1861,39 +2060,39 @@ void CPlugin::DoCustomSoundAnalysis() {
   // DeepSeek - Update the sample rate (we don't need to check HRESULT every frame)
   static DWORD lastCheck = 0;
   DWORD currentTime = GetTickCount();
-  if (currentTime - lastCheck > 5000) // Check once per second
+  if (currentTime - lastCheck > 5000)  // Check once per second
   {
     DetectSampleRate();
     lastCheck = currentTime;
   }
 
   // sum spectrum up into 3 bands
-  //DeepSeek - Updated Beat Detection Splitting Algorithm
+  // DeepSeek - Updated Beat Detection Splitting Algorithm
   int i;
   for (i = 0; i < 3; i++) {
     // Calculate which FFT bins correspond to our frequency ranges
     int start_bin, end_bin;
 
     switch (i) {
-    case 0: // Bass (0-250Hz)
-      start_bin = (int)(BASS_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      end_bin = (int)(BASS_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      break;
-    case 1: // Mid (250-4000Hz)
-      start_bin = (int)(MID_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      end_bin = (int)(MID_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      break;
-    case 2: // Treble (4000-20000Hz)
-      start_bin = (int)(TREBLE_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      end_bin = (int)(TREBLE_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      break;
+      case 0:  // Bass (0-250Hz)
+        start_bin = (int)(BASS_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+        end_bin = (int)(BASS_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+        break;
+      case 1:  // Mid (250-4000Hz)
+        start_bin = (int)(MID_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+        end_bin = (int)(MID_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+        break;
+      case 2:  // Treble (4000-20000Hz)
+        start_bin = (int)(TREBLE_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+        end_bin = (int)(TREBLE_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+        break;
     }
 
     // Clamp values to valid range
     start_bin = max(0, min(start_bin, MY_FFT_SAMPLES - 1));
     end_bin = max(0, min(end_bin, MY_FFT_SAMPLES - 1));
 
-    mysound.imm[i] = 0; //To prevent the waveform's spikyness and performance lag
+    mysound.imm[i] = 0;  // To prevent the waveform's spikyness and performance lag
 
     // Sum the energy in the frequency range
     for (int j = start_bin; j <= end_bin; j++) {
@@ -1922,7 +2121,7 @@ void CPlugin::DoCustomSoundAnalysis() {
     mysound.long_avg[i] = mysound.long_avg[i] * rate + mysound.imm[i] * (1 - rate);
 
     // also get bass/mid/treble levels *relative to the past*
-    //changed all the values to 0 instead of 1 when it's no music
+    // changed all the values to 0 instead of 1 when it's no music
     if (fabsf(mysound.long_avg[i]) < 0.001f)
       mysound.imm_rel[i] = 0.0f;
     else
@@ -1956,20 +2155,18 @@ void CPlugin::DoCustomSoundAnalysis() {
     else
       mysound.smooth_rel[i] = mysound.smooth[i] / mysound.long_avg[i];
 
-
-    //wchar_t buffer[256];
-    //swprintf(buffer, 256, L"[%i] %5.2f %5.2f %5.2f %5.2f\n", i, mysound.imm[i], mysound.imm_rel[i], mysound.avg_rel[i], mysound.smooth[i]);
-    //OutputDebugStringW(buffer);
+    // wchar_t buffer[256];
+    // swprintf(buffer, 256, L"[%i] %5.2f %5.2f %5.2f %5.2f\n", i, mysound.imm[i], mysound.imm_rel[i], mysound.avg_rel[i], mysound.smooth[i]);
+    // OutputDebugStringW(buffer);
   }
 }
 
-
 void CPlugin::GetSongTitle(wchar_t* szSongTitle, int nSize) {
-  //if (playbackService &&
-  //    playbackService->GetPlaybackState() == musik::core::sdk::PlaybackStopped)
+  // if (playbackService &&
+  //     playbackService->GetPlaybackState() == musik::core::sdk::PlaybackStopped)
   //{
-  //    emulatedWinampSongTitle = "Playback Stopped";
-  //}
+  //     emulatedWinampSongTitle = "Playback Stopped";
+  // }
   emulatedWinampSongTitle = "";
   lstrcpynW(szSongTitle, AutoWide(emulatedWinampSongTitle.c_str(), CP_UTF8), nSize);
 }
@@ -2001,17 +2198,16 @@ bool CPlugin::OpenSender(unsigned int width, unsigned int height) {
 
   return true;
 
-} // end OpenSender
+}  // end OpenSender
 
 void CPlugin::OpenMilkwaveRemote() {
   HWND hwnd = FindWindowW(NULL, L"Milkwave Remote");
   if (hwnd) {
-    // Bring the window to the front  
+    // Bring the window to the front
     SetForegroundWindow(hwnd);
     ShowWindow(hwnd, SW_RESTORE);
-  }
-  else {
-    // Start the program "MilkwaveRemote.exe"  
+  } else {
+    // Start the program "MilkwaveRemote.exe"
     // Ensure STARTUPINFOW is used for CreateProcessW
     STARTUPINFOW si;
     PROCESS_INFORMATION pi;
@@ -2021,8 +2217,7 @@ void CPlugin::OpenMilkwaveRemote() {
 
     if (!CreateProcessW(L"MilkwaveRemote.exe", NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
       g_plugin.AddError(L"Could not start Milkwave Remote", 3.0f, ERR_MISC, false);
-    }
-    else {
+    } else {
       g_plugin.AddNotification(L"Starting Milkwave Remote");
       CloseHandle(pi.hProcess);
       CloseHandle(pi.hThread);
@@ -2058,7 +2253,7 @@ void CPlugin::SetAudioDeviceDisplayName(const wchar_t* displayName, bool isRende
       }
       searchPos = next;
     }
-    };
+  };
 
   removeDuplicateTag(L" [In]");
   removeDuplicateTag(L" [Out]");
@@ -2075,18 +2270,14 @@ void CPlugin::SetAudioDeviceDisplayName(const wchar_t* displayName, bool isRende
 void CPlugin::SetAMDFlag() {
   if (m_AMDDetectionMode == 0) {
     m_IsAMD = is_amd_ati();
-  }
-  else if (m_AMDDetectionMode == 1) {
+  } else if (m_AMDDetectionMode == 1) {
     m_IsAMD = true;
-  }
-  else {
+  } else {
     m_IsAMD = false;
   }
 }
 
-
 #include <fstream>
-
 
 bool CPlugin::CheckDX9DLL() {
   // Try to load the DLL manually
@@ -2107,12 +2298,11 @@ bool CPlugin::CheckDX9DLL() {
 //
 // Registry method only works for DirectX 9 and lower but that is OK
 bool CPlugin::CheckForDirectX9c() {
-
   // HKLM\Software\Microsoft\DirectX\Version should be 4.09.00.0904
   // handy information : http://en.wikipedia.org/wiki/DirectX
-  HKEY  hRegKey;
-  LONG  regres;
-  DWORD  dwSize, major, minor, revision, notused;
+  HKEY hRegKey;
+  LONG regres;
+  DWORD dwSize, major, minor, revision, notused;
   char value[256];
   dwSize = 256;
 
@@ -2135,8 +2325,8 @@ bool CPlugin::CheckForDirectX9c() {
 
 void CPlugin::ShowDirectXMissingMessage() {
   if (MessageBoxA(NULL,
-    "Could not initialize DirectX 9.\n\nPlease install the DirectX End-User Legacy Runtimes.\n\nOpen Download-Website now?",
-    "Milkwave Visualizer", MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST) == IDYES) {
+                  "Could not initialize DirectX 9.\n\nPlease install the DirectX End-User Legacy Runtimes.\n\nOpen Download-Website now?",
+                  "Milkwave Visualizer", MB_YESNO | MB_SETFOREGROUND | MB_TOPMOST) == IDYES) {
     // open website in browser
     ShellExecuteA(NULL, "open", "https://www.microsoft.com/en-us/download/details.aspx?id=35", NULL, NULL, SW_SHOWNORMAL);
   }
@@ -2144,22 +2334,22 @@ void CPlugin::ShowDirectXMissingMessage() {
 
 void CPlugin::CompileInputMixShader() {
   const char* szShader =
-    "sampler2D inputTex : register(s0);\n"
-    "float4 lumaParams1 : register(c0);\n" // x: threshold, y: softness, z: opacity (extra), w: active (1.0/0.0)
-    "struct PS_INPUT {\n"
-    "    float2 uv    : TEXCOORD0;\n"
-    "    float4 color : COLOR0;\n"
-    "};\n"
-    "float4 main(PS_INPUT input) : COLOR {\n"
-    "    float4 col = tex2D(inputTex, input.uv);\n"
-    "    col *= input.color;\n"
-    "    if (lumaParams1.w > 0.5) {\n"
-    "        float luma = dot(col.rgb, float3(0.299, 0.587, 0.114));\n"
-    "        float factor = saturate((luma - lumaParams1.x) / max(0.0001, lumaParams1.y));\n"
-    "        col.a *= factor;\n"
-    "    }\n"
-    "    return col;\n"
-    "}\n";
+      "sampler2D inputTex : register(s0);\n"
+      "float4 lumaParams1 : register(c0);\n"  // x: threshold, y: softness, z: opacity (extra), w: active (1.0/0.0)
+      "struct PS_INPUT {\n"
+      "    float2 uv    : TEXCOORD0;\n"
+      "    float4 color : COLOR0;\n"
+      "};\n"
+      "float4 main(PS_INPUT input) : COLOR {\n"
+      "    float4 col = tex2D(inputTex, input.uv);\n"
+      "    col *= input.color;\n"
+      "    if (lumaParams1.w > 0.5) {\n"
+      "        float luma = dot(col.rgb, float3(0.299, 0.587, 0.114));\n"
+      "        float factor = saturate((luma - lumaParams1.x) / max(0.0001, lumaParams1.y));\n"
+      "        col.a *= factor;\n"
+      "    }\n"
+      "    return col;\n"
+      "}\n";
 
   ID3DXBuffer* pShaderByteCode = NULL;
   ID3DXBuffer* pErrors = NULL;
@@ -2170,16 +2360,15 @@ void CPlugin::CompileInputMixShader() {
     if (pShaderByteCode) pShaderByteCode->Release();
     if (milkwave) milkwave->LogInfo(L"Input Mix Shader compiled successfully");
     // AddNotification(L"Input Mix Shader: READY", 1.0f);
-  }
-  else {
+  } else {
     // AddNotification(L"Input Mix Shader FAILED", 3.0f);
     if (pErrors) {
       char* err = (char*)pErrors->GetBufferPointer();
       if (err && milkwave) {
-          milkwave->LogInfo(L"Shader Error:");
-          wchar_t werr[1024];
-          MultiByteToWideChar(CP_ACP, 0, err, -1, werr, 1024);
-          milkwave->LogInfo(werr);
+        milkwave->LogInfo(L"Shader Error:");
+        wchar_t werr[1024];
+        MultiByteToWideChar(CP_ACP, 0, err, -1, werr, 1024);
+        milkwave->LogInfo(werr);
       }
       pErrors->Release();
     }

@@ -46,33 +46,33 @@ typedef enum {
   MENUITEMTYPE_LOGBLENDABLE,
   MENUITEMTYPE_STRING,
   MENUITEMTYPE_UIMODE,
-  //MENUITEMTYPE_OSC,
+  // MENUITEMTYPE_OSC,
 } MENUITEMTYPE;
 #define MAX_CHILD_MENUS 16
 typedef void (*MilkMenuCallbackFnPtr)(LPARAM param1, LPARAM param2);  // MilkMenuCallbackFnPtr is synonym for "pointer to function returning void, and taking 2 lparams"
 
 //----------------------------------------
 class CMilkMenuItem {
-public:
+ public:
   CMilkMenuItem();
   ~CMilkMenuItem();
 
-  wchar_t			m_szName[64];
-  wchar_t			m_szToolTip[1024];
-  MENUITEMTYPE	m_type;
-  float			m_fMin;						// note: has different meanings based on the MENUITEMTYPE
-  float			m_fMax;						// note: has different meanings based on the MENUITEMTYPE
-  unsigned int    m_wParam;
-  unsigned int    m_lParam;
-  MilkMenuCallbackFnPtr m_pCallbackFn;		// Callback Function pointer; if non-NULL, this functino will be called whenever the menu item is modified by the user.
-  ptrdiff_t             m_var_offset;				// dist of variable's mem loc., in bytes, from pg->m_pState.
-  LPARAM			m_original_value;			// can hold a float or int
-  int				m_nLastCursorPos;			// for strings; remembers most recent pos. of the cursor
-  bool            m_bEnabled;
+  wchar_t m_szName[64];
+  wchar_t m_szToolTip[1024];
+  MENUITEMTYPE m_type;
+  float m_fMin;  // note: has different meanings based on the MENUITEMTYPE
+  float m_fMax;  // note: has different meanings based on the MENUITEMTYPE
+  unsigned int m_wParam;
+  unsigned int m_lParam;
+  MilkMenuCallbackFnPtr m_pCallbackFn;  // Callback Function pointer; if non-NULL, this functino will be called whenever the menu item is modified by the user.
+  ptrdiff_t m_var_offset;               // dist of variable's mem loc., in bytes, from pg->m_pState.
+  LPARAM m_original_value;              // can hold a float or int
+  int m_nLastCursorPos;                 // for strings; remembers most recent pos. of the cursor
+  bool m_bEnabled;
 
   // special data used for MENUITEMTYPE_OSCILLATOR:
-  //int				m_nSubSel;
-  //bool			m_bEditingSubSel;
+  // int				m_nSubSel;
+  // bool			m_bEditingSubSel;
 
   CMilkMenuItem* m_pNext;
 };
@@ -80,22 +80,22 @@ public:
 
 //----------------------------------------
 class CMilkMenu {
-public:
+ public:
   CMilkMenu();
   ~CMilkMenu();
 
-  void	Init(wchar_t* szName);
-  void    Finish();
-  void	AddChildMenu(CMilkMenu* pChildMenu);
-  void	AddItem(wchar_t* szName, void* var, MENUITEMTYPE type, wchar_t* szToolTip,
-    float min = 0, float max = 0, MilkMenuCallbackFnPtr pCallback = NULL,
-    unsigned int wParam = 0, unsigned int lParam = 0);
-  void	SetParentPointer(CMilkMenu* pParentMenu) { m_pParentMenu = pParentMenu; }
+  void Init(wchar_t* szName);
+  void Finish();
+  void AddChildMenu(CMilkMenu* pChildMenu);
+  void AddItem(wchar_t* szName, void* var, MENUITEMTYPE type, wchar_t* szToolTip,
+               float min = 0, float max = 0, MilkMenuCallbackFnPtr pCallback = NULL,
+               unsigned int wParam = 0, unsigned int lParam = 0);
+  void SetParentPointer(CMilkMenu* pParentMenu) { m_pParentMenu = pParentMenu; }
   LRESULT HandleKeydown(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-  void	DrawMenu(RECT rect, int xR, int yB, int bCalcRect = 0, RECT* pCalcRect = NULL);
-  void	OnWaitStringAccept(wchar_t* szNewString);
-  void    EnableItem(wchar_t* szName, bool bEnable);
-  CMilkMenuItem* GetCurItem() // NOTE: ONLY WORKS IF AN *ITEM* IS HIGHLIGHTED; NOT A CHILD MENU
+  void DrawMenu(RECT rect, int xR, int yB, int bCalcRect = 0, RECT* pCalcRect = NULL);
+  void OnWaitStringAccept(wchar_t* szNewString);
+  void EnableItem(wchar_t* szName, bool bEnable);
+  CMilkMenuItem* GetCurItem()  // NOTE: ONLY WORKS IF AN *ITEM* IS HIGHLIGHTED; NOT A CHILD MENU
   {
     CMilkMenuItem* pItem = m_pFirstChildItem;
     for (int i = m_nChildMenus; i < m_nCurSel; i++)
@@ -107,18 +107,18 @@ public:
   bool IsEnabled() { return m_bEnabled; }
   bool ItemIsEnabled(int i);
 
-protected:
-  void            Reset();
+ protected:
+  void Reset();
   CMilkMenu* m_pParentMenu;
-  CMilkMenu* m_ppChildMenu[MAX_CHILD_MENUS];	// pointers are kept here, but these should be cleaned up by the app.
-  CMilkMenuItem* m_pFirstChildItem;		// linked list; these are dynamically allocated, and automatically cleaned up in destructor
-  wchar_t			m_szMenuName[64];
-  int				m_nChildMenus;
-  int				m_nChildItems;
-  int				m_nCurSel;
-  bool			m_bEditingCurSel;
-  bool            m_bEnabled;
+  CMilkMenu* m_ppChildMenu[MAX_CHILD_MENUS];  // pointers are kept here, but these should be cleaned up by the app.
+  CMilkMenuItem* m_pFirstChildItem;           // linked list; these are dynamically allocated, and automatically cleaned up in destructor
+  wchar_t m_szMenuName[64];
+  int m_nChildMenus;
+  int m_nChildItems;
+  int m_nCurSel;
+  bool m_bEditingCurSel;
+  bool m_bEnabled;
 };
 //----------------------------------------
 
-#endif //_MILKDROP_MENU_H_
+#endif  //_MILKDROP_MENU_H_
