@@ -513,6 +513,8 @@ public:
   float   m_fMilk2Random4 = 0.0f;	// .milk2 random_4 metadata
   float   m_fMilk2Random5 = 0.0f;	// .milk2 random_5 metadata
   bool    m_bMilk2ArrowWipe = false;	// true when the .milk2 pattern name is arrow
+  bool    m_bMilk2Snail2 = false;    // true when the .milk2 pattern name is snail2
+    bool    m_bMilk2Snail3 = false;    // true when the .milk2 pattern name is snail3
     bool    m_bMilk2Plasma3 = false;	// true when the .milk2 pattern name is plasma3
   unsigned int m_nMilk2PatternSeed = 0;	// deterministic seed from .milk2 random_1..5 values
   wchar_t m_szMilk2Temp1[MAX_PATH] = {};	// temp file for .milk2 preset 1

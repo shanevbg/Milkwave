@@ -8745,13 +8745,23 @@ void CPlugin::RandomizeBlendPattern() {
   else if (mixtype == 5) {
     // Spiral/Snail transition - symmetric spiral band with even feathering
     const bool bMilk2Snail = m_bLoadingMilk2 && m_nMilk2MixType == 5;
+    const bool bMilk2Snail2 = bMilk2Snail && m_bMilk2Snail2;
+    const bool bMilk2Snail3 = bMilk2Snail && m_bMilk2Snail3;
 
     // Keep the band very wide so the blend region reads as a broad feather.
-    float band = bMilk2Snail ? (0.42f + 0.18f * m_fMilk2Random2) : (0.42f + 0.18f * FRAND);
+    float band;
+    if (bMilk2Snail3)
+      band = 0.16f + 0.06f * m_fMilk2Random2;
+    else if (bMilk2Snail2)
+      band = 0.36f + 0.16f * m_fMilk2Random2;
+    else if (bMilk2Snail)
+      band = 0.42f + 0.18f * m_fMilk2Random2;
+    else
+      band = 0.42f + 0.18f * FRAND;
     float inv_band = 1.0f / band;
 
-    // Fewer turns keeps the spiral broad enough to look smooth on the mesh.
-    float loops = bMilk2Snail ? (0.65f + 0.55f * m_fMilk2Random3) : (0.65f + 0.95f * FRAND);
+    // snail3 gets the strongest spiral so the turn reads more clearly.
+    float loops = bMilk2Snail3 ? (2.80f + 1.40f * m_fMilk2Random3) : (bMilk2Snail2 ? (0.95f + 0.75f * m_fMilk2Random3) : (bMilk2Snail ? (0.65f + 0.55f * m_fMilk2Random3) : (0.65f + 0.95f * FRAND)));
     float phase = bMilk2Snail ? (m_fMilk2Random1 * 6.2831853f) : (FRAND * 6.2831853f);
     bool inward = bMilk2Snail ? (m_fMilk2BlendDirection < 0.0f) : ((rand() % 2) == 0);
 
@@ -8787,7 +8797,12 @@ void CPlugin::RandomizeBlendPattern() {
         // Soften the ramp, then keep the center neutral longer before ramping outward.
         float t = dist * dist * (3.0f - 2.0f * dist);
         float center_soften = radius * radius * (3.0f - 2.0f * radius);
-        center_soften = 0.05f + 0.95f * center_soften;
+        if (bMilk2Snail3)
+          center_soften = 0.80f + 0.20f * center_soften;
+        else if (bMilk2Snail2)
+          center_soften = 0.20f + 0.80f * center_soften;
+        else
+          center_soften = 0.05f + 0.95f * center_soften;
         t = 0.5f + (t - 0.5f) * center_soften;
 
         if (inward)
@@ -9488,13 +9503,16 @@ void CPlugin::RandomizeBlendPattern() {
     }
   }
   else if (mixtype == 14) {
-    // DeepSeek - Star Wipe Transition
-    float band = 0.05f + 0.15f * FRAND;  // transition edge width
+    // MilkDrop 3 stars: 10 broad radial sectors from the center outward.
+    const bool bMilk2Stars = m_bLoadingMilk2 && m_nMilk2MixType == 14;
+    float progress = bMilk2Stars ? min(1.0f, max(0.0f, m_fMilk2BlendProgress)) : 0.5f;
+    float band = bMilk2Stars ? (0.05f + 0.03f * m_fMilk2Random2) : (0.07f + 0.03f * FRAND);
     float inv_band = 1.0f / band;
-    int points = 5 + (rand() % 2);      // 5-6 points on the star
-    float inner_radius = 0.3f + FRAND * 0.4f; // 0.3-0.7 inner radius
-    float rotation = 0.0f;              // keep the star upright to match MilkDrop's reference screenshots
-    bool reverse = (rand() % 2) == 0;    // reverse direction
+    float phase = bMilk2Stars ? (m_fMilk2Random1 * 6.2831853f) : (FRAND * 6.2831853f);
+    bool reverse = bMilk2Stars ? (m_fMilk2BlendDirection < 0.0f) : ((rand() % 2) == 0);
+    const int segmentCount = 10;
+    float segment = 6.2831853f / segmentCount;
+    float edgeSoft = bMilk2Stars ? (0.14f + 0.06f * m_fMilk2Random3) : (0.16f + 0.08f * FRAND);
 
     int nVert = 0;
     for (int y = 0; y <= m_nGridY; y++) {
@@ -9510,34 +9528,30 @@ void CPlugin::RandomizeBlendPattern() {
         else
           fx = (x / (float)m_nGridX - 0.5f) * m_fAspectX;
 
-        // Convert to polar coordinates
-        float angle = atan2f(fy, fx) + rotation; // range: -PI to PI plus rotation
-        float radius = sqrtf(fx * fx + fy * fy) * 1.41421356f; // normalized distance
+        float angle = atan2f(fy, fx) + phase;
+        float radius = sqrtf(fx * fx + fy * fy) * 1.41421356f;
 
-        // Wrap angle to 0-2PI range
-        if (angle < 0) angle += 6.2831853f;
+        if (angle < 0.0f) angle += 6.2831853f;
         if (angle >= 6.2831853f) angle -= 6.2831853f;
 
-        // Calculate star pattern
-        float segment = 6.2831853f / points;
-        float point_angle = fmodf(angle, segment) / segment; // 0-1 within each segment
+        // Build 10 flat angular sectors with smooth boundaries.
+        float sectorPos = angle / segment;
+        int sector = (int)floorf(sectorPos);
+        float local = sectorPos - sector;
+        float boundary = min(local, 1.0f - local);
+        float edge = boundary / edgeSoft;
+        if (edge > 1.0f)
+          edge = 1.0f;
+        edge = edge * edge * (3.0f - 2.0f * edge);
 
-        // Alternate between inner and outer radius
-        float star_radius;
-        if (point_angle < 0.5f) {
-          // First half of segment - interpolate from inner to outer radius
-          star_radius = inner_radius + (1.0f - inner_radius) * point_angle * 2.0f;
-        }
-        else {
-          // Second half of segment - interpolate from outer back to inner radius
-          star_radius = 1.0f - (1.0f - inner_radius) * (point_angle - 0.5f) * 2.0f;
-        }
+        float sectorColor = ((sector + (int)(phase / 6.2831853f * 10.0f)) % 2 == 0) ? 1.0f : 0.0f;
+        float fill = progress;
+        float t = fill + (sectorColor - 0.5f) * edge * (1.0f - fill) * 2.0f;
+        if (t < 0.0f) t = 0.0f;
+        if (t > 1.0f) t = 1.0f;
+        if (reverse)
+          t = 1.0f - t;
 
-        // Calculate how far we are from the star edge
-        float t = (radius / star_radius);
-        if (reverse) t = 1.0f - t;
-
-        // Apply band blending
         m_vertinfo[nVert].a = inv_band * (1.0f + band);
         m_vertinfo[nVert].c = -inv_band + inv_band * t;
         nVert++;
@@ -10027,6 +10041,8 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     m_bMilk2LinesVertical = (!pat.empty() && _stricmp(pat.c_str(), "linesvertical") == 0);
     m_bMilk2CornerWipe = (!pat.empty() && _stricmp(pat.c_str(), "corner") == 0);
     m_bMilk2ArrowWipe = (!pat.empty() && _stricmp(pat.c_str(), "arrow") == 0);
+    m_bMilk2Snail2 = (!pat.empty() && _stricmp(pat.c_str(), "snail2") == 0);
+    m_bMilk2Snail3 = (!pat.empty() && _stricmp(pat.c_str(), "snail3") == 0);
     m_bMilk2Plasma3 = (!pat.empty() && _stricmp(pat.c_str(), "plasma3") == 0);
     std::string prog = getVal("blending_progress");
     if (!prog.empty()) outProgress = (float)atof(prog.c_str());
@@ -10232,6 +10248,8 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   m_bMilk2VerticalWipe = false;
   m_bMilk2LinesVertical = false;
   m_bMilk2CornerWipe = false;
+  m_bMilk2Snail2 = false;
+  m_bMilk2Snail3 = false;
   m_bMilk2Plasma3 = false;
 
   // Kill any active milk2 sprites from the previous preset
@@ -10297,9 +10315,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
     }
     m_nMilk2MixType = mixType;
     m_fMilk2BlendDirection = direction;
-    // Plasma transitions in MilkDrop 3.33 lag early, then catch up quickly.
-    // Keep the low-progress calibration, but let the midrange run a little faster
-    // so 0.50 and 0.70 move closer to the reference.
+    // Plasma and star transitions need different progress remaps to match MilkDrop 3.33.
     if (mixType == 2) {
       float clampedProgress = min(1.0f, max(0.0f, progress));
       if (m_bMilk2Plasma3) {
@@ -10311,6 +10327,16 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
         else
           m_fMilk2BlendProgress = 0.32f + (clampedProgress - 0.5f) * 1.36f;
       }
+    }
+    else if (mixType == 14) {
+      float clampedProgress = min(1.0f, max(0.0f, progress));
+      // Stars stay visibly in progress at 0.5, then finish quickly by 0.7.
+      if (clampedProgress <= 0.5f)
+        m_fMilk2BlendProgress = 0.15f + 0.40f * clampedProgress;
+      else
+        m_fMilk2BlendProgress = 0.35f + (clampedProgress - 0.5f) * 3.00f;
+      if (m_fMilk2BlendProgress > 1.0f)
+        m_fMilk2BlendProgress = 1.0f;
     }
     else if (mixType == 6) {
       // Triangle transitions lag behind the MilkDrop reference, so we push the
