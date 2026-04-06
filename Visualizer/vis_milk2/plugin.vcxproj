@@ -206,6 +206,16 @@
     <ClCompile Include="milkwave.cpp" />
     <ClCompile Include="pipe_server.cpp" />
     <ClCompile Include="plugin.cpp" />
+    <ClCompile Include="plugin_blendpatterns.cpp" />
+    <ClCompile Include="plugin_config.cpp" />
+    <ClCompile Include="plugin_dx9.cpp" />
+    <ClCompile Include="plugin_input.cpp" />
+    <ClCompile Include="plugin_messages.cpp" />
+    <ClCompile Include="plugin_presets.cpp" />
+    <ClCompile Include="plugin_render.cpp" />
+    <ClCompile Include="plugin_renderui.cpp" />
+    <ClCompile Include="plugin_shaders.cpp" />
+    <ClCompile Include="plugin_waitstring.cpp" />
     <ClCompile Include="pluginshell.cpp" />
     <ClCompile Include="state.cpp" />
     <ClCompile Include="support.cpp" />
@@ -242,6 +252,7 @@
     <ClInclude Include="milkwave.h" />
     <ClInclude Include="pipe_server.h" />
     <ClInclude Include="plugin.h" />
+    <ClInclude Include="plugin_internals.h" />
     <ClInclude Include="pluginshell.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="shell_defines.h" />
