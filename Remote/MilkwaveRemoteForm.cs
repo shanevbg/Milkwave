@@ -15,7 +15,7 @@ using static MilkwaveRemote.Helper.RemoteHelper;
 
 namespace MilkwaveRemote {
   public partial class MilkwaveRemoteForm : Form {
-    private PipeClient? _pipeClient;
+    private IVisualizerClient? _activeClient;
 
     private DarkModeCS dm;
 
@@ -54,13 +54,22 @@ namespace MilkwaveRemote {
       if (idx >= 0 && idx < _discoveredInstances.Count) {
         return _discoveredInstances[idx].name.Contains("DX12", StringComparison.OrdinalIgnoreCase);
       }
+      // Network targets are always DX12 (MDropDX12)
+      if (idx >= _discoveredInstances.Count && idx < _discoveredInstances.Count + _activeNetworkTargets.Count) {
+        return true;
+      }
       return false;
     }
 
     private string ConnectedVisualizerName {
       get {
         int idx = cboVisualizerInstance.SelectedIndex;
-        return (idx >= 0 && idx < _discoveredInstances.Count) ? _discoveredInstances[idx].name : "Visualizer";
+        if (idx >= 0 && idx < _discoveredInstances.Count)
+          return _discoveredInstances[idx].name;
+        int netIdx = idx - _discoveredInstances.Count;
+        if (netIdx >= 0 && netIdx < _activeNetworkTargets.Count)
+          return _activeNetworkTargets[netIdx].Name;
+        return "Visualizer";
       }
     }
 
@@ -80,6 +89,7 @@ namespace MilkwaveRemote {
     private string milkwaveMidiFile = "midi-remote.json";
     private string milkwavePresetDeckFile = "presetdeck-remote.json";
     private string milkwaveControllerFile = "controller-remote.json";
+    private string milkwaveNetworkRemoteFile = "network-remote.json";
     private string milkwaveMessagesEditorFile = "messages-editor.html";
 
     private string visualizerSpritesFile = "sprites.ini";
@@ -102,6 +112,8 @@ namespace MilkwaveRemote {
     private bool visualizerSpriteModeActive = true;
     private Settings Settings = new Settings();
     private Tags Tags = new Tags();
+    private NetworkRemoteConfig _networkRemoteConfig = new();
+    private List<NetworkRemoteTarget> _activeNetworkTargets = new();
 
     private PresetDeck presetDeck = new PresetDeck();
     private Button[] presetDeckButtons = Array.Empty<Button>();
@@ -924,6 +936,17 @@ namespace MilkwaveRemote {
         Tags = new Tags();
       }
 
+      try {
+        string netCfgPath = Path.Combine(BaseDir, milkwaveNetworkRemoteFile);
+        if (File.Exists(netCfgPath)) {
+          string netJson = File.ReadAllText(netCfgPath);
+          _networkRemoteConfig = JsonSerializer.Deserialize<NetworkRemoteConfig>(netJson,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+        }
+      } catch (Exception ex) {
+        Debug.WriteLine($"network-remote.json load error: {ex.Message}");
+      }
+
       dm = new DarkModeCS(this) {
         ColorMode = Settings.DarkMode ? DarkModeCS.DisplayMode.DarkMode : DarkModeCS.DisplayMode.ClearMode,
       };
@@ -1083,8 +1106,8 @@ namespace MilkwaveRemote {
       }
     }
 
-    private bool IsPipeConnected => _pipeClient?.IsConnected == true;
-    private bool CanSendPipeMessage => IsPipeConnected || (chkVisualizerMulti.Checked && _discoveredInstances.Count > 0);
+    private bool IsPipeConnected => _activeClient?.IsConnected == true;
+    private bool CanSendPipeMessage => IsPipeConnected || (chkVisualizerMulti.Checked && (_discoveredInstances.Count > 0 || _activeNetworkTargets.Count > 0));
     private List<(int pid, string name, string exePath)> _discoveredInstances = new();
 
     /// <summary>
@@ -1092,17 +1115,17 @@ namespace MilkwaveRemote {
     /// the message is sent to all discovered instances; otherwise only the connected one.
     /// </summary>
     private bool PipeSend(string message) {
-      if (chkVisualizerMulti.Checked && _discoveredInstances.Count > 0) {
+      if (chkVisualizerMulti.Checked && (_discoveredInstances.Count > 0 || _activeNetworkTargets.Count > 0)) {
         return SendToAllInstances(message);
       }
-      return _pipeClient?.Send(message) ?? false;
+      return _activeClient?.Send(message) ?? false;
     }
 
     /// <summary>
     /// Sends a message to the SELECTED visualizer only, bypassing Multi-broadcast.
     /// </summary>
     private bool PipeSendToSelectedOnly(string message) {
-      return _pipeClient?.Send(message) ?? false;
+      return _activeClient?.Send(message) ?? false;
     }
 
     private bool PipeSendSignal(string signalName) {
@@ -1115,9 +1138,10 @@ namespace MilkwaveRemote {
 
     private bool SendToAllInstances(string message) {
       bool anySuccess = false;
+      int activePipePid = (_activeClient is PipeClient pc) ? pc.ConnectedPid : 0;
       foreach (var (pid, name, exePath) in _discoveredInstances) {
-        if (pid == (_pipeClient?.ConnectedPid ?? 0) && IsPipeConnected) {
-          if (_pipeClient!.Send(message)) anySuccess = true;
+        if (pid == activePipePid && IsPipeConnected) {
+          if (_activeClient!.Send(message)) anySuccess = true;
         } else {
           try {
             using var tempClient = new PipeClient();
@@ -1127,6 +1151,14 @@ namespace MilkwaveRemote {
           } catch { }
         }
       }
+      // Also send to all network targets
+      foreach (var target in _activeNetworkTargets) {
+        try {
+          using var tcpClient = new TcpVisualizerClient();
+          tcpClient.ConnectAsync(target.Host, target.Port, target.Pin, target.DeviceId, target.DeviceName).Wait(3000);
+          if (tcpClient.IsConnected && tcpClient.Send(message)) anySuccess = true;
+        } catch { }
+      }
       return anySuccess;
     }
 
@@ -1134,39 +1166,49 @@ namespace MilkwaveRemote {
     /// Unsubscribes pipe events and disposes the client so that intentional
     /// disconnects never trigger OnPipeDisconnected and cause a cascade loop.
     /// </summary>
-    private void DetachAndDisposePipeClient() {
-      if (_pipeClient == null) return;
-      _pipeClient.Disconnected -= OnPipeDisconnected;
-      _pipeClient.MessageReceived -= OnPipeMessageReceived;
-      _pipeClient.Dispose();
-      _pipeClient = null;
+    private void DetachAndDisposeActiveClient() {
+      if (_activeClient == null) return;
+      _activeClient.Disconnected -= OnPipeDisconnected;
+      _activeClient.MessageReceived -= OnPipeMessageReceived;
+      _activeClient.Dispose();
+      _activeClient = null;
     }
 
     private void ScanAndPopulateVisualizers() {
       _discoveredInstances = PipeClient.DiscoverVisualizers();
+      _activeNetworkTargets = _networkRemoteConfig.Targets
+        .Where(target => target.Active)
+        .ToList();
 
       cboVisualizerInstance.SelectedIndexChanged -= cboWindowTitle_SelectedIndexChanged;
       cboVisualizerInstance.Items.Clear();
 
-      bool found = _discoveredInstances.Count > 0;
-      if (!found) {
-        cboVisualizerInstance.Items.Add("No visualizers");
-      } else {
-        foreach (var (pid, name, _) in _discoveredInstances) {
-          cboVisualizerInstance.Items.Add($"{name} (PID: {pid})");
-        }
+      foreach (var (pid, name, _) in _discoveredInstances) {
+        cboVisualizerInstance.Items.Add($"{name} (PID: {pid})");
       }
-      cboVisualizerInstance.Enabled = found;
+
+      // Append active network targets only.
+      foreach (var target in _activeNetworkTargets) {
+        cboVisualizerInstance.Items.Add(target.Name);
+      }
+
+      bool anyEntries = _discoveredInstances.Count > 0 || _activeNetworkTargets.Count > 0;
+      if (!anyEntries) {
+        cboVisualizerInstance.Items.Add("No visualizers");
+      }
+      cboVisualizerInstance.Enabled = anyEntries;
       cboVisualizerInstance.SelectedIndex = 0;
       cboVisualizerInstance.SelectedIndexChanged += cboWindowTitle_SelectedIndexChanged;
     }
 
     private void btnVisualizerScan_Click(object? sender, EventArgs e) {
-      DetachAndDisposePipeClient();
+      DetachAndDisposeActiveClient();
       ScanAndPopulateVisualizers();
 
       if (_discoveredInstances.Count > 0) {
         ConnectToInstance(_discoveredInstances[0]);
+      } else if (_activeNetworkTargets.Count > 0) {
+        ConnectToNetworkTarget(_activeNetworkTargets[0]);
       } else {
         SetStatusText("No visualizer instances found");
       }
@@ -1246,11 +1288,15 @@ namespace MilkwaveRemote {
     }
 
     private void ConnectToVisualizer() {
-     DetachAndDisposePipeClient();
+     DetachAndDisposeActiveClient();
 
       ScanAndPopulateVisualizers();
 
       if (_discoveredInstances.Count == 0) {
+        if (_activeNetworkTargets.Count > 0) {
+          ConnectToNetworkTarget(_activeNetworkTargets[0]);
+          return;
+        }
         // No visualizers running — try to launch the last known one
         if (!string.IsNullOrEmpty(Settings.VisualizerExe)) {
           LaunchAndConnectVisualizer();
@@ -1264,12 +1310,13 @@ namespace MilkwaveRemote {
     }
 
     private void ConnectToInstance((int pid, string name, string exePath) target, bool autoSwitch = true) {
-     DetachAndDisposePipeClient();
-     _pipeClient = new PipeClient();
-     _pipeClient.MessageReceived += OnPipeMessageReceived;
-     _pipeClient.Disconnected += OnPipeDisconnected;
+     DetachAndDisposeActiveClient();
+     var pipeClient = new PipeClient();
+     pipeClient.MessageReceived += OnPipeMessageReceived;
+     pipeClient.Disconnected += OnPipeDisconnected;
+     _activeClient = pipeClient;
 
-      if (_pipeClient.Connect(target.pid)) {
+      if (pipeClient.Connect(target.pid)) {
         SetStatusText($"Connected to {target.name} (PID: {target.pid})");
 
         // Remember the full exe path in the correct setting for future auto-launch
@@ -1288,7 +1335,7 @@ namespace MilkwaveRemote {
         SendToMilkwaveVisualizer("", MessageType.GetState);
       } else {
         string failedMsg = $"Failed to connect";
-        DetachAndDisposePipeClient();
+        DetachAndDisposeActiveClient();
         ScanAndPopulateVisualizers();
 
         if (autoSwitch && _discoveredInstances.Count > 0) {
@@ -1306,6 +1353,36 @@ namespace MilkwaveRemote {
           SetStatusText(failedMsg);
         }
       }
+    }
+
+    private void ConnectToNetworkTarget(NetworkRemoteTarget target) {
+      DetachAndDisposeActiveClient();
+      var client = new TcpVisualizerClient();
+      client.MessageReceived += OnPipeMessageReceived;
+      client.Disconnected += OnPipeDisconnected;
+      client.AuthStateChanged += state => {
+        BeginInvoke(() => {
+          switch (state) {
+            case TcpAuthState.Connecting:
+              SetStatusText($"Connecting to {target.Name}...");
+              break;
+            case TcpAuthState.AuthPending:
+              SetStatusText($"Waiting for approval on {target.Host} — approve in MDropDX12 Settings");
+              break;
+            case TcpAuthState.AuthOk:
+              SetStatusText($"Connected to {target.Name} ({target.Host})");
+              SendToMilkwaveVisualizer("", MessageType.GetState);
+              break;
+            case TcpAuthState.AuthFailed:
+              SetStatusText($"Auth failed — check PIN for {target.Name} in network-remote.json");
+              DetachAndDisposeActiveClient();
+              break;
+          }
+        });
+      };
+      _activeClient = client;
+      SetStatusText($"Connecting to {target.Name}...");
+      _ = client.ConnectAsync(target.Host, target.Port, target.Pin, target.DeviceId, target.DeviceName);
     }
 
     private void LaunchAndConnectVisualizer() {
@@ -1351,8 +1428,14 @@ namespace MilkwaveRemote {
 
     private void cboWindowTitle_SelectedIndexChanged(object? sender, EventArgs e) {
       int idx = cboVisualizerInstance.SelectedIndex;
-      if (idx >= 0 && idx < _discoveredInstances.Count) {
+      if (idx < 0) return;
+
+      if (idx < _discoveredInstances.Count) {
         ConnectToInstance(_discoveredInstances[idx]);
+      } else {
+        int netIdx = idx - _discoveredInstances.Count;
+        if (netIdx < _activeNetworkTargets.Count)
+          ConnectToNetworkTarget(_activeNetworkTargets[netIdx]);
       }
     }
 
@@ -1362,18 +1445,18 @@ namespace MilkwaveRemote {
         return;
       }
 
-      int closedPid = _pipeClient?.ConnectedPid ?? 0;
+      int closedPid = (_activeClient is PipeClient pc) ? pc.ConnectedPid : 0;
       bool wasSelected = closedPid != 0 &&
                          cboVisualizerInstance.SelectedIndex >= 0 &&
                          cboVisualizerInstance.SelectedIndex < _discoveredInstances.Count &&
                          _discoveredInstances[cboVisualizerInstance.SelectedIndex].pid == closedPid;
 
-     // The pipe already disconnected naturally — just clean up without triggering the event again
-     if (_pipeClient != null) {
-       _pipeClient.Disconnected -= OnPipeDisconnected;
-       _pipeClient.MessageReceived -= OnPipeMessageReceived;
-       _pipeClient.Dispose();
-       _pipeClient = null;
+     // The client already disconnected naturally — just clean up without triggering the event again
+     if (_activeClient != null) {
+       _activeClient.Disconnected -= OnPipeDisconnected;
+       _activeClient.MessageReceived -= OnPipeMessageReceived;
+       _activeClient.Dispose();
+       _activeClient = null;
      }
 
       ScanAndPopulateVisualizers();
@@ -2742,10 +2825,10 @@ namespace MilkwaveRemote {
 
         // Close the Visualizer window if CloseVisualizerWithRemote=true or Alt or Ctrl key are pressed
         if (Settings.CloseVisualizerWithRemote || (Control.ModifierKeys & Keys.Alt) == Keys.Alt || (Control.ModifierKeys & Keys.Control) == Keys.Control) {
-          _pipeClient?.Send("SEND=0x1B"); // VK_ESCAPE — triggers close
+          _activeClient?.Send("SEND=0x1B"); // VK_ESCAPE — triggers close
           }
 
-          DetachAndDisposePipeClient();
+          DetachAndDisposeActiveClient();
 
       } catch (Exception ex) {
         Program.SaveErrorToFile(ex, "Error");

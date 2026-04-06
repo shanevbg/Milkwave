@@ -1,0 +1,190 @@
+using System.Diagnostics;
+using System.Net.Sockets;
+using System.Text;
+
+namespace MilkwaveRemote.Helper {
+
+  public enum TcpAuthState {
+    Connecting,
+    AuthPending,
+    AuthOk,
+    AuthFailed
+  }
+
+  /// <summary>
+  /// TCP client for communicating with a remote MDropDX12 instance.
+  /// Uses MDropDX12's length-framed UTF-8 wire protocol and AUTH handshake.
+  /// </summary>
+  public class TcpVisualizerClient : IVisualizerClient {
+    private TcpClient? _tcp;
+    private NetworkStream? _stream;
+    private CancellationTokenSource? _cts;
+    private readonly object _writeLock = new();
+    private volatile bool _isConnected;
+
+    public bool IsConnected => _isConnected;
+
+    public event Action<string>? MessageReceived;
+    public event Action? Disconnected;
+    public event Action<TcpAuthState>? AuthStateChanged;
+
+    /// <summary>
+    /// Connect to a remote MDropDX12 TCP server and perform the AUTH handshake.
+    /// </summary>
+    public async Task ConnectAsync(string host, int port, string pin, string deviceId, string deviceName) {
+      Disconnect();
+
+      _cts = new CancellationTokenSource();
+
+      try {
+        AuthStateChanged?.Invoke(TcpAuthState.Connecting);
+
+        _tcp = new TcpClient();
+        using var connectCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        await _tcp.ConnectAsync(host, port, connectCts.Token);
+        _stream = _tcp.GetStream();
+
+        // Send AUTH handshake
+        SendRaw($"AUTH|{pin}|{deviceId}|{deviceName}");
+
+        // Start read loop on background thread
+        var ct = _cts.Token;
+        _ = Task.Run(() => ReadLoop(ct), ct);
+      } catch (Exception ex) {
+        Debug.WriteLine($"TcpVisualizerClient connect failed: {ex.Message}");
+        AuthStateChanged?.Invoke(TcpAuthState.AuthFailed);
+        CleanupConnection();
+      }
+    }
+
+    public bool Send(string message) {
+      if (!_isConnected || _stream == null)
+        return false;
+
+      try {
+        SendRaw(message);
+        return true;
+      } catch (Exception ex) {
+        Debug.WriteLine($"TcpVisualizerClient send failed: {ex.Message}");
+        return false;
+      }
+    }
+
+    public bool SendSignal(string signalName) {
+      return Send($"SIGNAL|{signalName}");
+    }
+
+    public void Disconnect() {
+      _cts?.Cancel();
+      CleanupConnection();
+    }
+
+    public void Dispose() {
+      Disconnect();
+      _cts?.Dispose();
+      _cts = null;
+      GC.SuppressFinalize(this);
+    }
+
+    private void SendRaw(string message) {
+      if (_stream == null) return;
+
+      byte[] payload = Encoding.UTF8.GetBytes(message);
+      byte[] header = BitConverter.GetBytes((uint)payload.Length);
+
+      lock (_writeLock) {
+        _stream.Write(header, 0, header.Length);
+        _stream.Write(payload, 0, payload.Length);
+        _stream.Flush();
+      }
+    }
+
+    private void ReadLoop(CancellationToken ct) {
+      bool authCompleted = false;
+
+      try {
+        while (!ct.IsCancellationRequested && _tcp != null && _tcp.Connected && _stream != null) {
+          // Read 4-byte length header
+          byte[] headerBuf = new byte[4];
+          if (!ReadExact(headerBuf, 4, ct))
+            break;
+
+          uint length = BitConverter.ToUInt32(headerBuf, 0);
+          if (length == 0 || length > 1_048_576) // sanity: max 1MB
+            break;
+
+          // Read payload
+          byte[] payloadBuf = new byte[length];
+          if (!ReadExact(payloadBuf, (int)length, ct))
+            break;
+
+          string message = Encoding.UTF8.GetString(payloadBuf).TrimEnd('\0');
+
+          if (!authCompleted) {
+            if (message == "AUTH_OK") {
+              authCompleted = true;
+              _isConnected = true;
+              AuthStateChanged?.Invoke(TcpAuthState.AuthOk);
+            } else if (message == "AUTH_PENDING") {
+              AuthStateChanged?.Invoke(TcpAuthState.AuthPending);
+              // Stay in loop — AUTH_OK will arrive when user approves
+            } else if (message.StartsWith("AUTH_FAIL")) {
+              AuthStateChanged?.Invoke(TcpAuthState.AuthFailed);
+              break;
+            } else {
+              // Unexpected response during auth
+              Debug.WriteLine($"TcpVisualizerClient unexpected auth response: {message}");
+              AuthStateChanged?.Invoke(TcpAuthState.AuthFailed);
+              break;
+            }
+          } else {
+            // Post-auth: forward messages
+            try {
+              MessageReceived?.Invoke(message);
+            } catch {
+              // Don't let handler exceptions kill the read loop
+            }
+          }
+        }
+      } catch (OperationCanceledException) {
+        // Normal shutdown
+      } catch (Exception ex) {
+        Debug.WriteLine($"TcpVisualizerClient read loop error: {ex.Message}");
+      }
+
+      _isConnected = false;
+      Disconnected?.Invoke();
+    }
+
+    private bool ReadExact(byte[] buffer, int count, CancellationToken ct) {
+      int offset = 0;
+      while (offset < count) {
+        if (ct.IsCancellationRequested)
+          return false;
+
+        int bytesRead;
+        try {
+          bytesRead = _stream!.Read(buffer, offset, count - offset);
+        } catch (IOException) {
+          return false;
+        } catch (ObjectDisposedException) {
+          return false;
+        }
+
+        if (bytesRead == 0)
+          return false; // connection closed
+
+        offset += bytesRead;
+      }
+      return true;
+    }
+
+    private void CleanupConnection() {
+      _isConnected = false;
+      try { _stream?.Dispose(); } catch { }
+      try { _tcp?.Dispose(); } catch { }
+      _stream = null;
+      _tcp = null;
+    }
+  }
+}

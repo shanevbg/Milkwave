@@ -1,9 +1,10 @@
 ## v3.6 (unreleased)
 
-* DirectX 12 Visualizer support (experimental)
-  - For Visualizer fork [MDropDX12](https://github.com/shanevbg/MDropDX12) by @shanevbg (included)
+* [MDropDX12](https://github.com/shanevbg/MDropDX12) Visualizer support (experimental)
+  - Milkwave DirectX 12 Visualizer fork by @shanevbg (included)
   - Named Pipes IPC Communication between Remote and Visualizers
-* Multi-Mode: Send commands to multiple Visualizers at once
+  - Network Mode: Control over network using Milkwave Remote
+* Multi-Mode: Send commands to multiple Visualizers (local and network)
 * Support for equalizer shader presets (FFT)
   - Adjust FFT attack/decay on Settings tab
 * New preset: IkeC - Equalizer

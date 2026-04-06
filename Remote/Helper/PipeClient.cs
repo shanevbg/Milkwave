@@ -10,7 +10,7 @@ namespace MilkwaveRemote.Helper {
   /// Replaces WM_COPYDATA / EnumWindows / FindWindow IPC.
   /// Pipe name convention: \\.\pipe\Milkwave_{PID}
   /// </summary>
-  public class PipeClient : IDisposable {
+  public class PipeClient : IVisualizerClient {
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, int dwProcessId);
 

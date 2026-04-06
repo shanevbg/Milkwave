@@ -70,6 +70,37 @@ Set Luma Key to "Active" to make a certain color in the input source transparent
 
 "Controller" allows you to select a game controller. If "Active", it will send the commands defined in _controller-remote.json_ to the Visualizer when you press buttons. You can edit the command list in _controller-remote.json_ or use the "Config" button to open the file in a text editor.
 
+### Network Remote (MDropDX12)
+
+You can control MDropDX12 instances running on remote machines over TCP. Network targets are configured in _network-remote.json_ and appear in the Visualizer combobox alongside local instances. Each target must set `active=true` to show up, and the entry label is the value of `name`. When a network target is selected, commands are sent via MDropDX12's TCP server instead of a local named pipe.
+
+To set up a network target:
+
+1. On the remote machine, start MDropDX12 and enable the TCP server in **Settings (F8) → "Tools" tab → "Open Remote"**. In the **"Authorization"** tab, enable the TCP Server. Alternatively, set `TcpEnabled=1` in the `[Network]` section of _settings.ini_. The default port is **9270**. In "Clients", you may have to authorize the sender when it shows up.
+2. On the machine running Milkwave Remote, edit _network-remote.json_ and configure an entry with the remote machine's IP address, port, and (optional) PIN:
+
+```json
+{
+  "targets": [
+    {
+      "active": true,
+      "name": "MDropDX12 (Remote)",
+      "host": "192.168.1.100",
+      "port": 9270,
+      "pin": "",
+      "deviceId": "milkwave-remote-1",
+      "deviceName": "Milkwave Remote"
+    }
+  ]
+}
+```
+
+3. If a PIN is configured in MDropDX12's Network settings, enter the same PIN in the `pin` field. If no PIN is set, leave it blank.
+4. Restart Milkwave Remote or press "Scan". The active network target will appear in the visualizer drop-down.
+5. Select the network entry to connect. If the remote MDropDX12 has not authorized this device yet, the status bar will show "Waiting for approval" — approve the pending device in "Clients" in MDropDX12 as described above.
+
+Only targets with `active=true` are shown in the combobox. If "Multi" is checked, commands are broadcast to all local instances and all active network targets.
+
 ## Tab "Settings"
 
 Change the internal "Time", "FPS" and "Frame" values that the Visualizer sends to the preset. This may speed up, slow down or otherwise change the behaviour of the preset, depending on how the preset is built and how (or if) it uses any of these variables.
