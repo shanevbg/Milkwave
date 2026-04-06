@@ -8602,9 +8602,19 @@ void CPlugin::RandomizeBlendPattern() {
 
     // first generate plasma array of height values
     float rotation = 0.0f;               // keep the star upright for milk2 parity
-    m_vertinfo[m_nGridX].c = FRAND;
-    m_vertinfo[m_nGridY * (m_nGridX + 1)].c = FRAND;
-    m_vertinfo[m_nGridY * (m_nGridX + 1) + m_nGridX].c = FRAND;
+    if (m_bLoadingMilk2 && m_nMilk2MixType == 2) {
+      // Bias the fractal so the bright plasma mass starts in the top-left corner.
+      m_vertinfo[0].c = 0.80f + 0.20f * m_fMilk2Random1;
+      m_vertinfo[m_nGridX].c = 0.45f + 0.20f * m_fMilk2Random2;
+      m_vertinfo[m_nGridY * (m_nGridX + 1)].c = 0.40f + 0.20f * m_fMilk2Random3;
+      m_vertinfo[m_nGridY * (m_nGridX + 1) + m_nGridX].c = 0.10f + 0.15f * m_fMilk2Random4;
+    }
+    else {
+      m_vertinfo[0].c = FRAND;
+      m_vertinfo[m_nGridX].c = FRAND;
+      m_vertinfo[m_nGridY * (m_nGridX + 1)].c = FRAND;
+      m_vertinfo[m_nGridY * (m_nGridX + 1) + m_nGridX].c = FRAND;
+    }
     GenPlasma(0, m_nGridX, 0, m_nGridY, 0.25f);
 
     // then find min,max so we can normalize to [0..1] range and then to the proper 'constant offset' range.
@@ -10017,6 +10027,7 @@ bool CPlugin::ParseMilk2File(const wchar_t* szPath,
     m_bMilk2LinesVertical = (!pat.empty() && _stricmp(pat.c_str(), "linesvertical") == 0);
     m_bMilk2CornerWipe = (!pat.empty() && _stricmp(pat.c_str(), "corner") == 0);
     m_bMilk2ArrowWipe = (!pat.empty() && _stricmp(pat.c_str(), "arrow") == 0);
+    m_bMilk2Plasma3 = (!pat.empty() && _stricmp(pat.c_str(), "plasma3") == 0);
     std::string prog = getVal("blending_progress");
     if (!prog.empty()) outProgress = (float)atof(prog.c_str());
     std::string dir = getVal("blending_direction");
@@ -10221,6 +10232,7 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
   m_bMilk2VerticalWipe = false;
   m_bMilk2LinesVertical = false;
   m_bMilk2CornerWipe = false;
+  m_bMilk2Plasma3 = false;
 
   // Kill any active milk2 sprites from the previous preset
   KillMilk2Sprites();
@@ -10286,14 +10298,19 @@ void CPlugin::LoadPreset(const wchar_t* szPresetFilename, float fBlendTime) {
     m_nMilk2MixType = mixType;
     m_fMilk2BlendDirection = direction;
     // Plasma transitions in MilkDrop 3.33 lag early, then catch up quickly.
-    // Keep the low-progress calibration that matched 0.50, but ramp harder
-    // after halfway so 0.75 and 0.90 are not too green.
+    // Keep the low-progress calibration, but let the midrange run a little faster
+    // so 0.50 and 0.70 move closer to the reference.
     if (mixType == 2) {
       float clampedProgress = min(1.0f, max(0.0f, progress));
-      if (clampedProgress <= 0.5f)
-        m_fMilk2BlendProgress = clampedProgress * 0.56f;
-      else
-        m_fMilk2BlendProgress = 0.28f + (clampedProgress - 0.5f) * 1.44f;
+      if (m_bMilk2Plasma3) {
+        m_fMilk2BlendProgress = 0.10f + 0.90f * clampedProgress;
+      }
+      else {
+        if (clampedProgress <= 0.5f)
+          m_fMilk2BlendProgress = clampedProgress * 0.64f;
+        else
+          m_fMilk2BlendProgress = 0.32f + (clampedProgress - 0.5f) * 1.36f;
+      }
     }
     else if (mixType == 6) {
       // Triangle transitions lag behind the MilkDrop reference, so we push the
