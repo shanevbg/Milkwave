@@ -9835,7 +9835,7 @@ void CPlugin::RandomizeBlendPattern() {
   }
   else if (mixtype == 19) {
     // Fixed vertical wipe (left-to-right) for .milk2 "vertical"
-    float band = 0.15f;
+    float band = 0.34f;
     float inv_band = 1.0f / band;
     int nVert = 0;
     for (int y = 0; y <= m_nGridY; y++) {
