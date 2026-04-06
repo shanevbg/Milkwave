@@ -1,0 +1,177 @@
+MILKDROP_PRESET_VERSION=201
+PSVERSION=4
+PSVERSION_WARP=4
+PSVERSION_COMP=4
+[preset00]
+fRating=3.000
+fGammaAdj=2.000
+fDecay=0.750
+FFTAttack=0.500
+FFTDecay=0.700
+fVideoEchoZoom=2.000
+fVideoEchoAlpha=0.000
+nVideoEchoOrientation=0
+nWaveMode=16
+bAdditiveWaves=1
+bWaveDots=0
+bWaveThick=1
+bModWaveAlphaByVolume=0
+bMaximizeWaveColor=1
+bTexWrap=1
+bDarkenCenter=0
+bRedBlueStereo=0
+bBrighten=0
+bDarken=0
+bSolarize=0
+bInvert=0
+fWaveAlpha=0.400
+fWaveScale=1.000
+fWaveSmoothing=0.750
+fWaveParam=0.000
+fModWaveAlphaStart=0.750
+fModWaveAlphaEnd=0.950
+fWarpAnimSpeed=1.000
+fWarpScale=1.000
+fZoomExponent=1.00000
+fShader=0.000
+zoom=0.90000
+rot=0.00000
+cx=0.500
+cy=0.500
+dx=0.04000
+dy=0.00000
+warp=0.00000
+sx=1.00000
+sy=1.00000
+wave_r=0.000
+wave_g=0.000
+wave_b=0.000
+wave_x=0.000
+wave_y=0.000
+ob_size=0.010
+ob_r=0.000
+ob_g=0.000
+ob_b=0.000
+ob_a=0.000
+ib_size=0.010
+ib_r=0.250
+ib_g=0.250
+ib_b=0.250
+ib_a=0.000
+nMotionVectorsX=0.000
+nMotionVectorsY=0.000
+mv_dx=0.000
+mv_dy=0.000
+mv_l=0.000
+mv_r=1.000
+mv_g=1.000
+mv_b=1.000
+mv_a=0.000
+b1n=0.000
+b2n=0.000
+b3n=0.000
+b1x=1.000
+b2x=1.000
+b3x=1.000
+b1ed=0.250
+warp_1=`shader_body
+warp_2=`{
+warp_3=`    // sample previous frame
+warp_4=`    ret = tex2D( sampler_main, uv ).xyz;
+warp_5=`    
+warp_6=`    // darken (decay) over time
+warp_7=`    ret *= 0.75; //or try: ret -= 0.004;
+warp_8=`}
+comp_1=`// trinketMage - Perlin noise fire shader / https://www.shadertoy.com/view/3tcBzH
+comp_2=`// Transpiled to HLSL using Milkwave
+comp_3=`
+comp_4=`#define tx (sin(time)*0.5+1)
+comp_5=`
+comp_6=`float rand(float2 co){
+comp_7=`  return frac(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
+comp_8=`}
+comp_9=`
+comp_10=`float hermite(float t)
+comp_11=`{
+comp_12=`  return t * t * (3.0 - 2.0 * t);
+comp_13=`}
+comp_14=`
+comp_15=`float noise(float2 co, float frequency)
+comp_16=`{
+comp_17=`  float2 v = float2(co.x * frequency, co.y * frequency);
+comp_18=`
+comp_19=`  float ix1 = floor(v.x);
+comp_20=`  float iy1 = floor(v.y);
+comp_21=`  float ix2 = floor(v.x + 1.0);
+comp_22=`  float iy2 = floor(v.y + 1.0);
+comp_23=`
+comp_24=`  float fx = hermite(frac(v.x));
+comp_25=`  float fy = hermite(frac(v.y));
+comp_26=`
+comp_27=`  float fade1 = lerp(rand(float2(ix1, iy1)), rand(float2(ix2, iy1)), fx);
+comp_28=`  float fade2 = lerp(rand(float2(ix1, iy2)), rand(float2(ix2, iy2)), fx);
+comp_29=`
+comp_30=`  return lerp(fade1, fade2, fy);
+comp_31=`}
+comp_32=`
+comp_33=`float pnoise(float2 co, float freq, int steps, float persistence)
+comp_34=`{
+comp_35=`  float value = 0.0;
+comp_36=`  float ampl = 1.0;
+comp_37=`  float sum = 0.0;
+comp_38=`  for(int i=0 ; i<steps ; i++)
+comp_39=`  {
+comp_40=`    sum += ampl;
+comp_41=`    value += noise(co, freq) * ampl;
+comp_42=`    freq *= 2.0;
+comp_43=`    ampl *= persistence;
+comp_44=`  }
+comp_45=`
+comp_46=`  return value / sum;
+comp_47=`}
+comp_48=`
+comp_49=`/** SHADERDATA
+comp_50=`{
+comp_51=`  "title": "Fire shader",
+comp_52=`  "description": "Fire shader after @febucci",
+comp_53=`  "model": "nothing"
+comp_54=`}
+comp_55=`
+comp_56=`*/
+comp_57=`shader_body {
+comp_58=`  float4 fragColor = 0;
+comp_59=`  float2 fragCoord  = uv;
+comp_60=`  // CONV: Center on screen, then try some aspect correction
+comp_61=`  uv = (uv*2) - 1;
+comp_62=`  uv *= aspect.xy;
+comp_63=`  // CONV: Adjust this to flip the output (±uv.x, ±uv.y)
+comp_64=`  uv = float2(uv.x, -uv.y);
+comp_65=`  // CONV: Adjust viewpoint (x,y individually or both)
+comp_66=`  uv += float2(0,0) + 0.6;
+comp_67=`  uv *= float2(1,1) * 1;
+comp_68=`
+comp_69=`  // float2 uv = fragCoord.xy / uv.xy;
+comp_70=`  float gradient = 1.0 - uv.y;
+comp_71=`  float gradientStep = 0.2;
+comp_72=`
+comp_73=`  float2 pos = uv; //fragCoord.xy / uv.x;
+comp_74=`  pos.y -= time * 0.3125;
+comp_75=`
+comp_76=`  float4 brighterColor = float4(1.0, 0.65, 0.1, 0.25);
+comp_77=`  float4 darkerColor = float4(1.0, 0.0, 0.15, 0.0625);
+comp_78=`  float4 middleColor = lerp(brighterColor, darkerColor, 0.5);
+comp_79=`
+comp_80=`  float noiseTexel = pnoise(pos, 10.0, 5, 0.5);
+comp_81=`
+comp_82=`  float firstStep = smoothstep(0.0, noiseTexel, gradient);
+comp_83=`  float darkerColorStep = smoothstep(0.0, noiseTexel, gradient - gradientStep);
+comp_84=`  float darkerColorPath = firstStep - darkerColorStep;
+comp_85=`  float4 color = lerp(brighterColor, darkerColor, darkerColorPath);
+comp_86=`
+comp_87=`  float middleColorStep = smoothstep(0.0, noiseTexel, gradient - 0.2 * 2.0);
+comp_88=`
+comp_89=`  color = lerp(color, middleColor, darkerColorStep - middleColorStep);
+comp_90=`  color = lerp(float4(0.0, 0.0, 0.0, 0.0), color, firstStep);
+comp_91=`  fragColor = color;
+comp_92=`  ret = fragColor;
+comp_93=`}

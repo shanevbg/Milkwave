@@ -922,7 +922,7 @@ class CPlugin : public CPluginShell {
   virtual LRESULT MyWindowProc(HWND hWnd, unsigned uMsg, WPARAM wParam, LPARAM lParam);
   void KillAllSprites();
   void KillAllSupertexts();
-  bool ChangePresetDir(wchar_t* newDir, wchar_t* oldDir);
+  bool ChangePresetDir(wchar_t* newDir, wchar_t* oldDir, bool bBackground = true);
   int ToggleSpout();
   int SetSpoutFixedSize(bool toggleSwitch, bool showNotifications);
   virtual void OnAltK();

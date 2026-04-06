@@ -183,12 +183,41 @@ void LoadPresetFilesViaDragAndDrop(WPARAM wParam) {
   MultiByteToWideChar(CP_ACP, 0, szDroppedPresetName, -1, convertedFileName, MAX_PATH);
 #endif
 
-  // if (MAX_PATH < 5 || wcsicmp(convertedFileName + MAX_PATH - 5, L".milk") != 0)
-  std::string GetFilename = szDroppedPresetName;
-  std::string ext = GetFilename.substr(GetFilename.find_last_of(".") + 1);
-  if (ext == "milk" || ext == "milk2")
+  const wchar_t* extension = wcsrchr(convertedFileName, L'.');
+  if (extension && (_wcsicmp(extension, L".milk") == 0 || _wcsicmp(extension, L".milk2") == 0)) {
+    wchar_t presetDir[MAX_PATH];
+    lstrcpyW(presetDir, convertedFileName);
+    wchar_t* lastSlash = wcsrchr(presetDir, L'\\');
+    wchar_t* lastForwardSlash = wcsrchr(presetDir, L'/');
+    if (!lastSlash || (lastForwardSlash && lastForwardSlash > lastSlash))
+      lastSlash = lastForwardSlash;
+    if (lastSlash) {
+      *lastSlash = L'\0';
+      g_plugin.ChangePresetDir(presetDir, g_plugin.m_szPresetDir, false);
+
+      wchar_t* fileName = wcsrchr(convertedFileName, L'\\');
+      wchar_t* fileNameForwardSlash = wcsrchr(convertedFileName, L'/');
+      if (!fileName || (fileNameForwardSlash && fileNameForwardSlash > fileName))
+        fileName = fileNameForwardSlash;
+      if (fileName)
+        fileName++;
+      else
+        fileName = const_cast<wchar_t*>(convertedFileName);
+
+      g_plugin.m_nPresetListCurPos = -1;
+      g_plugin.m_nCurrentPreset = -1;
+      for (int i = g_plugin.m_nDirs; i < g_plugin.m_nPresets; i++) {
+        if (g_plugin.m_presets[i].szFilename.c_str()[0] == '*')
+          continue;
+        if (_wcsicmp(fileName, g_plugin.m_presets[i].szFilename.c_str()) == 0) {
+          g_plugin.m_nPresetListCurPos = i;
+          g_plugin.m_nCurrentPreset = i;
+          break;
+        }
+      }
+    }
     g_plugin.LoadPreset(convertedFileName, 0.0f);
-  else {
+  } else {
     wchar_t buf[1024];
     swprintf(buf, 1024, L"Error: Failed to load dropped preset file: %s", convertedFileName);
     g_plugin.AddError(buf, 5.0f, ERR_NOTIFY, true);
@@ -1584,7 +1613,7 @@ void CPlugin::KillAllSupertexts() {
   }
 }
 
-bool CPlugin::ChangePresetDir(wchar_t* newDir, wchar_t* oldDir) {
+bool CPlugin::ChangePresetDir(wchar_t* newDir, wchar_t* oldDir, bool bBackground) {
   // change dir
   wchar_t szOldDir[512];
   wchar_t szNewDir[512];
@@ -1601,7 +1630,7 @@ bool CPlugin::ChangePresetDir(wchar_t* newDir, wchar_t* oldDir) {
   if (GetFileAttributesW(g_plugin.m_szPresetDir) == -1)
     bSuccess = false;
   if (bSuccess) {
-    UpdatePresetList(true, true, false);
+    UpdatePresetList(bBackground, true, false);
 
     // bSuccess = (m_nPresets > 0);
     // success
