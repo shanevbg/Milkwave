@@ -3,7 +3,7 @@
     {
       "active": false,
       "name": "MDropDX12 (localhost)",
-      "host": "192.168.0.1",
+      "host": "127.0.0.1",
       "port": 9270,
       "pin": "",
       "deviceId": "milkwave-remote-1",

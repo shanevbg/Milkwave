@@ -943,16 +943,7 @@ namespace MilkwaveRemote {
         Tags = new Tags();
       }
 
-      try {
-        string netCfgPath = Path.Combine(BaseDir, milkwaveNetworkRemoteFile);
-        if (File.Exists(netCfgPath)) {
-          string netJson = File.ReadAllText(netCfgPath);
-          _networkRemoteConfig = JsonSerializer.Deserialize<NetworkRemoteConfig>(netJson,
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
-        }
-      } catch (Exception ex) {
-        Debug.WriteLine($"network-remote.json load error: {ex.Message}");
-      }
+      ReloadNetworkRemoteConfig();
 
       dm = new DarkModeCS(this) {
         ColorMode = Settings.DarkMode ? DarkModeCS.DisplayMode.DarkMode : DarkModeCS.DisplayMode.ClearMode,
@@ -1210,6 +1201,7 @@ namespace MilkwaveRemote {
 
     private void btnVisualizerScan_Click(object? sender, EventArgs e) {
       DetachAndDisposeActiveClient();
+      ReloadNetworkRemoteConfig();
       ScanAndPopulateVisualizers();
 
       if (_discoveredInstances.Count > 0) {
@@ -1218,6 +1210,22 @@ namespace MilkwaveRemote {
         ConnectToNetworkTarget(_activeNetworkTargets[0]);
       } else {
         SetStatusText("No visualizer instances found");
+      }
+    }
+
+    private void ReloadNetworkRemoteConfig() {
+      try {
+        string netCfgPath = Path.Combine(BaseDir, milkwaveNetworkRemoteFile);
+        if (File.Exists(netCfgPath)) {
+          string netJson = File.ReadAllText(netCfgPath);
+          _networkRemoteConfig = JsonSerializer.Deserialize<NetworkRemoteConfig>(netJson,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new();
+        } else {
+          _networkRemoteConfig = new();
+        }
+      } catch (Exception ex) {
+        Debug.WriteLine($"network-remote.json load error: {ex.Message}");
+        _networkRemoteConfig = new();
       }
     }
 
