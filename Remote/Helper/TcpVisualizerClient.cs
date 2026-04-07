@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Text;
 
@@ -16,6 +15,7 @@ namespace MilkwaveRemote.Helper {
   /// Uses MDropDX12's length-framed UTF-8 wire protocol and AUTH handshake.
   /// </summary>
   public class TcpVisualizerClient : IVisualizerClient {
+    private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(10);
     private TcpClient? _tcp;
     private NetworkStream? _stream;
     private CancellationTokenSource? _cts;
@@ -40,18 +40,21 @@ namespace MilkwaveRemote.Helper {
         AuthStateChanged?.Invoke(TcpAuthState.Connecting);
 
         _tcp = new TcpClient();
-        using var connectCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+        using var connectCts = new CancellationTokenSource(ConnectTimeout);
+        Program.LogToFile($"TcpVisualizerClient connecting to {host}:{port}");
         await _tcp.ConnectAsync(host, port, connectCts.Token);
+        Program.LogToFile($"TcpVisualizerClient connected to {host}:{port}");
         _stream = _tcp.GetStream();
 
         // Send AUTH handshake
+        Program.LogToFile($"TcpVisualizerClient sending AUTH for {deviceId} (pinLen={pin.Length})");
         SendRaw($"AUTH|{pin}|{deviceId}|{deviceName}");
 
         // Start read loop on background thread
         var ct = _cts.Token;
         _ = Task.Run(() => ReadLoop(ct), ct);
       } catch (Exception ex) {
-        Debug.WriteLine($"TcpVisualizerClient connect failed: {ex.Message}");
+        Program.LogToFile($"TcpVisualizerClient connect failed: {ex.Message}");
         AuthStateChanged?.Invoke(TcpAuthState.AuthFailed);
         CleanupConnection();
       }
@@ -65,7 +68,7 @@ namespace MilkwaveRemote.Helper {
         SendRaw(message);
         return true;
       } catch (Exception ex) {
-        Debug.WriteLine($"TcpVisualizerClient send failed: {ex.Message}");
+        Program.LogToFile($"TcpVisualizerClient send failed: {ex.Message}");
         return false;
       }
     }
@@ -75,11 +78,13 @@ namespace MilkwaveRemote.Helper {
     }
 
     public void Disconnect() {
+      Program.LogToFile("TcpVisualizerClient disconnect requested");
       _cts?.Cancel();
       CleanupConnection();
     }
 
     public void Dispose() {
+      Program.LogToFile("TcpVisualizerClient dispose requested");
       Disconnect();
       _cts?.Dispose();
       _cts = null;
@@ -122,18 +127,21 @@ namespace MilkwaveRemote.Helper {
 
           if (!authCompleted) {
             if (message == "AUTH_OK") {
+              Program.LogToFile("TcpVisualizerClient auth OK");
               authCompleted = true;
               _isConnected = true;
               AuthStateChanged?.Invoke(TcpAuthState.AuthOk);
             } else if (message == "AUTH_PENDING") {
+              Program.LogToFile("TcpVisualizerClient auth pending");
               AuthStateChanged?.Invoke(TcpAuthState.AuthPending);
               // Stay in loop — AUTH_OK will arrive when user approves
             } else if (message.StartsWith("AUTH_FAIL")) {
+              Program.LogToFile($"TcpVisualizerClient auth failed response: {message}");
               AuthStateChanged?.Invoke(TcpAuthState.AuthFailed);
               break;
             } else {
               // Unexpected response during auth
-              Debug.WriteLine($"TcpVisualizerClient unexpected auth response: {message}");
+              Program.LogToFile($"TcpVisualizerClient unexpected auth response: {message}");
               AuthStateChanged?.Invoke(TcpAuthState.AuthFailed);
               break;
             }
@@ -149,7 +157,7 @@ namespace MilkwaveRemote.Helper {
       } catch (OperationCanceledException) {
         // Normal shutdown
       } catch (Exception ex) {
-        Debug.WriteLine($"TcpVisualizerClient read loop error: {ex.Message}");
+        Program.LogToFile($"TcpVisualizerClient read loop error: {ex.Message}");
       }
 
       _isConnected = false;

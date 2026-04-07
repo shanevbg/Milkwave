@@ -1035,7 +1035,8 @@ namespace MilkwaveRemote {
     }
 
     private void StartVisualizerIfNotFound(bool onlyIfNotFound) {
-      if (IsPipeConnected && onlyIfNotFound)
+      // Don't try to auto-launch if already connected or connecting (e.g. a TCP target is in progress)
+      if (onlyIfNotFound && _activeClient != null)
         return;
 
       // Launch the visualizer and connect via pipe
@@ -1153,7 +1154,7 @@ namespace MilkwaveRemote {
       foreach (var target in _activeNetworkTargets) {
         try {
           using var tcpClient = new TcpVisualizerClient();
-          tcpClient.ConnectAsync(target.Host, target.Port, target.Pin, target.DeviceId, target.DeviceName).Wait(3000);
+          tcpClient.ConnectAsync(target.Host, target.Port, target.Pin, target.DeviceId, target.DeviceName).Wait(TimeSpan.FromSeconds(10));
           if (tcpClient.IsConnected && tcpClient.Send(message)) anySuccess = true;
         } catch { }
       }
@@ -1166,6 +1167,7 @@ namespace MilkwaveRemote {
     /// </summary>
     private void DetachAndDisposeActiveClient() {
       if (_activeClient == null) return;
+      Program.LogToFile($"DetachAndDisposeActiveClient: disposing {_activeClient.GetType().Name}");
       _activeClient.Disconnected -= OnPipeDisconnected;
       _activeClient.MessageReceived -= OnPipeMessageReceived;
       _activeClient.Dispose();
@@ -1376,7 +1378,7 @@ namespace MilkwaveRemote {
       client.MessageReceived += OnPipeMessageReceived;
       client.Disconnected += OnPipeDisconnected;
       client.AuthStateChanged += state => {
-        BeginInvoke(() => {
+        Action updateStatus = () => {
           switch (state) {
             case TcpAuthState.Connecting:
               SetStatusText($"Connecting to {target.Name}...");
@@ -1393,7 +1395,13 @@ namespace MilkwaveRemote {
               DetachAndDisposeActiveClient();
               break;
           }
-        });
+        };
+
+        if (IsHandleCreated && !IsDisposed) {
+          BeginInvoke(updateStatus);
+        } else {
+          updateStatus();
+        }
       };
       _activeClient = client;
       SetStatusText($"Connecting to {target.Name}...");
