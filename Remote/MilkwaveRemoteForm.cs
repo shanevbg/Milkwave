@@ -41,9 +41,83 @@ namespace MilkwaveRemote {
 #endif
 
     private string GetVisualizerDir(bool isDX12) {
+      string connectedDir = isDX12 ? connectedVisualizerDX12Dir : connectedVisualizerDir;
+      if (!string.IsNullOrWhiteSpace(connectedDir) && Directory.Exists(connectedDir)) {
+        return connectedDir;
+      }
+
       string subPath = isDX12 ? Settings.VisualizerDX12Path : Settings.VisualizerPath;
       if (string.IsNullOrEmpty(subPath)) return BaseDir;
       return Path.IsPathRooted(subPath) ? subPath : Path.Combine(BaseDir, subPath);
+    }
+
+    private bool IsPathUnderBaseDir(string? path) {
+      if (string.IsNullOrWhiteSpace(path)) {
+        return false;
+      }
+
+      try {
+        string fullPath = Path.GetFullPath(path);
+        string fullBaseDir = Path.GetFullPath(BaseDir);
+        fullBaseDir = Path.TrimEndingDirectorySeparator(fullBaseDir) + Path.DirectorySeparatorChar;
+        return fullPath.StartsWith(fullBaseDir, StringComparison.OrdinalIgnoreCase);
+      } catch {
+        return false;
+      }
+    }
+
+    private string MakePortableSettingPath(string? path) {
+      if (string.IsNullOrWhiteSpace(path)) {
+        return string.Empty;
+      }
+
+      try {
+        string fullPath = Path.GetFullPath(path);
+        string fullBaseDir = Path.GetFullPath(BaseDir);
+        fullBaseDir = Path.TrimEndingDirectorySeparator(fullBaseDir) + Path.DirectorySeparatorChar;
+        if (fullPath.StartsWith(fullBaseDir, StringComparison.OrdinalIgnoreCase)) {
+          string relativePath = Path.GetRelativePath(fullBaseDir, fullPath);
+          if (!string.IsNullOrWhiteSpace(relativePath) && relativePath != ".") {
+            return relativePath;
+          }
+          return string.Empty;
+        }
+      } catch {
+      }
+
+      return path;
+    }
+
+    private void NormalizeVisualizerLaunchPaths() {
+      bool settingsChanged = false;
+
+      string portableVisualizerPath = MakePortableSettingPath(Settings.VisualizerPath);
+      if (portableVisualizerPath != Settings.VisualizerPath) {
+        Settings.VisualizerPath = portableVisualizerPath;
+        settingsChanged = true;
+      }
+
+      string portableVisualizerDx12Path = MakePortableSettingPath(Settings.VisualizerDX12Path);
+      if (portableVisualizerDx12Path != Settings.VisualizerDX12Path) {
+        Settings.VisualizerDX12Path = portableVisualizerDx12Path;
+        settingsChanged = true;
+      }
+
+      string portableVisualizerExe = MakePortableSettingPath(Settings.VisualizerExe);
+      if (portableVisualizerExe != Settings.VisualizerExe) {
+        Settings.VisualizerExe = portableVisualizerExe;
+        settingsChanged = true;
+      }
+
+      string portableVisualizerExeDx12 = MakePortableSettingPath(Settings.VisualizerExeDX12);
+      if (portableVisualizerExeDx12 != Settings.VisualizerExeDX12) {
+        Settings.VisualizerExeDX12 = portableVisualizerExeDx12;
+        settingsChanged = true;
+      }
+
+      if (settingsChanged) {
+        SaveSettingsToFile();
+      }
     }
 
     /// <summary>
@@ -76,6 +150,8 @@ namespace MilkwaveRemote {
     private string VisualizerPresetsFolder = "";
     private string ShaderFilesFolder = "";
     private string PresetsShaderConvFolder = "";
+    private string connectedVisualizerDir = "";
+    private string connectedVisualizerDX12Dir = "";
 
     private string lastScriptFileName = "script-default.txt";
     private string midiDefaultFileName = "midi-default.txt";
@@ -922,6 +998,8 @@ namespace MilkwaveRemote {
         Settings = new Settings();
       }
 
+      NormalizeVisualizerLaunchPaths();
+
       try {
         string tagsFile = Path.Combine(BaseDir, milkwaveTagsFile);
         string tagsJson = File.ReadAllText(tagsFile);
@@ -1306,7 +1384,12 @@ namespace MilkwaveRemote {
         return;
       }
 
-      ConnectToInstance(_discoveredInstances[0]);
+      var localInstance = _discoveredInstances.FirstOrDefault(inst => IsPathUnderBaseDir(inst.exePath));
+      if (localInstance.pid != 0) {
+        ConnectToInstance(localInstance);
+      } else {
+        ConnectToInstance(_discoveredInstances[0]);
+      }
     }
 
     private void ConnectToInstance((int pid, string name, string exePath) target, bool autoSwitch = true) {
@@ -1322,11 +1405,16 @@ namespace MilkwaveRemote {
         // Remember the full exe path in the correct setting for future auto-launch
         string resolvedExe = target.exePath;
         if (!string.IsNullOrEmpty(resolvedExe) && File.Exists(resolvedExe)) {
+          string resolvedDir = Path.GetDirectoryName(resolvedExe) ?? "";
           bool targetIsDX12 = target.name.Contains("DX12", StringComparison.OrdinalIgnoreCase);
           if (targetIsDX12) {
-            Settings.VisualizerExeDX12 = resolvedExe;
+            connectedVisualizerDX12Dir = resolvedDir;
+            Settings.VisualizerDX12Path = MakePortableSettingPath(resolvedDir);
+            Settings.VisualizerExeDX12 = MakePortableSettingPath(resolvedExe);
           } else {
-            Settings.VisualizerExe = resolvedExe;
+            connectedVisualizerDir = resolvedDir;
+            Settings.VisualizerPath = MakePortableSettingPath(resolvedDir);
+            Settings.VisualizerExe = MakePortableSettingPath(resolvedExe);
           }
           SaveSettingsToFile();
         }
