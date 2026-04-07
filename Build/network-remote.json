@@ -2,8 +2,8 @@
   "targets": [
     {
       "active": false,
-      "name": "MDropDX12 (Remote)",
-      "host": "192.168.1.100",
+      "name": "MDropDX12 (localhost)",
+      "host": "192.168.0.1",
       "port": 9270,
       "pin": "",
       "deviceId": "milkwave-remote-1",

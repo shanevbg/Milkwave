@@ -6,7 +6,6 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Globalization;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using static MilkwaveRemote.Data.MidiRow;
@@ -49,75 +48,6 @@ namespace MilkwaveRemote {
       string subPath = isDX12 ? Settings.VisualizerDX12Path : Settings.VisualizerPath;
       if (string.IsNullOrEmpty(subPath)) return BaseDir;
       return Path.IsPathRooted(subPath) ? subPath : Path.Combine(BaseDir, subPath);
-    }
-
-    private bool IsPathUnderBaseDir(string? path) {
-      if (string.IsNullOrWhiteSpace(path)) {
-        return false;
-      }
-
-      try {
-        string fullPath = Path.GetFullPath(path);
-        string fullBaseDir = Path.GetFullPath(BaseDir);
-        fullBaseDir = Path.TrimEndingDirectorySeparator(fullBaseDir) + Path.DirectorySeparatorChar;
-        return fullPath.StartsWith(fullBaseDir, StringComparison.OrdinalIgnoreCase);
-      } catch {
-        return false;
-      }
-    }
-
-    private string MakePortableSettingPath(string? path) {
-      if (string.IsNullOrWhiteSpace(path)) {
-        return string.Empty;
-      }
-
-      try {
-        string fullPath = Path.GetFullPath(path);
-        string fullBaseDir = Path.GetFullPath(BaseDir);
-        fullBaseDir = Path.TrimEndingDirectorySeparator(fullBaseDir) + Path.DirectorySeparatorChar;
-        if (fullPath.StartsWith(fullBaseDir, StringComparison.OrdinalIgnoreCase)) {
-          string relativePath = Path.GetRelativePath(fullBaseDir, fullPath);
-          if (!string.IsNullOrWhiteSpace(relativePath) && relativePath != ".") {
-            return relativePath;
-          }
-          return string.Empty;
-        }
-      } catch {
-      }
-
-      return path;
-    }
-
-    private void NormalizeVisualizerLaunchPaths() {
-      bool settingsChanged = false;
-
-      string portableVisualizerPath = MakePortableSettingPath(Settings.VisualizerPath);
-      if (portableVisualizerPath != Settings.VisualizerPath) {
-        Settings.VisualizerPath = portableVisualizerPath;
-        settingsChanged = true;
-      }
-
-      string portableVisualizerDx12Path = MakePortableSettingPath(Settings.VisualizerDX12Path);
-      if (portableVisualizerDx12Path != Settings.VisualizerDX12Path) {
-        Settings.VisualizerDX12Path = portableVisualizerDx12Path;
-        settingsChanged = true;
-      }
-
-      string portableVisualizerExe = MakePortableSettingPath(Settings.VisualizerExe);
-      if (portableVisualizerExe != Settings.VisualizerExe) {
-        Settings.VisualizerExe = portableVisualizerExe;
-        settingsChanged = true;
-      }
-
-      string portableVisualizerExeDx12 = MakePortableSettingPath(Settings.VisualizerExeDX12);
-      if (portableVisualizerExeDx12 != Settings.VisualizerExeDX12) {
-        Settings.VisualizerExeDX12 = portableVisualizerExeDx12;
-        settingsChanged = true;
-      }
-
-      if (settingsChanged) {
-        SaveSettingsToFile();
-      }
     }
 
     /// <summary>
@@ -272,8 +202,9 @@ namespace MilkwaveRemote {
       InputMixOpacity,
       InputMixLuma,
       PrecompileCache,
-      FFTAttack,
-      FFTDecay
+      EQAttack,
+      EQDecay,
+      EQBoost
     }
 
     private class PendingThumbnail {
@@ -998,8 +929,6 @@ namespace MilkwaveRemote {
         Settings = new Settings();
       }
 
-      NormalizeVisualizerLaunchPaths();
-
       try {
         string tagsFile = Path.Combine(BaseDir, milkwaveTagsFile);
         string tagsJson = File.ReadAllText(tagsFile);
@@ -1366,7 +1295,7 @@ namespace MilkwaveRemote {
     }
 
     private void ConnectToVisualizer() {
-     DetachAndDisposeActiveClient();
+      DetachAndDisposeActiveClient();
 
       ScanAndPopulateVisualizers();
 
@@ -1384,20 +1313,15 @@ namespace MilkwaveRemote {
         return;
       }
 
-      var localInstance = _discoveredInstances.FirstOrDefault(inst => IsPathUnderBaseDir(inst.exePath));
-      if (localInstance.pid != 0) {
-        ConnectToInstance(localInstance);
-      } else {
-        ConnectToInstance(_discoveredInstances[0]);
-      }
+      ConnectToInstance(_discoveredInstances[0]);
     }
 
     private void ConnectToInstance((int pid, string name, string exePath) target, bool autoSwitch = true) {
-     DetachAndDisposeActiveClient();
-     var pipeClient = new PipeClient();
-     pipeClient.MessageReceived += OnPipeMessageReceived;
-     pipeClient.Disconnected += OnPipeDisconnected;
-     _activeClient = pipeClient;
+      DetachAndDisposeActiveClient();
+      var pipeClient = new PipeClient();
+      pipeClient.MessageReceived += OnPipeMessageReceived;
+      pipeClient.Disconnected += OnPipeDisconnected;
+      _activeClient = pipeClient;
 
       if (pipeClient.Connect(target.pid)) {
         SetStatusText($"Connected to {target.name} (PID: {target.pid})");
@@ -1409,14 +1333,9 @@ namespace MilkwaveRemote {
           bool targetIsDX12 = target.name.Contains("DX12", StringComparison.OrdinalIgnoreCase);
           if (targetIsDX12) {
             connectedVisualizerDX12Dir = resolvedDir;
-            Settings.VisualizerDX12Path = MakePortableSettingPath(resolvedDir);
-            Settings.VisualizerExeDX12 = MakePortableSettingPath(resolvedExe);
           } else {
             connectedVisualizerDir = resolvedDir;
-            Settings.VisualizerPath = MakePortableSettingPath(resolvedDir);
-            Settings.VisualizerExe = MakePortableSettingPath(resolvedExe);
           }
-          SaveSettingsToFile();
         }
 
         // Request current state (running preset, wave params, settings, etc.)
@@ -1539,13 +1458,13 @@ namespace MilkwaveRemote {
                          cboVisualizerInstance.SelectedIndex < _discoveredInstances.Count &&
                          _discoveredInstances[cboVisualizerInstance.SelectedIndex].pid == closedPid;
 
-     // The client already disconnected naturally — just clean up without triggering the event again
-     if (_activeClient != null) {
-       _activeClient.Disconnected -= OnPipeDisconnected;
-       _activeClient.MessageReceived -= OnPipeMessageReceived;
-       _activeClient.Dispose();
-       _activeClient = null;
-     }
+      // The client already disconnected naturally — just clean up without triggering the event again
+      if (_activeClient != null) {
+        _activeClient.Disconnected -= OnPipeDisconnected;
+        _activeClient.MessageReceived -= OnPipeMessageReceived;
+        _activeClient.Dispose();
+        _activeClient = null;
+      }
 
       ScanAndPopulateVisualizers();
 
@@ -1972,10 +1891,12 @@ namespace MilkwaveRemote {
               message = "COL_SATURATION=" + numSettingsSaturation.Value.ToString(CultureInfo.InvariantCulture);
             } else if (type == MessageType.ColBrightness) {
               message = "COL_BRIGHTNESS=" + numSettingsBrightness.Value.ToString(CultureInfo.InvariantCulture);
-            } else if (type == MessageType.FFTAttack) {
-              message = "FFT_ATTACK=" + numFFTAttack.Value.ToString(CultureInfo.InvariantCulture);
-            } else if (type == MessageType.FFTDecay) {
-              message = "FFT_DECAY=" + numFFTDecay.Value.ToString(CultureInfo.InvariantCulture);
+            } else if (type == MessageType.EQAttack) {
+              message = "EQ_ATTACK=" + numFFTAttack.Value.ToString(CultureInfo.InvariantCulture);
+            } else if (type == MessageType.EQDecay) {
+              message = "EQ_DECAY=" + numFFTDecay.Value.ToString(CultureInfo.InvariantCulture);
+            } else if (type == MessageType.EQBoost) {
+              message = "EQ_BOOST=" + numFFTBoost.Value.ToString(CultureInfo.InvariantCulture);
             } else if (type == MessageType.PresetLink) {
               message = "LINK=" + messageToSend;
             } else if (type == MessageType.SpoutActive) {
@@ -2443,15 +2364,35 @@ namespace MilkwaveRemote {
           if (float.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out float parsedValue)) {
             numSettingsBrightness.Value = Math.Clamp((decimal)parsedValue, numSettingsBrightness.Minimum, numSettingsBrightness.Maximum);
           }
+        } else if (tokenUpper.StartsWith("EQATTACK=")) {
+          string value = token.Substring(token.IndexOf("=") + 1);
+          if (float.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out float parsedValue)) {
+            numFFTAttack.Value = Math.Clamp((decimal)parsedValue, numFFTAttack.Minimum, numFFTAttack.Maximum);
+          }
         } else if (tokenUpper.StartsWith("FFTATTACK=")) {
           string value = token.Substring(token.IndexOf("=") + 1);
           if (float.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out float parsedValue)) {
             numFFTAttack.Value = Math.Clamp((decimal)parsedValue, numFFTAttack.Minimum, numFFTAttack.Maximum);
           }
+        } else if (tokenUpper.StartsWith("EQDECAY=")) {
+          string value = token.Substring(token.IndexOf("=") + 1);
+          if (float.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out float parsedValue)) {
+            numFFTDecay.Value = Math.Clamp((decimal)parsedValue, numFFTDecay.Minimum, numFFTDecay.Maximum);
+          }
         } else if (tokenUpper.StartsWith("FFTDECAY=")) {
           string value = token.Substring(token.IndexOf("=") + 1);
           if (float.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out float parsedValue)) {
             numFFTDecay.Value = Math.Clamp((decimal)parsedValue, numFFTDecay.Minimum, numFFTDecay.Maximum);
+          }
+        } else if (tokenUpper.StartsWith("EQBOOST=")) {
+          string value = token.Substring(token.IndexOf("=") + 1);
+          if (float.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out float parsedValue)) {
+            numFFTBoost.Value = Math.Clamp((decimal)parsedValue, numFFTBoost.Minimum, numFFTBoost.Maximum);
+          }
+        } else if (tokenUpper.StartsWith("FFTBOOST=")) {
+          string value = token.Substring(token.IndexOf("=") + 1);
+          if (float.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out float parsedValue)) {
+            numFFTBoost.Value = Math.Clamp((decimal)parsedValue, numFFTBoost.Minimum, numFFTBoost.Maximum);
           }
         } else if (tokenUpper.Equals("RAND")) {
           SendPostMessage(VK_R, "R");
@@ -2914,9 +2855,9 @@ namespace MilkwaveRemote {
         // Close the Visualizer window if CloseVisualizerWithRemote=true or Alt or Ctrl key are pressed
         if (Settings.CloseVisualizerWithRemote || (Control.ModifierKeys & Keys.Alt) == Keys.Alt || (Control.ModifierKeys & Keys.Control) == Keys.Control) {
           _activeClient?.Send("SEND=0x1B"); // VK_ESCAPE — triggers close
-          }
+        }
 
-          DetachAndDisposeActiveClient();
+        DetachAndDisposeActiveClient();
 
       } catch (Exception ex) {
         Program.SaveErrorToFile(ex, "Error");
@@ -4742,12 +4683,17 @@ namespace MilkwaveRemote {
 
     private void numFFTAttack_ValueChanged(object sender, EventArgs e) {
       if (updatingSettingsParams) return;
-      SendToMilkwaveVisualizer("", MessageType.FFTAttack);
+      SendToMilkwaveVisualizer("", MessageType.EQAttack);
     }
 
     private void numFFTDecay_ValueChanged(object sender, EventArgs e) {
       if (updatingSettingsParams) return;
-      SendToMilkwaveVisualizer("", MessageType.FFTDecay);
+      SendToMilkwaveVisualizer("", MessageType.EQDecay);
+    }
+
+    private void numFFTBoost_ValueChanged(object sender, EventArgs e) {
+      if (updatingSettingsParams) return;
+      SendToMilkwaveVisualizer("", MessageType.EQBoost);
     }
 
     private void lblFactorTime_Click(object sender, EventArgs e) {
@@ -6547,11 +6493,11 @@ namespace MilkwaveRemote {
 
     private void UpdateInputMixControlsEnabled() {
       bool active = chkVideoMix.Checked || chkSpoutMix.Checked;
-      chkInputTop.Enabled         = active;
-      numInputMixOpacity.Enabled  = active;
-      chkMixLumaActive.Enabled    = active;
-      numLumaThreshold.Enabled    = active;
-      numLumaSoftness.Enabled     = active;
+      chkInputTop.Enabled = active;
+      numInputMixOpacity.Enabled = active;
+      chkMixLumaActive.Enabled = active;
+      numLumaThreshold.Enabled = active;
+      numLumaSoftness.Enabled = active;
     }
 
     private void PopulateVideoDevices() {
@@ -6855,9 +6801,17 @@ namespace MilkwaveRemote {
       numFFTDecay.Value = 0.7m;
     }
 
+    private void labelEQBoost_DoubleClick(object sender, EventArgs e) {
+      numFFTBoost.Value = 1.0m;
+    }
+
     private void lblVisualizerOpacity_DoubleClick(object sender, EventArgs e) {
       numOpacity.Value = 100;
     }
 
+    private void lblAmp_DoubleClick(object sender, EventArgs e) {
+      numAmpLeft.Value = 1.0m;
+      numAmpRight.Value = 1.0m;
+    }
   } // end class
 } // end namespace

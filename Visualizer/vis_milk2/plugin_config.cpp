@@ -447,8 +447,9 @@ void CPlugin::MyReadConfig() {
   m_bInputMixOnTop = GetPrivateProfileBoolW(L"Milkwave", L"InputMixOnTop", true, pIni);
   m_cInputMixTint = (D3DCOLOR)GetPrivateProfileIntW(L"Milkwave", L"InputMixTint", 0xFFFFFFFF, pIni);
 
-  m_fFFTAttackGlobal = GetPrivateProfileFloatW(L"Milkwave", L"FFTAttack", 0.5f, pIni);
-  m_fFFTDecayGlobal = GetPrivateProfileFloatW(L"Milkwave", L"FFTDecay", 0.7f, pIni);
+  m_fEQAttackGlobal = GetPrivateProfileFloatW(L"Milkwave", L"EQAttack", GetPrivateProfileFloatW(L"Milkwave", L"FFTAttack", 0.5f, pIni), pIni);
+  m_fEQDecayGlobal = GetPrivateProfileFloatW(L"Milkwave", L"EQDecay", GetPrivateProfileFloatW(L"Milkwave", L"FFTDecay", 0.7f, pIni), pIni);
+  m_fEQBoostGlobal = GetPrivateProfileFloatW(L"Milkwave", L"EQBoost", GetPrivateProfileFloatW(L"Milkwave", L"FFTBoost", 1.0f, pIni), pIni);
 
   // --------
 
@@ -649,8 +650,12 @@ void CPlugin::MyWriteConfig() {
   WritePrivateProfileIntW(m_bInputMixOnTop, L"InputMixOnTop", pIni, L"Milkwave");
   WritePrivateProfileIntW((int)m_cInputMixTint, L"InputMixTint", pIni, L"Milkwave");
 
-  WritePrivateProfileFloatW(m_fFFTAttackGlobal, L"FFTAttack", pIni, L"Milkwave");
-  WritePrivateProfileFloatW(m_fFFTDecayGlobal, L"FFTDecay", pIni, L"Milkwave");
+  WritePrivateProfileFloatW(m_fEQAttackGlobal, L"EQAttack", pIni, L"Milkwave");
+  WritePrivateProfileFloatW(m_fEQDecayGlobal, L"EQDecay", pIni, L"Milkwave");
+  WritePrivateProfileFloatW(m_fEQBoostGlobal, L"EQBoost", pIni, L"Milkwave");
+  WritePrivateProfileStringW(L"Milkwave", L"FFTAttack", nullptr, pIni);
+  WritePrivateProfileStringW(L"Milkwave", L"FFTDecay", nullptr, pIni);
+  WritePrivateProfileStringW(L"Milkwave", L"FFTBoost", nullptr, pIni);
 }
 
 void CPlugin::SaveWindowSizeAndPosition(HWND hwnd) {

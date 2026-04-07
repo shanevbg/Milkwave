@@ -177,8 +177,9 @@ class CPluginShell {
   float m_ColShiftSaturation = 0.0f;
   float m_ColShiftBrightness = 0.0f;
 
-  float m_fFFTAttackGlobal = 0.5f;  // global FFT attack (0..1), controlled by Remote
-  float m_fFFTDecayGlobal = 0.7f;   // global FFT decay  (0..1), controlled by Remote
+  float m_fEQAttackGlobal = 0.5f;  // global FFT attack (0..1), controlled by Remote
+  float m_fEQDecayGlobal = 0.7f;   // global FFT decay  (0..1), controlled by Remote
+  float m_fEQBoostGlobal = 1.0f;   // global FFT boost  (0..9.99), controlled by Remote
 
   bool m_AutoHue = false;
   float m_AutoHueSeconds = 0.02f;

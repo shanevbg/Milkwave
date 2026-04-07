@@ -1396,7 +1396,7 @@ void CPlugin::SendPresetWaveInfoToMilkwaveRemote() {
 }
 
 void CPlugin::SendSettingsInfoToMilkwaveRemote() {
-  std::wstring msg = L"SETTINGS|ACTIVE=" + std::wstring(bSpoutOut ? L"1" : L"0") + L"|FIXEDSIZE=" + std::wstring(bSpoutFixedSize ? L"1" : L"0") + L"|FIXEDWIDTH=" + std::to_wstring(nSpoutFixedWidth) + L"|FIXEDHEIGHT=" + std::to_wstring(nSpoutFixedHeight) + L"|QUALITY=" + std::to_wstring(m_fRenderQuality) + L"|AUTO=" + std::wstring(bQualityAuto ? L"1" : L"0") + L"|HUE=" + std::to_wstring(m_ColShiftHue) + L"|LOCKED=" + std::wstring(m_bPresetLockedByUser ? L"1" : L"0") + L"|RANDOM=" + std::wstring(m_bSequentialPresetOrder ? L"0" : L"1") + L"|INPUTTOP=" + std::wstring(m_bInputMixOnTop ? L"1" : L"0") + L"|LUMAACTIVE=" + std::wstring(m_bInputMixLumaActive ? L"1" : L"0") + L"|LUMATHR=" + std::to_wstring((int)(m_fInputMixLumakeyThreshold * 100.0f)) + L"|LUMASOFT=" + std::to_wstring((int)(m_fInputMixLumakeySoftness * 100.0f)) + L"|FFTATTACK=" + std::to_wstring(m_fFFTAttackGlobal) + L"|FFTDECAY=" + std::to_wstring(m_fFFTDecayGlobal);
+  std::wstring msg = L"SETTINGS|ACTIVE=" + std::wstring(bSpoutOut ? L"1" : L"0") + L"|FIXEDSIZE=" + std::wstring(bSpoutFixedSize ? L"1" : L"0") + L"|FIXEDWIDTH=" + std::to_wstring(nSpoutFixedWidth) + L"|FIXEDHEIGHT=" + std::to_wstring(nSpoutFixedHeight) + L"|QUALITY=" + std::to_wstring(m_fRenderQuality) + L"|AUTO=" + std::wstring(bQualityAuto ? L"1" : L"0") + L"|HUE=" + std::to_wstring(m_ColShiftHue) + L"|LOCKED=" + std::wstring(m_bPresetLockedByUser ? L"1" : L"0") + L"|RANDOM=" + std::wstring(m_bSequentialPresetOrder ? L"0" : L"1") + L"|INPUTTOP=" + std::wstring(m_bInputMixOnTop ? L"1" : L"0") + L"|LUMAACTIVE=" + std::wstring(m_bInputMixLumaActive ? L"1" : L"0") + L"|LUMATHR=" + std::to_wstring((int)(m_fInputMixLumakeyThreshold * 100.0f)) + L"|LUMASOFT=" + std::to_wstring((int)(m_fInputMixLumakeySoftness * 100.0f)) + L"|EQATTACK=" + std::to_wstring(m_fEQAttackGlobal) + L"|EQDECAY=" + std::to_wstring(m_fEQDecayGlobal) + L"|EQBOOST=" + std::to_wstring(m_fEQBoostGlobal);
   SendMessageToMilkwaveRemote(msg.c_str(), true);
 }
 
@@ -1989,15 +1989,9 @@ void CPlugin::DoCustomSoundAnalysis() {
 
   // Apply FFT smoothing and upload to GPU texture
   {
-    float attack = m_pState ? m_pState->m_fFFTAttack : m_fFFTAttackGlobal;
-    float decay = m_pState ? m_pState->m_fFFTDecay : m_fFFTDecayGlobal;
-    // Scale factor: 0.00035 was tuned empirically for the old 576-sample / NFREQ=1024 FFT.
-    // New FFT has NFREQ=8192 (8Ã— larger), so raw magnitudes are ~8Ã— higher.
-    // Using (old NFREQ) / (new NFREQ) = 1024/8192 as the primary correction, then Ã—4
-    // to restore the perceptual sensitivity level comparable to BeatDrop.
-    // (Pink noise compensation normalises to 1.0 at 1 kHz and attenuates below it,
-    //  so the extra headroom is intentional.)
-    const float kScaleFactor = 0.00065f * (4096.0f / (float)MY_FFT_SHADER_INPUT);
+    float attack = m_pState ? m_pState->m_fFFTAttack : m_fEQAttackGlobal;
+    float decay = m_pState ? m_pState->m_fFFTDecay : m_fEQDecayGlobal;
+    const float kScaleFactor = m_fEQBoostGlobal * m_fEQBoostGlobal * 0.00030f * (4096.0f / (float)MY_FFT_SHADER_INPUT);
     const float kNoiseGate = 5e-5f;
     const float kVisibleFloor = 2.5e-4f;
     // Pink noise compensation reference bin at 1 kHz (~bin 185.9).
@@ -2021,11 +2015,11 @@ void CPlugin::DoCustomSoundAnalysis() {
       const float kHiFreqBinLo = 4000.0f * (float)MY_FFT_SHADER_BINS / 22050.0f;
       const float kHiFreqBinHi = 16000.0f * (float)MY_FFT_SHADER_BINS / 22050.0f;
       float hiBlend = clamp((float)(fi - kHiFreqBinLo) / (kHiFreqBinHi - kHiFreqBinLo), 0.0f, 1.0f);
-      float eff_attack = attack * (1.0f - 0.5f * hiBlend);
+      float eff_attack = attack * (0.7f - 0.2f * hiBlend);
       if (mono > m_fFFTSmoothed[fi])
         m_fFFTSmoothed[fi] += (mono - m_fFFTSmoothed[fi]) * eff_attack;
       else {
-        float decayFactor = (1.0f - decay) * (1.0f - decay);
+        float decayFactor = (1.0f - decay) * (1.0f - decay) * 0.75f;
         m_fFFTSmoothed[fi] += (mono - m_fFFTSmoothed[fi]) * decayFactor;
       }
       if (m_fFFTSmoothed[fi] < kVisibleFloor)

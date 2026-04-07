@@ -73,6 +73,9 @@ Section "Milkwave" SecMilkwave
   SetOutPath "$INSTDIR\resources\presets\Milkwave\Shader\"
   File "${RELDIR}resources\presets\Milkwave\Shader\*"
 
+  SetOutPath "$INSTDIR\resources\presets\Milkwave\Basic\"
+  File "${RELDIR}resources\presets\Milkwave\Basic\*"
+
   SetOutPath "$INSTDIR\resources\sprites\"
   File /r "${RELDIR}resources\sprites\*"
 

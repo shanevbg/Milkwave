@@ -653,21 +653,49 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
   } else if (wcsncmp(sMessage, L"COL_BRIGHTNESS=", 15) == 0) {
     std::wstring message(sMessage + 15);
     g_plugin.m_ColShiftBrightness = std::stof(message);
+  } else if (wcsncmp(sMessage, L"EQ_ATTACK=", 10) == 0) {
+    std::wstring message(sMessage + 10);
+    g_plugin.m_fEQAttackGlobal = max(0.0f, min(1.0f, std::stof(message)));
+    if (g_plugin.m_pState)
+      g_plugin.m_pState->m_fFFTAttack = g_plugin.m_fEQAttackGlobal;
+    wchar_t buf[64];
+    swprintf(buf, 64, L"EQ Attack: %.2f", g_plugin.m_fEQAttackGlobal);
+    g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
   } else if (wcsncmp(sMessage, L"FFT_ATTACK=", 11) == 0) {
     std::wstring message(sMessage + 11);
-    g_plugin.m_fFFTAttackGlobal = max(0.0f, min(1.0f, std::stof(message)));
+    g_plugin.m_fEQAttackGlobal = max(0.0f, min(1.0f, std::stof(message)));
     if (g_plugin.m_pState)
-      g_plugin.m_pState->m_fFFTAttack = g_plugin.m_fFFTAttackGlobal;
+      g_plugin.m_pState->m_fFFTAttack = g_plugin.m_fEQAttackGlobal;
     wchar_t buf[64];
-    swprintf(buf, 64, L"FFT Attack: %.2f", g_plugin.m_fFFTAttackGlobal);
+    swprintf(buf, 64, L"EQ Attack: %.2f", g_plugin.m_fEQAttackGlobal);
+    g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
+  } else if (wcsncmp(sMessage, L"EQ_DECAY=", 9) == 0) {
+    std::wstring message(sMessage + 9);
+    g_plugin.m_fEQDecayGlobal = max(0.0f, min(1.0f, std::stof(message)));
+    if (g_plugin.m_pState)
+      g_plugin.m_pState->m_fFFTDecay = g_plugin.m_fEQDecayGlobal;
+    wchar_t buf[64];
+    swprintf(buf, 64, L"EQ Decay: %.2f", g_plugin.m_fEQDecayGlobal);
     g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
   } else if (wcsncmp(sMessage, L"FFT_DECAY=", 10) == 0) {
     std::wstring message(sMessage + 10);
-    g_plugin.m_fFFTDecayGlobal = max(0.0f, min(1.0f, std::stof(message)));
+    g_plugin.m_fEQDecayGlobal = max(0.0f, min(1.0f, std::stof(message)));
     if (g_plugin.m_pState)
-      g_plugin.m_pState->m_fFFTDecay = g_plugin.m_fFFTDecayGlobal;
+      g_plugin.m_pState->m_fFFTDecay = g_plugin.m_fEQDecayGlobal;
     wchar_t buf[64];
-    swprintf(buf, 64, L"FFT Decay: %.2f", g_plugin.m_fFFTDecayGlobal);
+    swprintf(buf, 64, L"EQ Decay: %.2f", g_plugin.m_fEQDecayGlobal);
+    g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
+  } else if (wcsncmp(sMessage, L"EQ_BOOST=", 9) == 0) {
+    std::wstring message(sMessage + 9);
+    g_plugin.m_fEQBoostGlobal = max(0.0f, min(9.99f, std::stof(message)));
+    wchar_t buf[64];
+    swprintf(buf, 64, L"EQ Boost: %.2f", g_plugin.m_fEQBoostGlobal);
+    g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
+  } else if (wcsncmp(sMessage, L"FFT_BOOST=", 10) == 0) {
+    std::wstring message(sMessage + 10);
+    g_plugin.m_fEQBoostGlobal = max(0.0f, min(9.99f, std::stof(message)));
+    wchar_t buf[64];
+    swprintf(buf, 64, L"EQ Boost: %.2f", g_plugin.m_fEQBoostGlobal);
     g_plugin.AddError(buf, 2.0f, ERR_NOTIFY, false);
   } else if (wcsncmp(sMessage, L"VAR_QUALITY=", 12) == 0) {
     std::wstring message(sMessage + 12);
