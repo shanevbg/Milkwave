@@ -1142,7 +1142,7 @@ namespace MilkwaveRemote
       // 
       // lblAudioDevice
       // 
-      lblAudioDevice.Location = new Point(1, 124);
+      lblAudioDevice.Location = new Point(0, 124);
       lblAudioDevice.Name = "lblAudioDevice";
       lblAudioDevice.Size = new Size(67, 23);
       lblAudioDevice.TabIndex = 115;
@@ -2358,7 +2358,7 @@ namespace MilkwaveRemote
       // 
       // lblSpout
       // 
-      lblSpout.Location = new Point(1, 67);
+      lblSpout.Location = new Point(1, 66);
       lblSpout.Name = "lblSpout";
       lblSpout.Size = new Size(65, 23);
       lblSpout.TabIndex = 155;
