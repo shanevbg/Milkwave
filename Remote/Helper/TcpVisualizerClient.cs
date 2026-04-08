@@ -5,6 +5,7 @@ namespace MilkwaveRemote.Helper {
 
   public enum TcpAuthState {
     Connecting,
+    ConnectionFailed,
     AuthPending,
     AuthOk,
     AuthFailed
@@ -54,8 +55,8 @@ namespace MilkwaveRemote.Helper {
         var ct = _cts.Token;
         _ = Task.Run(() => ReadLoop(ct), ct);
       } catch (Exception ex) {
-        Program.LogToFile($"TcpVisualizerClient connect failed: {ex.Message}");
-        AuthStateChanged?.Invoke(TcpAuthState.AuthFailed);
+        Program.LogToFile($"TcpVisualizerClient connection failed: {ex.Message}");
+        AuthStateChanged?.Invoke(TcpAuthState.ConnectionFailed);
         CleanupConnection();
       }
     }

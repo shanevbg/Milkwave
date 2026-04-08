@@ -1383,6 +1383,10 @@ namespace MilkwaveRemote {
             case TcpAuthState.Connecting:
               SetStatusText($"Connecting to {target.Name}...");
               break;
+            case TcpAuthState.ConnectionFailed:
+              SetStatusText($"Connection failed — check firewall or network access for {target.Name} ({target.Host})");
+              DetachAndDisposeActiveClient();
+              break;
             case TcpAuthState.AuthPending:
               SetStatusText($"Waiting for approval on {target.Host} — approve in MDropDX12 Settings");
               break;
