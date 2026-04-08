@@ -127,10 +127,16 @@
 #define VK_M 0x4D  // ASCII code for 'M'
 #endif
 
+#ifndef VK_N
+#define VK_N 0x4E  // ASCII code for 'N'
+#endif
+
 #include <stdlib.h>
 #include <malloc.h>
 #include <crtdbg.h>
 
+#include <winsock2.h>  // Must precede windows.h for tcp_server.h
+#include <ws2tcpip.h>
 #include <windows.h>
 #include <process.h>
 #include <d3d9.h>
@@ -143,6 +149,7 @@
 
 #include "plugin.h"
 #include "pipe_server.h"
+#include "tcp_server.h"
 #include "resource.h"
 #include "pluginshell.h"
 
@@ -173,9 +180,12 @@ namespace fs = std::filesystem;
 CPlugin g_plugin;
 Milkwave milkwave;
 PipeServer g_pipeServer;
+TcpServer g_tcpServer;
 HINSTANCE api_orig_hinstance = nullptr;
 _locale_t g_use_C_locale;
 char keyMappings[8];
+
+#define IDT_TCP_POLL 42
 
 // SPOUT
 // ===============================================
@@ -775,6 +785,14 @@ LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
       break;
     }
 
+    case WM_TIMER: {
+      if (wParam == IDT_TCP_POLL) {
+        g_tcpServer.Poll();
+        return 0;
+      }
+      break;
+    }
+
     case WM_MOVE: {
       // Get the current window rectangle
       RECT windowRect;
@@ -904,6 +922,73 @@ LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           } else {
             g_plugin.AddNotification(L"Mouse interaction disabled");
           }
+        }
+      } else if (wParam == VK_N) {
+        if (GetKeyState(VK_CONTROL) & 0x8000) {  // Ctrl+N: network server info
+          bool isShiftPressed = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+          if (isShiftPressed) {
+            // Ctrl+Shift+N: toggle server on/off and persist
+            if (g_tcpServer.IsRunning()) {
+              g_tcpServer.Stop();
+              g_plugin.m_TcpEnabled = false;
+              g_plugin.AddNotification(L"Network Server stopped");
+            } else {
+              std::string pin;
+              if (g_plugin.m_szTcpPIN[0] != L'\0') {
+                int size = WideCharToMultiByte(CP_UTF8, 0, g_plugin.m_szTcpPIN, -1, nullptr, 0, nullptr, nullptr);
+                if (size > 0) {
+                  pin.resize(size - 1);
+                  WideCharToMultiByte(CP_UTF8, 0, g_plugin.m_szTcpPIN, -1, &pin[0], size, nullptr, nullptr);
+                }
+              }
+              if (g_tcpServer.Start(g_plugin.m_TcpPort, pin,
+                                    [hWnd](TcpClientConnection& client, const std::wstring& msg) {
+                                      g_respondingTcpClient = &client;
+                                      wchar_t* copy = (wchar_t*)malloc((msg.size() + 1) * sizeof(wchar_t));
+                                      if (copy) {
+                                        wcscpy_s(copy, msg.size() + 1, msg.c_str());
+                                        PostMessageW(hWnd, WM_USER_PIPE_IPC_MESSAGE, 1, (LPARAM)copy);
+                                      }
+                                    })) {
+                g_plugin.m_TcpEnabled = true;
+                wchar_t buf[256];
+                swprintf_s(buf, L"Network Server started on port %d", g_plugin.m_TcpPort);
+                g_plugin.AddNotification(buf);
+              } else {
+                g_plugin.AddNotification(L"Network Server failed to start");
+              }
+            }
+            // Persist TcpEnabled to settings.ini
+            WritePrivateProfileStringW(L"Network", L"TcpEnabled",
+                                       g_plugin.m_TcpEnabled ? L"1" : L"0",
+                                       g_plugin.GetConfigIniFile());
+          } else {
+            // Ctrl+N: show network status
+            bool running = g_tcpServer.IsRunning();
+            auto clients = g_tcpServer.GetConnectedClients();
+            wchar_t buf[1024];
+            if (running) {
+              std::wstring clientList;
+              for (const auto& c : clients) {
+                int nameSize = MultiByteToWideChar(CP_UTF8, 0, c.deviceName.data(), (int)c.deviceName.size(), nullptr, 0);
+                std::wstring wName(nameSize, 0);
+                MultiByteToWideChar(CP_UTF8, 0, c.deviceName.data(), (int)c.deviceName.size(), &wName[0], nameSize);
+                if (!clientList.empty()) clientList += L", ";
+                clientList += wName;
+              }
+              if (clients.empty()) {
+                swprintf_s(buf, L"Network Server: ON (port %d)\nNo clients connected  [CTRL+SHIFT+N to stop]",
+                           g_tcpServer.GetPort());
+              } else {
+                swprintf_s(buf, L"Network Server: ON (port %d)\n%d client(s): %s  [CTRL+SHIFT+N to stop]",
+                           g_tcpServer.GetPort(), (int)clients.size(), clientList.c_str());
+              }
+            } else {
+              swprintf_s(buf, L"Network Server: OFF  [CTRL+SHIFT+N to start]");
+            }
+            g_plugin.AddError(buf, 8.0f, ERR_NOTIFY, false);
+          }
+          return 0;
         }
       }
 
@@ -1407,6 +1492,38 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
   // Use WM_USER as signal base (Milkwave uses WM_USER+N, not WM_APP+N)
   g_pipeServer.Start(hwnd, WM_USER_PIPE_IPC_MESSAGE, WM_USER);
 
+  // Start TCP network server if enabled
+  if (g_plugin.m_TcpEnabled) {
+    // Determine PIN: clear-text TcpPIN takes precedence, otherwise use PinHash
+    std::string pin;
+    if (g_plugin.m_szTcpPIN[0] != L'\0') {
+      // Convert wide PIN to UTF-8
+      int size = WideCharToMultiByte(CP_UTF8, 0, g_plugin.m_szTcpPIN, -1, nullptr, 0, nullptr, nullptr);
+      if (size > 0) {
+        pin.resize(size - 1);
+        WideCharToMultiByte(CP_UTF8, 0, g_plugin.m_szTcpPIN, -1, &pin[0], size, nullptr, nullptr);
+      }
+    }
+    // Note: PinHash support is reserved for future use
+
+    if (g_tcpServer.Start(g_plugin.m_TcpPort, pin,
+                          [hwnd](TcpClientConnection& client, const std::wstring& msg) {
+                            g_respondingTcpClient = &client;
+                            wchar_t* copy = (wchar_t*)malloc((msg.size() + 1) * sizeof(wchar_t));
+                            if (copy) {
+                              wcscpy_s(copy, msg.size() + 1, msg.c_str());
+                              PostMessageW(hwnd, WM_USER_PIPE_IPC_MESSAGE, 1, (LPARAM)copy);
+                            }
+                          })) {
+      milkwave.LogInfo(L"CreateWindowAndRun: TCP server started on port " + std::to_wstring(g_plugin.m_TcpPort));
+    } else {
+      milkwave.LogInfo(L"CreateWindowAndRun: TCP server failed to start");
+    }
+  }
+
+  // TCP poll timer (50ms)
+  SetTimer(hwnd, IDT_TCP_POLL, 50, NULL);
+
   MSG msg;
   msg.message = WM_NULL;
 
@@ -1443,6 +1560,8 @@ unsigned __stdcall CreateWindowAndRun(void* data) {
   }
   milkwave.LogInfo(L"CreateWindowAndRun: Message loop ended");
 
+  KillTimer(hwnd, IDT_TCP_POLL);
+  g_tcpServer.Stop();
   g_pipeServer.Stop();
   g_plugin.MyWriteConfig();
   g_plugin.PluginQuit();

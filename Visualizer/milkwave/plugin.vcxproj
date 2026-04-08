@@ -205,6 +205,7 @@
     <ClCompile Include="milkdropfs.cpp" />
     <ClCompile Include="milkwave.cpp" />
     <ClCompile Include="pipe_server.cpp" />
+    <ClCompile Include="tcp_server.cpp" />
     <ClCompile Include="plugin.cpp" />
     <ClCompile Include="plugin_blendpatterns.cpp" />
     <ClCompile Include="plugin_config.cpp" />
@@ -251,6 +252,7 @@
     <ClInclude Include="VideoCapture.h" />
     <ClInclude Include="milkwave.h" />
     <ClInclude Include="pipe_server.h" />
+    <ClInclude Include="tcp_server.h" />
     <ClInclude Include="plugin.h" />
     <ClInclude Include="plugin_internals.h" />
     <ClInclude Include="pluginshell.h" />

@@ -2,7 +2,7 @@ set releasePath=..\Release
 set backupPath=..\Release\backup
 set remoteBuildPath=..\Remote\bin\Release\net8.0-windows10.0.17763.0
 set visualizerSourcePath=..\Visualizer
-set visualizerBuildPath=..\Visualizer\vis_milk2\Release
+set visualizerBuildPath=..\Visualizer\milkwave\Release
 
 copy %releasePath%\*.ini %backupPath%
 copy %releasePath%\*.json %backupPath%

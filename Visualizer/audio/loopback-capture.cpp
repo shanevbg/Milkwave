@@ -1,7 +1,7 @@
 // loopback-capture.cpp
 
 #include "common.h"
-#include "..\vis_milk2\milkwave.h"
+#include "..\milkwave\milkwave.h"
 #include <string>
 #include <stdexcept>
 #include <vector>

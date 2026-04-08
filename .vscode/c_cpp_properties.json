@@ -4,7 +4,7 @@
       "name": "Win32",
       "includePath": [
         "${workspaceFolder}/**",
-        "${workspaceFolder}/Visualizer/vis_milk2",
+        "${workspaceFolder}/Visualizer/milkwave",
         "${workspaceFolder}/Visualizer/audio",
         "${workspaceFolder}/Visualizer/spoutDX9",
         "${workspaceFolder}/Visualizer/ns-eel2-shim",

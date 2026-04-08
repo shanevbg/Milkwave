@@ -447,6 +447,12 @@ class CPlugin : public CPluginShell {
   bool m_DisplayCoverWhenPressingB = true;
   bool m_HideNotificationsWhenRemoteActive = false;
 
+  // Network (TCP server)
+  bool m_TcpEnabled = false;
+  int m_TcpPort = 9270;
+  wchar_t m_szTcpPIN[128] = {};      // Clear-text PIN (takes precedence over PinHash if set)
+  wchar_t m_szTcpPinHash[128] = {};  // SHA256 hash of PIN (future use)
+
   int m_MinPSVersionConfig = 2;
   int m_MaxPSVersionConfig = 4;
   bool m_ShowUpArrowInDescriptionIfPSMinVersionForced = true;

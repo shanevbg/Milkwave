@@ -1,7 +1,7 @@
 # Script to extract plugin.cpp into multiple files
 # Run from vis_milk2 directory
 
-$srcFile = "C:\Source\Milkwave\Visualizer\vis_milk2\plugin.cpp"
+$srcFile = "C:\Source\Milkwave\Visualizer\milkwave\plugin.cpp"
 $lines = Get-Content $srcFile
 $totalLines = $lines.Count
 Write-Output "Source file: $totalLines lines"

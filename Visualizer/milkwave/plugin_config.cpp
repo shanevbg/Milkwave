@@ -490,6 +490,12 @@ void CPlugin::MyReadConfig() {
 
   m_ShowUpArrowInDescriptionIfPSMinVersionForced = GetPrivateProfileBoolW(L"Milkwave", L"ShowUpArrowInDescriptionIfPSMinVersionForced", m_ShowUpArrowInDescriptionIfPSMinVersionForced, pIni);
 
+  // Network (TCP server)
+  m_TcpEnabled = GetPrivateProfileBoolW(L"Network", L"TcpEnabled", m_TcpEnabled, pIni);
+  m_TcpPort = GetPrivateProfileIntW(L"Network", L"TcpPort", m_TcpPort, pIni);
+  GetPrivateProfileStringW(L"Network", L"TcpPIN", L"", m_szTcpPIN, _countof(m_szTcpPIN), pIni);
+  GetPrivateProfileStringW(L"Network", L"PinHash", L"", m_szTcpPinHash, _countof(m_szTcpPinHash), pIni);
+
   m_WindowBorderless = GetPrivateProfileBoolW(L"Milkwave", L"WindowBorderless", m_WindowBorderless, pIni);
   m_bAlwaysOnTop = GetPrivateProfileBoolW(L"Milkwave", L"WindowAlwaysOnTop", m_bAlwaysOnTop, pIni);
 
@@ -656,6 +662,10 @@ void CPlugin::MyWriteConfig() {
   WritePrivateProfileStringW(L"Milkwave", L"FFTAttack", nullptr, pIni);
   WritePrivateProfileStringW(L"Milkwave", L"FFTDecay", nullptr, pIni);
   WritePrivateProfileStringW(L"Milkwave", L"FFTBoost", nullptr, pIni);
+
+  // Network (TCP server)
+  WritePrivateProfileIntW(m_TcpEnabled, L"TcpEnabled", pIni, L"Network");
+  WritePrivateProfileIntW(m_TcpPort, L"TcpPort", pIni, L"Network");
 }
 
 void CPlugin::SaveWindowSizeAndPosition(HWND hwnd) {
