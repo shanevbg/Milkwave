@@ -32,7 +32,7 @@ namespace MilkwaveRemote.Helper {
     /// <summary>
     /// Connect to a remote MDropDX12 TCP server and perform the AUTH handshake.
     /// </summary>
-    public async Task ConnectAsync(string host, int port, string pin, string deviceId, string deviceName) {
+    public async Task ConnectAsync(string host, int port, string pin, string deviceId, string deviceName, TimeSpan? connectTimeout = null) {
       Disconnect();
 
       _cts = new CancellationTokenSource();
@@ -41,7 +41,7 @@ namespace MilkwaveRemote.Helper {
         AuthStateChanged?.Invoke(TcpAuthState.Connecting);
 
         _tcp = new TcpClient();
-        using var connectCts = new CancellationTokenSource(ConnectTimeout);
+        using var connectCts = new CancellationTokenSource(connectTimeout ?? ConnectTimeout);
         Program.LogToFile($"TcpVisualizerClient connecting to {host}:{port}");
         await _tcp.ConnectAsync(host, port, connectCts.Token);
         Program.LogToFile($"TcpVisualizerClient connected to {host}:{port}");

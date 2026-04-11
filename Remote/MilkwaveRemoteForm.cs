@@ -1150,13 +1150,21 @@ namespace MilkwaveRemote {
           } catch { }
         }
       }
-      // Also send to all network targets
-      foreach (var target in _activeNetworkTargets) {
-        try {
-          using var tcpClient = new TcpVisualizerClient();
-          tcpClient.ConnectAsync(target.Host, target.Port, target.Pin, target.DeviceId, target.DeviceName).Wait(TimeSpan.FromSeconds(10));
-          if (tcpClient.IsConnected && tcpClient.Send(message)) anySuccess = true;
-        } catch { }
+      // Also send to all network targets — run in background to avoid blocking the UI thread.
+      if (_activeNetworkTargets.Count > 0) {
+        var capturedTargets = _activeNetworkTargets.ToList();
+        var capturedMessage = message;
+        _ = Task.Run(async () => {
+          var tasks = capturedTargets.Select(async target => {
+            try {
+              using var tcpClient = new TcpVisualizerClient();
+              await tcpClient.ConnectAsync(target.Host, target.Port, target.Pin, target.DeviceId, target.DeviceName, TimeSpan.FromSeconds(3));
+              if (tcpClient.IsConnected) tcpClient.Send(capturedMessage);
+            } catch { }
+          });
+          await Task.WhenAll(tasks);
+        });
+        anySuccess = true;
       }
       return anySuccess;
     }
