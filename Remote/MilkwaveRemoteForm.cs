@@ -983,13 +983,11 @@ namespace MilkwaveRemote {
       monitorTimer = new System.Windows.Forms.Timer();
       monitorTimer.Tick += MonitorTimer_Tick;
       monitorTimer.Interval = Settings.MonitorPollingInterval;
+      MonitorHelper.Initialize(); // Start background counter init immediately
 
       controllerTimer = new System.Windows.Forms.Timer();
       controllerTimer.Tick += ControllerTimer_Tick;
       controllerTimer.Interval = 50; // 20Hz polling
-
-      toolStripStatusLabelMonitorCPU.Text = "";
-      toolStripStatusLabelMonitorGPU.Text = "";
 
       tabControl.SelectedIndex = Settings.SelectedTabIndex;
 #if !DEBUG
@@ -5626,26 +5624,35 @@ namespace MilkwaveRemote {
     }
 
     private async void MonitorTimer_Tick(object? sender, EventArgs? e) {
-      float usageCPU = 0, usageGPU = 0;
-      if (toolStripMenuItemMonitorCPU.Checked) {
-        usageCPU = await Task.Run(() => MonitorHelper.GetCPUUsage());
-      }
-      if (toolStripMenuItemMonitorGPU.Checked) {
-        usageGPU = await Task.Run(() => MonitorHelper.GetGPUUsage());
-      }
-      if (toolStripMenuItemMonitorCPU.Checked) {
-        if (usageCPU >= 0) {
-          toolStripStatusLabelMonitorCPU.Text = $"{usageCPU:F0}";
-        } else {
-          toolStripStatusLabelMonitorCPU.Text = "?";
+      monitorTimer.Stop(); // Prevent reentrant ticks
+      try {
+        if (toolStripMenuItemMonitorCPU.Checked) {
+          try {
+            var cpu = await Task.Run(() => MonitorHelper.GetCPUUsage());
+            toolStripStatusLabelMonitorCPU.Text = cpu >= 0 ? $"{cpu:F0}" : "?";
+          } catch (Exception ex) {
+            toolStripStatusLabelMonitorCPU.Text = "?";
+            MonitorHelper.Log($"CPU tick error: {ex.Message}");
+          }
         }
-      }
-      if (toolStripMenuItemMonitorGPU.Checked) {
-        if (usageGPU >= 0) {
-          toolStripStatusLabelMonitorGPU.Text = $"{usageGPU:F0}";
-        } else {
-          toolStripStatusLabelMonitorGPU.Text = "?";
+
+        if (toolStripMenuItemMonitorGPU.Checked) {
+          try {
+            var gpu = await Task.Run(() => MonitorHelper.GetGPUUsage());
+            if (gpu <= -2f) {
+              toolStripStatusLabelMonitorGPU.Text = "-";
+            } else {
+              toolStripStatusLabelMonitorGPU.Text = gpu >= 0 ? $"{gpu:F0}" : "?";
+            }
+          } catch (Exception ex) {
+            toolStripStatusLabelMonitorGPU.Text = "?";
+            MonitorHelper.Log($"GPU tick error: {ex.Message}");
+          }
         }
+      } catch (Exception ex) {
+        MonitorHelper.Log($"Monitor tick outer error: {ex}");
+      } finally {
+        monitorTimer.Start();
       }
     }
 
@@ -5665,8 +5672,10 @@ namespace MilkwaveRemote {
 
       if (toolStripMenuItemMonitorCPU.Checked || toolStripMenuItemMonitorGPU.Checked) {
         monitorTimer.Start();
+        MonitorHelper.Log($"Timer started: CPU={toolStripMenuItemMonitorCPU.Checked}, GPU={toolStripMenuItemMonitorGPU.Checked}, interval={monitorTimer.Interval}ms");
       } else {
         monitorTimer.Stop();
+        MonitorHelper.Log("Timer stopped (both unchecked)");
       }
     }
 
