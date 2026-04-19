@@ -1,19 +1,28 @@
-## v3.6 (unreleased)
+## v4.0 (unreleased)
 
-* DirectX 12 Visualizer support (experimental)
-  - For Visualizer fork [MDropDX12](https://github.com/shanevbg/MDropDX12) by @shanevbg (included)
-  - Named Pipes IPC Communication between Remote and Visualizers
-* Multi-Mode: Send commands to multiple Visualizers at once
+* [MDropDX12](https://github.com/shanevbg/MDropDX12) Visualizer support (experimental)
+  - Milkwave DirectX 12 Visualizer fork by @shanevbg (included)
+  - Start Milkwave Visualizer or MDropDX12 instances from the Remote
+  - Communication based on Milkwave IPC Protocol (MIP)
+* Network Mode
+  - Control Milkwave Visualizer or MDropDX12 on remote PCs (MIP over TCP)
+  - Press Ctrl-N in Visualizer, see Manual for details
+* Multi Mode
+  - Send commands to multiple Visualizers simultaneously
+  - Supports local and network connections
 * Support for equalizer shader presets (FFT)
-  - Adjust FFT attack/decay on Settings tab
+  - Adjust EQ Attack, EQ Decay and EQ Boost on Settings tab
 * New preset: IkeC - Equalizer
   - 5 different versions (switch on Settings tab)
   - Band peak marking and mouse support (Right-click)
   - Supports Intensity and Shift parameters
+* 100 new shader-based "Basic" presets
+  - Simple and calm presets eg. for mixing
+* Basic .milk2 file support
 * Visualizer menu font can be configured from Remote
 * Visualizer help (F1) adjusts to window size
 * Restructured Remote tabs and controls
-* Basic .milk2 file support
+* Improved transitions quality
 * Global stability improvements
 
 You can get a preview build on [my Discord](https://bit.ly/Ikes-Discord).

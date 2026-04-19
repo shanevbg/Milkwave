@@ -1,0 +1,212 @@
+MILKDROP_PRESET_VERSION=201
+PSVERSION=4
+PSVERSION_WARP=4
+PSVERSION_COMP=4
+[preset00]
+fRating=3.000
+fGammaAdj=2.000
+fDecay=0.750
+FFTAttack=0.500
+FFTDecay=0.700
+fVideoEchoZoom=2.000
+fVideoEchoAlpha=0.000
+nVideoEchoOrientation=0
+nWaveMode=16
+bAdditiveWaves=1
+bWaveDots=0
+bWaveThick=1
+bModWaveAlphaByVolume=0
+bMaximizeWaveColor=1
+bTexWrap=1
+bDarkenCenter=0
+bRedBlueStereo=0
+bBrighten=0
+bDarken=0
+bSolarize=0
+bInvert=0
+fWaveAlpha=0.400
+fWaveScale=1.000
+fWaveSmoothing=0.750
+fWaveParam=0.000
+fModWaveAlphaStart=0.750
+fModWaveAlphaEnd=0.950
+fWarpAnimSpeed=1.000
+fWarpScale=1.000
+fZoomExponent=1.00000
+fShader=0.000
+zoom=0.90000
+rot=0.00000
+cx=0.500
+cy=0.500
+dx=0.04000
+dy=0.00000
+warp=0.00000
+sx=1.00000
+sy=1.00000
+wave_r=0.000
+wave_g=0.000
+wave_b=0.000
+wave_x=0.000
+wave_y=0.000
+ob_size=0.010
+ob_r=0.000
+ob_g=0.000
+ob_b=0.000
+ob_a=0.000
+ib_size=0.010
+ib_r=0.250
+ib_g=0.250
+ib_b=0.250
+ib_a=0.000
+nMotionVectorsX=0.000
+nMotionVectorsY=0.000
+mv_dx=0.000
+mv_dy=0.000
+mv_l=0.000
+mv_r=1.000
+mv_g=1.000
+mv_b=1.000
+mv_a=0.000
+b1n=0.000
+b2n=0.000
+b3n=0.000
+b1x=1.000
+b2x=1.000
+b3x=1.000
+b1ed=0.250
+warp_1=`shader_body
+warp_2=`{
+warp_3=`    // sample previous frame
+warp_4=`    ret = tex2D( sampler_main, uv ).xyz;
+warp_5=`    
+warp_6=`    // darken (decay) over time
+warp_7=`    ret *= 0.75; //or try: ret -= 0.004;
+warp_8=`}
+comp_1=`// aiekick - Sound Experiment 5 / https://www.shadertoy.com/view/4d3Gzn
+comp_2=`// Transpiled to HLSL using Milkwave
+comp_3=`
+comp_4=`#define tx (sin(time)*0.5+1)
+comp_5=`
+comp_6=`// CONV: setting iChannel samplers to default noise texture
+comp_7=`#define iChannel0 sampler_heartfelt2
+comp_8=`sampler2D sampler_heartfelt2;
+comp_9=`
+comp_10=`float4 freq1, freq2, freq3;
+comp_11=`
+comp_12=`float4 map(float3 p)
+comp_13=`{
+comp_14=`  p.xy += float2(cos(p.z),sin(p.z));
+comp_15=`
+comp_16=`  float c = 1.0;
+comp_17=`
+comp_18=`  float cz = p.z, sz = p.z;
+comp_19=`
+comp_20=`  cz += freq1.x; sz -= freq2.w;
+comp_21=`  float tube = length(p.xy + float2(cos(cz),sin(sz))*.5);
+comp_22=`  float4 res = float4(tube, c, freq1.x, freq2.w);
+comp_23=`
+comp_24=`  cz += freq1.y; sz -= freq2.z;
+comp_25=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*.4));
+comp_26=`  if (tube < res.x) res = float4(tube, c, freq1.y, freq2.z);
+comp_27=`
+comp_28=`  cz += freq1.z; sz -= freq2.y;
+comp_29=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*.3));
+comp_30=`  if (tube < res.x) res = float4(tube, c, freq1.z, freq2.y);
+comp_31=`
+comp_32=`  cz += freq1.w; sz -= freq2.x;
+comp_33=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*.2));
+comp_34=`  if (tube < res.x) res = float4(tube, c, freq1.w, freq2.x);
+comp_35=`
+comp_36=`  cz += freq3.x; sz -= freq1.w;
+comp_37=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*.1));
+comp_38=`  if (tube < res.x) res = float4(tube, c, c, c);
+comp_39=`
+comp_40=`  cz += freq3.y; sz -= freq1.z;
+comp_41=`  tube = min(tube, length(p.xy/* + float2(cos(cz),sin(sz))*.0*/));
+comp_42=`  if (tube < res.x) res = float4(tube, c, c, c);
+comp_43=`
+comp_44=`  cz += freq3.z; sz -= freq1.y;
+comp_45=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*-.1));
+comp_46=`  if (tube < res.x) res = float4(tube, c, c, c);
+comp_47=`
+comp_48=`  cz += freq3.w; sz -= freq1.x;
+comp_49=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*-.2));
+comp_50=`  if (tube < res.x) res = float4(tube, c, c, c);
+comp_51=`
+comp_52=`  cz += freq2.x; sz -= freq3.w;
+comp_53=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*-.3));
+comp_54=`  if (tube < res.x) res = float4(tube, freq2.x, freq3.w, c);
+comp_55=`
+comp_56=`  cz += freq2.y; sz -= freq3.z;
+comp_57=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*-.4));
+comp_58=`  if (tube < res.x) res = float4(tube, freq2.y, freq3.z, c);
+comp_59=`
+comp_60=`  cz += freq2.z; sz -= freq3.y;
+comp_61=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*-.5));
+comp_62=`  if (tube < res.x) res = float4(tube, freq2.z, freq3.y, c);
+comp_63=`
+comp_64=`  cz += freq2.w; sz -= freq3.x;
+comp_65=`  tube = min(tube, length(p.xy + float2(cos(cz),sin(sz))*-.6));
+comp_66=`  if (tube < res.x) res = float4(tube, freq2.w, freq3.x, c);
+comp_67=`
+comp_68=`  return float4(res.x - 0.05, res.yzw);
+comp_69=`}
+comp_70=`
+comp_71=`float4 trace(float3 o, float3 r)
+comp_72=`{
+comp_73=`  float t = 0.0;
+comp_74=`  float4 d;
+comp_75=`  for (int i = 0; i < 60; ++i)
+comp_76=`  {
+comp_77=`    float3 p = o + r * t;
+comp_78=`    d = map(p);
+comp_79=`    t += d.x * (d.x>0.05?0.5:0.1);
+comp_80=`  }
+comp_81=`
+comp_82=`  return float4(t, d.yzw);
+comp_83=`}
+comp_84=`
+comp_85=`shader_body {
+comp_86=`  float4 fragColor = 0;
+comp_87=`  // CONV: Center on screen, then try some aspect correction
+comp_88=`  uv = (uv*2) - 1;
+comp_89=`  uv *= aspect.xy;
+comp_90=`  // CONV: Adjust this to flip the output (±uv.x, ±uv.y)
+comp_91=`  uv = float2(uv.x, -uv.y);
+comp_92=`  // CONV: Adjust viewpoint (x,y individually or both)
+comp_93=`  uv += float2(0,0) + 0;
+comp_94=`  uv *= float2(1,1) * 1;
+comp_95=`
+comp_96=`  // from CubeScape : https://www.shadertoy.com/view/Msl3Rr
+comp_97=`  freq1.x = tex2D( iChannel0, float2( 0.075, 0.25 ) ).x;
+comp_98=`  freq1.y = tex2D( iChannel0, float2( 0.15, 0.25 ) ).x;
+comp_99=`  freq1.z = tex2D( iChannel0, float2( 0.225, 0.25 ) ).x;
+comp_100=`  freq1.w = tex2D( iChannel0, float2( 0.3, 0.25 ) ).x;
+comp_101=`
+comp_102=`  freq2.x = tex2D( iChannel0, float2( 0.375, 0.25 ) ).x;
+comp_103=`  freq2.y = tex2D( iChannel0, float2( 0.45, 0.25 ) ).x;
+comp_104=`  freq2.z = tex2D( iChannel0, float2( 0.525, 0.25 ) ).x;
+comp_105=`  freq2.w = tex2D( iChannel0, float2( 0.6, 0.25 ) ).x;
+comp_106=`
+comp_107=`  freq3.x = tex2D( iChannel0, float2( 0.675, 0.25 ) ).x;
+comp_108=`  freq3.y = tex2D( iChannel0, float2( 0.75, 0.25 ) ).x;
+comp_109=`  freq3.z = tex2D( iChannel0, float2( 0.825, 0.25 ) ).x;
+comp_110=`  freq3.w = tex2D( iChannel0, float2( 0.9, 0.25 ) ).x;
+comp_111=`
+comp_112=`  // float2 uv = fragCoord.xy / uv.xy;
+comp_113=`
+comp_114=`  //uv = uv * 2.0 - 1.0;
+comp_115=`
+comp_116=`  //uv.x *= uv.x / uv.y;
+comp_117=`
+comp_118=`  float3 r = normalize(float3(uv, 2.0));
+comp_119=`
+comp_120=`  float3 o = float3(0.0, 0.0, time * 2.);
+comp_121=`
+comp_122=`  float4 t = trace(o, r);
+comp_123=`
+comp_124=`  float fog = 2. / (1. + t.x * t.x * 0.1);
+comp_125=`
+comp_126=`  fragColor = float4(fog * t.yzw, 1.);
+comp_127=`  ret = fragColor;
+comp_128=`}

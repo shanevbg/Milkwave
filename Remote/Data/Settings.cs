@@ -1,4 +1,6 @@
-﻿namespace MilkwaveRemote.Data {
+﻿using System.Text.Json.Serialization;
+
+namespace MilkwaveRemote.Data {
   public class Settings {
     public Settings() {
     }
@@ -42,9 +44,13 @@
     public int CurrentPresetBank { get; set; } = 1;
     public bool ControllerActive { get; set; } = false;
 
+    [JsonIgnore]
     public string VisualizerPath { get; set; } = "";
+    [JsonIgnore]
     public string VisualizerExe { get; set; } = "MilkwaveVisualizer.exe";
+    [JsonIgnore]
     public string VisualizerDX12Path { get; set; } = "MDropDX12";
+    [JsonIgnore]
     public string VisualizerExeDX12 { get; set; } = "MDropDX12.exe";
     public bool UseDX12 { get; set; } = false;
     public string WindowTitle { get; set; } = "";

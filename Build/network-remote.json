@@ -1,0 +1,22 @@
+{
+  "targets": [
+    {
+      "active": false,
+      "name": "Milkwave Visualizer (localhost)",
+      "host": "127.0.0.1",
+      "port": 9270,
+      "pin": "",
+      "deviceId": "milkwave-remote-1",
+      "deviceName": "Milkwave Remote"
+    },
+	{
+      "active": false,
+      "name": "MDropDX12 (localhost)",
+      "host": "127.0.0.1",
+      "port": 9270,
+      "pin": "",
+      "deviceId": "milkwave-remote-1",
+      "deviceName": "Milkwave Remote"
+    }
+  ]
+}

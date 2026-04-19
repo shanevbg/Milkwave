@@ -1,0 +1,148 @@
+MILKDROP_PRESET_VERSION=201
+PSVERSION=4
+PSVERSION_WARP=4
+PSVERSION_COMP=4
+[preset00]
+fRating=3.000
+fGammaAdj=2.000
+fDecay=0.750
+FFTAttack=0.500
+FFTDecay=0.700
+fVideoEchoZoom=2.000
+fVideoEchoAlpha=0.000
+nVideoEchoOrientation=0
+nWaveMode=16
+bAdditiveWaves=1
+bWaveDots=0
+bWaveThick=1
+bModWaveAlphaByVolume=0
+bMaximizeWaveColor=1
+bTexWrap=1
+bDarkenCenter=0
+bRedBlueStereo=0
+bBrighten=0
+bDarken=0
+bSolarize=0
+bInvert=0
+fWaveAlpha=0.400
+fWaveScale=1.000
+fWaveSmoothing=0.750
+fWaveParam=0.000
+fModWaveAlphaStart=0.750
+fModWaveAlphaEnd=0.950
+fWarpAnimSpeed=1.000
+fWarpScale=1.000
+fZoomExponent=1.00000
+fShader=0.000
+zoom=0.90000
+rot=0.00000
+cx=0.500
+cy=0.500
+dx=0.04000
+dy=0.00000
+warp=0.00000
+sx=1.00000
+sy=1.00000
+wave_r=0.000
+wave_g=0.000
+wave_b=0.000
+wave_x=0.000
+wave_y=0.000
+ob_size=0.010
+ob_r=0.000
+ob_g=0.000
+ob_b=0.000
+ob_a=0.000
+ib_size=0.010
+ib_r=0.250
+ib_g=0.250
+ib_b=0.250
+ib_a=0.000
+nMotionVectorsX=0.000
+nMotionVectorsY=0.000
+mv_dx=0.000
+mv_dy=0.000
+mv_l=0.000
+mv_r=1.000
+mv_g=1.000
+mv_b=1.000
+mv_a=0.000
+b1n=0.000
+b2n=0.000
+b3n=0.000
+b1x=1.000
+b2x=1.000
+b3x=1.000
+b1ed=0.250
+warp_1=`shader_body
+warp_2=`{
+warp_3=`    // sample previous frame
+warp_4=`    ret = tex2D( sampler_main, uv ).xyz;
+warp_5=`    
+warp_6=`    // darken (decay) over time
+warp_7=`    ret *= 0.75; //or try: ret -= 0.004;
+warp_8=`}
+comp_1=`// DJPepino - Nijmeegse Vierdaagse 💚🧡 / https://www.shadertoy.com/view/3XXSWH
+comp_2=`// Transpiled to HLSL using Milkwave
+comp_3=`
+comp_4=`#define tx (sin(time)*0.5+1)
+comp_5=`
+comp_6=`shader_body {
+comp_7=`  float4 fragColor = 0;
+comp_8=`  // CONV: Center on screen, then try some aspect correction
+comp_9=`  uv = (uv*2) - 1;
+comp_10=`  uv *= aspect.xy;
+comp_11=`  // CONV: Adjust this to flip the output (±uv.x, ±uv.y)
+comp_12=`  uv = float2(uv.x, -uv.y);
+comp_13=`  // CONV: Adjust viewpoint (x,y individually or both)
+comp_14=`  uv += float2(0,0) + 0;
+comp_15=`  uv *= float2(1,1) * 1;
+comp_16=`
+comp_17=`  // Genormaliseerde pixelcoördinaten
+comp_18=`  // float2 uv = fragCoord / uv.xy - 0.5;
+comp_19=`  //uv.x *= uv.x / uv.y;
+comp_20=`
+comp_21=`  float time_conv = time;
+comp_22=`
+comp_23=`  // Beatreactie: gebruik een basis sinusfunctie voor de beat
+comp_24=`  float beat = abs(sin(time * 5.0));
+comp_25=`  // Een eenvoudige manier om het ritme te verwerken
+comp_26=`  float musicSync = sin(time * 2.0) * beat;
+comp_27=`  // Sync met beat
+comp_28=`
+comp_29=`  // Vierdaagse kleuren
+comp_30=`  float3 darkGreen = float3(0.0, 0.4, 0.0);
+comp_31=`  float3 brightOrange = float3(1.0, 0.55, 0.0);
+comp_32=`  // Fel oranje
+comp_33=`
+comp_34=`  // Wavevormen voor beweging en dynamiek
+comp_35=`  float wave1 = sin(uv.y * 10.0 + time_conv * 2.0);
+comp_36=`  float wave2 = sin(uv.x * 15.0 - time_conv * 1.5);
+comp_37=`  float wave3 = sin((uv.x + uv.y) * 8.0 + time_conv * 3.0);
+comp_38=`  float combinedWaves = (wave1 + wave2 + wave3) / 3.0;
+comp_39=`
+comp_40=`  // Pulserende beweging (beat-reactie)
+comp_41=`  float pulse = 0.5 + 0.5 * sin(time * 4.0);
+comp_42=`
+comp_43=`  // Spiral-vorm voor extra visuele impact
+comp_44=`  float angle = atan2(uv.y, uv.x);
+comp_45=`  float radius = length(uv);
+comp_46=`  float spiral = sin(10.0 * angle + time_conv * 2.0 + radius * 20.0);
+comp_47=`  float pattern = smoothstep(0.0, 0.3, spiral * pulse + combinedWaves);
+comp_48=`
+comp_49=`  // Basiskleur via interpolatie
+comp_50=`  float3 color = lerp(darkGreen, brightOrange, pattern);
+comp_51=`
+comp_52=`  // Glow-effect verzacht & strak gehouden
+comp_53=`  float glow = exp(-radius * 7.0) * 1.0;
+comp_54=`  color += glow * brightOrange * 0.4;
+comp_55=`
+comp_56=`  // Final clamp om ALLE kleurvervuiling te voorkomen
+comp_57=`  color.r = clamp(color.r, 0.0, 1.0);
+comp_58=`  color.g = clamp(color.g, 0.2, 0.6);
+comp_59=`  color.b = 0.0;
+comp_60=`  // Helemaal geen blauw
+comp_61=`
+comp_62=`  fragColor = float4(color, 1.0);
+comp_63=`  ret = fragColor;
+comp_64=`}

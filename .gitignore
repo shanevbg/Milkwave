@@ -7,9 +7,9 @@ Visualizer/**/Release
 **/*.aps
 **/*.suo
 **/*.db
-vis_milk2/bin
+milkwave/bin
 /Milkwave.slnLaunch.user
-/Visualizer/vis_milk2/log
+/Visualizer/milkwave/log
 /Install/_Archiv
 /Build/roadmap.md
 *.exe
@@ -31,3 +31,4 @@ enc_temp_folder/
 /Build/plan*.md
 /Build/*issues*.md
 
+Remote/MilkwaveRemote.csproj.lscache

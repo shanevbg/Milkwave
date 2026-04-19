@@ -1,0 +1,162 @@
+MILKDROP_PRESET_VERSION=201
+PSVERSION=4
+PSVERSION_WARP=4
+PSVERSION_COMP=4
+[preset00]
+fRating=3.000
+fGammaAdj=2.000
+fDecay=0.750
+FFTAttack=0.500
+FFTDecay=0.700
+fVideoEchoZoom=2.000
+fVideoEchoAlpha=0.000
+nVideoEchoOrientation=0
+nWaveMode=16
+bAdditiveWaves=1
+bWaveDots=0
+bWaveThick=1
+bModWaveAlphaByVolume=0
+bMaximizeWaveColor=1
+bTexWrap=1
+bDarkenCenter=0
+bRedBlueStereo=0
+bBrighten=0
+bDarken=0
+bSolarize=0
+bInvert=0
+fWaveAlpha=0.400
+fWaveScale=1.000
+fWaveSmoothing=0.750
+fWaveParam=0.000
+fModWaveAlphaStart=0.750
+fModWaveAlphaEnd=0.950
+fWarpAnimSpeed=1.000
+fWarpScale=1.000
+fZoomExponent=1.00000
+fShader=0.000
+zoom=0.90000
+rot=0.00000
+cx=0.500
+cy=0.500
+dx=0.04000
+dy=0.00000
+warp=0.00000
+sx=1.00000
+sy=1.00000
+wave_r=0.000
+wave_g=0.000
+wave_b=0.000
+wave_x=0.000
+wave_y=0.000
+ob_size=0.010
+ob_r=0.000
+ob_g=0.000
+ob_b=0.000
+ob_a=0.000
+ib_size=0.010
+ib_r=0.250
+ib_g=0.250
+ib_b=0.250
+ib_a=0.000
+nMotionVectorsX=0.000
+nMotionVectorsY=0.000
+mv_dx=0.000
+mv_dy=0.000
+mv_l=0.000
+mv_r=1.000
+mv_g=1.000
+mv_b=1.000
+mv_a=0.000
+b1n=0.000
+b2n=0.000
+b3n=0.000
+b1x=1.000
+b2x=1.000
+b3x=1.000
+b1ed=0.250
+warp_1=`shader_body
+warp_2=`{
+warp_3=`    // sample previous frame
+warp_4=`    ret = tex2D( sampler_main, uv ).xyz;
+warp_5=`    
+warp_6=`    // darken (decay) over time
+warp_7=`    ret *= 0.75; //or try: ret -= 0.004;
+warp_8=`}
+comp_1=`// oneshade - Universal Waves / https://www.shadertoy.com/view/3t3yzr
+comp_2=`// Transpiled to HLSL using Milkwave
+comp_3=`
+comp_4=`#define tx (sin(time)*0.5+1)
+comp_5=`
+comp_6=`#define hue2rgb(h) 0.6 + 0.6 * cos(6.3 * h + float3(0.0, 23.0, 21.0))
+comp_7=`
+comp_8=`float mapVolume(in float3 p) {
+comp_9=`  float volume = dot(sin(0.5 * p), float3(1.0, 1.0, 1.0));
+comp_10=`  float layers = sin(3.0 * volume - 2.0 * time);
+comp_11=`  return max(layers, volume);
+comp_12=`}
+comp_13=`
+comp_14=`float mapScene(in float3 p) {
+comp_15=`  p /= 0.75;
+comp_16=`  float3 cell = floor(p) * 0.75;
+comp_17=`  float3 local = frac(p) * 0.75;
+comp_18=`  return (length(local - 0.325) + 0.3 * min(0.0, mapVolume(cell + 0.325))) * 0.6;
+comp_19=`}
+comp_20=`
+comp_21=`float3 getNormal(in float3 p) {
+comp_22=`  return normalize(float3(mapScene(p + float3(0.001, 0.0, 0.0)) - mapScene(p - float3(0.001, 0.0, 0.0)),
+comp_23=`  mapScene(p + float3(0.0, 0.001, 0.0)) - mapScene(p - float3(0.0, 0.001, 0.0)),
+comp_24=`  mapScene(p + float3(0.0, 0.0, 0.001)) - mapScene(p - float3(0.0, 0.0, 0.001))));
+comp_25=`}
+comp_26=`
+comp_27=`shader_body {
+comp_28=`  float4 fragColor = 0;
+comp_29=`  float2 fragCoord = uv;
+comp_30=`  // CONV: Center on screen, then try some aspect correction
+comp_31=`  uv = (uv*2) - 1;
+comp_32=`  uv *= aspect.xy;
+comp_33=`  // CONV: Adjust this to flip the output (±uv.x, ±uv.y)
+comp_34=`  uv = float2(uv.x, -uv.y);
+comp_35=`  // CONV: Adjust viewpoint (x,y individually or both)
+comp_36=`  uv += float2(0,0) + 0;
+comp_37=`  uv *= float2(1,1) * 1;
+comp_38=`
+comp_39=`  // float2 uv = (fragCoord - 0.5 * uv.xy) / uv.y;
+comp_40=`  fragColor = float4(0.0, 0.0, 0.0, 1.0);
+comp_41=`
+comp_42=`  float time_conv = 0.25 * time;
+comp_43=`  float c = cos(time_conv), s = sin(time_conv);
+comp_44=`
+comp_45=`  float3 ro = float3(0.0, 0.0, 10.0);
+comp_46=`  float3 rd = normalize(float3(uv, -1.0));
+comp_47=`
+comp_48=`  float dt = 0.0;
+comp_49=`  for (int iter=0; iter < 150; iter++) {
+comp_50=`    float3 p = ro + rd * dt;
+comp_51=`
+comp_52=`    p.yz = mul(p.yz, transpose(float2x2(c, s, -s, c)));
+comp_53=`    p.xz = mul(p.xz, transpose(float2x2(c, s, -s, c)));
+comp_54=`
+comp_55=`    float d = mapScene(p);
+comp_56=`    if (d < 0.001) {
+comp_57=`      float3 n = getNormal(p);
+comp_58=`      float3 l = float3(-0.58, 0.58, 0.58);
+comp_59=`
+comp_60=`      n.xz = mul(n.xz, transpose(float2x2(c, -s, s, c)));
+comp_61=`      n.yz = mul(n.yz, transpose(float2x2(c, -s, s, c)));
+comp_62=`
+comp_63=`      fragColor.rgb += hue2rgb(0.2 * length(p) + time);
+comp_64=`      fragColor.rgb *= max(0.3, dot(n, l));
+comp_65=`      // CONV: replaced break with breaking condition
+comp_66=`      iter = 150;
+comp_67=`    }
+comp_68=`
+comp_69=`    if (dt > 20.0) {
+comp_70=`      // CONV: replaced break with breaking condition
+comp_71=`      iter = 150;
+comp_72=`    }
+comp_73=`
+comp_74=`    dt += d;
+comp_75=`  }
+comp_76=`
+comp_77=`  ret = fragColor;
+comp_78=`}

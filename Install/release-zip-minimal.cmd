@@ -3,7 +3,7 @@ rem Create a release zip named Milkwave-Portable-<version>.zip using 7-Zip.
 rem This script excludes unwanted directories and includes only textures used by Milkwave presets.
 
 rem Resolve script and release directories
-set "VERSION=3.6.RC"
+set "VERSION=4.0"
 
 set "SCRIPT_DIR=%~dp0"
 set "RELEASE_DIR=%SCRIPT_DIR%..\Release"
@@ -32,8 +32,7 @@ echo Creating base archive (excluding all textures)...
  -xr!resources\presets\Milkdrop2077 ^
  -xr!resources\presets\Milkwave\Shader\Conv\* ^
  -xr!resources\presets\Quicksave ^
- -xr!resources\presets\Quicksave2 ^
- -xr!resources\shader
+ -xr!resources\presets\Quicksave2
 
 echo.
 echo Adding textures used by Milkwave presets...

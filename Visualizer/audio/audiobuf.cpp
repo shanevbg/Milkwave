@@ -2,7 +2,7 @@
 
 #include "audiobuf.h"
 
-#define SAMPLE_SIZE_LPB 576 // Max number of audio samples stored in circular buffer. Should be no less than SAMPLE_SIZE. Expected sampling rate is 44100 Hz or 48000 Hz (samples per second).
+#define SAMPLE_SIZE_LPB 8192 // Max number of audio samples stored in circular buffer. Larger buffer enables better low-frequency FFT resolution (~5.4 Hz/bin). Expected sampling rate is 44100 Hz or 48000 Hz (samples per second).
 
 std::mutex pcmLpbMutex;
 unsigned char pcmLeftLpb[SAMPLE_SIZE_LPB]; // Circular buffer (left channel)
@@ -69,18 +69,27 @@ void GetAudioBufFloat(float* pWaveL, float* pWaveR, int SamplesCount) {
     lastPcmPos = pcmPos;
   }
 
-  if ((pcmLen < SamplesCount) || (consecutiveReads > 3)) {
+  if ((pcmLen == 0) || (consecutiveReads > 3)) {
     memset(pWaveL, 0, SamplesCount * sizeof(float));
     memset(pWaveR, 0, SamplesCount * sizeof(float));
     if (consecutiveReads > 3)
       pcmBufDrained = true;
   }
   else {
-    for (int i = 0; i < SamplesCount; i++) {
+    // Zero-fill beginning if buffer not yet full; valid audio at end.
+    // This allows larger FFT windows to work during startup (zero-padded front
+    // is naturally tapered by the FFT window function).
+    int available = (pcmLen < SamplesCount) ? pcmLen : SamplesCount;
+    int zeroPrefix = SamplesCount - available;
+    if (zeroPrefix > 0) {
+      memset(pWaveL, 0, zeroPrefix * sizeof(float));
+      memset(pWaveR, 0, zeroPrefix * sizeof(float));
+    }
+    for (int i = 0; i < available; i++) {
       // Match the legacy waveform amplitude domain used by the FFT path:
       // old m_sound.fWaveform samples were roughly in [-128..127].
-      pWaveL[i % SamplesCount] = pcmLeftFloatLpb[(pcmPos + i) % SAMPLE_SIZE_LPB] * 128.0f;
-      pWaveR[i % SamplesCount] = pcmRightFloatLpb[(pcmPos + i) % SAMPLE_SIZE_LPB] * 128.0f;
+      pWaveL[zeroPrefix + i] = pcmLeftFloatLpb[(pcmPos + i) % SAMPLE_SIZE_LPB] * 128.0f;
+      pWaveR[zeroPrefix + i] = pcmRightFloatLpb[(pcmPos + i) % SAMPLE_SIZE_LPB] * 128.0f;
     }
   }
 }
