@@ -658,8 +658,8 @@ int CPlugin::AllocateMyDX9Stuff() {
   if (pDev) {
     pDev->CreateTexture(m_nVideoCaptureWidth, m_nVideoCaptureHeight, 1, D3DUSAGE_DYNAMIC, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &m_pVideoCaptureTexture, NULL);
 
-    // Create FFT spectrum texture (4096x2, R32F: row0=smoothed, row1=peak hold)
-    if (pDev->CreateTexture(MY_FFT_SHADER_BINS, 2, 1, D3DUSAGE_DYNAMIC, D3DFMT_R32F, D3DPOOL_DEFAULT, &m_lpFFTTexture, NULL) == D3D_OK)
+    // Create FFT spectrum texture (row0=smoothed, row1=peak hold)
+    if (pDev->CreateTexture(m_nFFTShaderBins, 2, 1, D3DUSAGE_DYNAMIC, D3DFMT_R32F, D3DPOOL_DEFAULT, &m_lpFFTTexture, NULL) == D3D_OK)
       milkwave->LogInfo(L"FFT texture created successfully");
     else
       milkwave->LogInfo(L"Failed to create FFT texture (D3DFMT_R32F not supported?)");

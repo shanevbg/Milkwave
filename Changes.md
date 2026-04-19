@@ -1,4 +1,4 @@
-## v4.0 (unreleased)
+## v4.0 (2026-04-19)
 
 * [MDropDX12](https://github.com/shanevbg/MDropDX12) Visualizer support (experimental)
   - Milkwave DirectX 12 Visualizer fork by @shanevbg (included)

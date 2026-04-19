@@ -2,7 +2,7 @@
 
 #include "audiobuf.h"
 
-#define SAMPLE_SIZE_LPB 8192 // Max number of audio samples stored in circular buffer. Larger buffer enables better low-frequency FFT resolution (~5.4 Hz/bin). Expected sampling rate is 44100 Hz or 48000 Hz (samples per second).
+#define SAMPLE_SIZE_LPB 8192 // Max number of audio samples stored in circular buffer. Must be >= MAX_FFT_SHADER_INPUT.
 
 std::mutex pcmLpbMutex;
 unsigned char pcmLeftLpb[SAMPLE_SIZE_LPB]; // Circular buffer (left channel)

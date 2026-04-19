@@ -254,7 +254,7 @@ void CPlugin::MyPreInitialize() {
   // m_nRatingReadProgress = -1;
 
   myfft.Init(576, MY_FFT_SAMPLES, -1);
-  m_fftShader.Init(MY_FFT_SHADER_INPUT, MY_FFT_SHADER_BINS, 0, 1.0f);  // HannÂ¹ window: tighter main lobe vs HannÂ³, giving stable per-bin amplitude especially at high frequencies
+  m_fftShader.Init(m_nFFTShaderInput, m_nFFTShaderBins, 0, 1.0f);  // Hann¹ window: tighter main lobe vs Hann³, giving stable per-bin amplitude especially at high frequencies
   memset(&mysound, 0, sizeof(mysound));
 
   int i;
@@ -451,6 +451,18 @@ void CPlugin::MyReadConfig() {
   m_fEQDecayGlobal = GetPrivateProfileFloatW(L"Milkwave", L"EQDecay", GetPrivateProfileFloatW(L"Milkwave", L"FFTDecay", 0.7f, pIni), pIni);
   m_fEQBoostGlobal = GetPrivateProfileFloatW(L"Milkwave", L"EQBoost", GetPrivateProfileFloatW(L"Milkwave", L"FFTBoost", 1.0f, pIni), pIni);
 
+  // Shader FFT window size (must be power of 2, clamped to MIN_FFT_SHADER_INPUT..MAX_FFT_SHADER_INPUT)
+  {
+    int fftSize = GetPrivateProfileIntW(L"Milkwave", L"FFTSize", DEFAULT_FFT_SHADER_INPUT, pIni);
+    if (fftSize < MIN_FFT_SHADER_INPUT) fftSize = MIN_FFT_SHADER_INPUT;
+    if (fftSize > MAX_FFT_SHADER_INPUT) fftSize = MAX_FFT_SHADER_INPUT;
+    // Round down to nearest power of 2
+    int p = 1;
+    while (p * 2 <= fftSize) p *= 2;
+    m_nFFTShaderInput = p;
+    m_nFFTShaderBins = p / 2;
+  }
+
   // --------
 
   GetPrivateProfileStringW(L"Settings", L"szPresetDir", m_szPresetDir, m_szPresetDir, sizeof(m_szPresetDir), pIni);
@@ -523,6 +535,9 @@ void CPlugin::MyReadConfig() {
   // DERIVED SETTINGS
   m_bPresetLockedByUser = m_bPresetLockOnAtStartup;
   // m_bMilkdropScrollLockState = m_bPresetLockOnAtStartup;
+
+  // Re-init shader FFT with configured size (MyPreInitialize used defaults)
+  m_fftShader.Init(m_nFFTShaderInput, m_nFFTShaderBins, 0, 1.0f);
 }
 
 //----------------------------------------------------------------------

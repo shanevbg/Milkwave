@@ -87,9 +87,11 @@ typedef struct {
 typedef char* CHARPTR;
 LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-#define MY_FFT_SAMPLES 512        // for old [pre-vms] milkdrop sound analysis
-#define MY_FFT_SHADER_INPUT 8192  // input samples for shader FFT (larger window for ~5.4 Hz/bin low-freq resolution)
-#define MY_FFT_SHADER_BINS 4096   // output frequency bins for shader FFT texture
+#define MY_FFT_SAMPLES 512             // for old [pre-vms] milkdrop sound analysis
+#define MAX_FFT_SHADER_INPUT 8192      // maximum input samples for shader FFT (circular buffer limit)
+#define MAX_FFT_SHADER_BINS 4096       // maximum output frequency bins for shader FFT texture
+#define DEFAULT_FFT_SHADER_INPUT 2048  // default input samples (~46ms window at 44100 Hz, ~2.8 frames at 60fps)
+#define MIN_FFT_SHADER_INPUT 512       // minimum input samples (~12ms, responsive like original MilkDrop)
 typedef struct {
   float imm[3];       // bass, mids, treble (absolute)
   float imm_rel[3];   // bass, mids, treble (relative to song; 1=avg, 0.9~below, 1.1~above)
@@ -725,10 +727,12 @@ class CPlugin : public CPluginShell {
 
   // DIRECTX 9:
   IDirect3DTexture9* m_lpVS[2];
-  IDirect3DTexture9* m_lpFFTTexture = nullptr;    // 4096x2 R32F FFT spectrum texture (row0=smoothed, row1=peak hold)
-  float m_fFFTSmoothed[MY_FFT_SHADER_BINS] = {};  // smoothed mono FFT buffer
-  float m_fFFTPeak[MY_FFT_SHADER_BINS] = {};      // peak hold values
-  int m_nFFTPeakHold[MY_FFT_SHADER_BINS] = {};    // frames remaining at current peak
+  int m_nFFTShaderInput = DEFAULT_FFT_SHADER_INPUT;  // runtime FFT input samples (configurable via settings.ini FFTSize)
+  int m_nFFTShaderBins = DEFAULT_FFT_SHADER_INPUT / 2;  // runtime FFT output bins (always input / 2)
+  IDirect3DTexture9* m_lpFFTTexture = nullptr;    // R32F FFT spectrum texture (row0=smoothed, row1=peak hold)
+  float m_fFFTSmoothed[MAX_FFT_SHADER_BINS] = {};  // smoothed mono FFT buffer (sized to max)
+  float m_fFFTPeak[MAX_FFT_SHADER_BINS] = {};      // peak hold values (sized to max)
+  int m_nFFTPeakHold[MAX_FFT_SHADER_BINS] = {};    // frames remaining at current peak (sized to max)
 #define NUM_BLUR_TEX 6
 #if (NUM_BLUR_TEX > 0)
   IDirect3DTexture9* m_lpBlur[NUM_BLUR_TEX];  // each is successively 1/2 size of prev.
