@@ -1,0 +1,134 @@
+MILKDROP_PRESET_VERSION=201
+PSVERSION=4
+PSVERSION_WARP=4
+PSVERSION_COMP=4
+[preset00]
+fRating=3.000
+fGammaAdj=2.000
+fDecay=0.750
+FFTAttack=0.500
+FFTDecay=0.700
+fVideoEchoZoom=2.000
+fVideoEchoAlpha=0.000
+nVideoEchoOrientation=0
+nWaveMode=16
+bAdditiveWaves=1
+bWaveDots=0
+bWaveThick=1
+bModWaveAlphaByVolume=0
+bMaximizeWaveColor=1
+bTexWrap=1
+bDarkenCenter=0
+bRedBlueStereo=0
+bBrighten=0
+bDarken=0
+bSolarize=0
+bInvert=0
+fWaveAlpha=0.400
+fWaveScale=1.000
+fWaveSmoothing=0.750
+fWaveParam=0.000
+fModWaveAlphaStart=0.750
+fModWaveAlphaEnd=0.950
+fWarpAnimSpeed=1.000
+fWarpScale=1.000
+fZoomExponent=1.00000
+fShader=0.000
+zoom=0.90000
+rot=0.00000
+cx=0.500
+cy=0.500
+dx=0.04000
+dy=0.00000
+warp=0.00000
+sx=1.00000
+sy=1.00000
+wave_r=0.000
+wave_g=0.000
+wave_b=0.000
+wave_x=0.000
+wave_y=0.000
+ob_size=0.010
+ob_r=0.000
+ob_g=0.000
+ob_b=0.000
+ob_a=0.000
+ib_size=0.010
+ib_r=0.250
+ib_g=0.250
+ib_b=0.250
+ib_a=0.000
+nMotionVectorsX=0.000
+nMotionVectorsY=0.000
+mv_dx=0.000
+mv_dy=0.000
+mv_l=0.000
+mv_r=1.000
+mv_g=1.000
+mv_b=1.000
+mv_a=0.000
+b1n=0.000
+b2n=0.000
+b3n=0.000
+b1x=1.000
+b2x=1.000
+b3x=1.000
+b1ed=0.250
+warp_1=`shader_body
+warp_2=`{
+warp_3=`    // sample previous frame
+warp_4=`    ret = tex2D( sampler_main, uv ).xyz;
+warp_5=`    
+warp_6=`    // darken (decay) over time
+warp_7=`    ret *= 0.75; //or try: ret -= 0.004;
+warp_8=`}
+comp_1=`// avin - Polycolor circles / https://www.shadertoy.com/view/3s2XWV
+comp_2=`// Transpiled to HLSL using Milkwave
+comp_3=`
+comp_4=`#define tx (sin(time)*0.5+1)
+comp_5=`
+comp_6=`// CONV: adding helper functions
+comp_7=`float mod_conv(float x, float y) { return x - y * floor(x / y); }
+comp_8=`float2 mod_conv(float2 x, float2 y) { return x - y * floor(x / y); }
+comp_9=`float3 mod_conv(float3 x, float3 y) { return x - y * floor(x / y); }
+comp_10=`float4 mod_conv(float4 x, float4 y) { return x - y * floor(x / y); }
+comp_11=`
+comp_12=`#define SIZE 10.
+comp_13=`
+comp_14=`float rand(float2 co) {
+comp_15=`  return frac(sin(dot(co.xy , float2(12.9898, 78.233))) * 43758.5453);
+comp_16=`}
+comp_17=`
+comp_18=`shader_body {
+comp_19=`  float4 fragColor = 0;
+comp_20=`  float2 fragCoord  = uv;
+comp_21=`  // CONV: Center on screen, then try some aspect correction
+comp_22=`  uv = (uv*2) - 1;
+comp_23=`  uv *= aspect.xy;
+comp_24=`  // CONV: Adjust this to flip the output (±uv.x, ±uv.y) and set viewpoint
+comp_25=`  uv = float2(uv.x, -uv.y);
+comp_26=`  uv += float2(1.0, 100.0);
+comp_27=`  uv *= float2(0.8, 0.8);
+comp_28=`
+comp_29=`  // float2 uv = (fragCoord.xy - uv.xy * 0.5) / uv.y;
+comp_30=`
+comp_31=`  uv = uv * SIZE;
+comp_32=`  uv.x += floor(mod_conv(uv.y, 2.0)) * time * 2.0 - time;
+comp_33=`  float2 id = floor(uv);
+comp_34=`  float2 gv = frac(uv) - 0.5;
+comp_35=`
+comp_36=`  float sF = 1.5 * (SIZE / uv.y);
+comp_37=`  float size = 0.4;
+comp_38=`  float colMask = smoothstep(size, size - sF, length(gv));
+comp_39=`
+comp_40=`  float3 circleColor = float3(
+comp_41=`  rand(id),
+comp_42=`  rand(id + 1.0),
+comp_43=`  rand(id + 2.0)
+comp_44=`  );
+comp_45=`
+comp_46=`  float3 col = lerp(float3(1.0, 1.0, 1.0), circleColor, colMask);
+comp_47=`
+comp_48=`  fragColor = float4(col, 1.0);
+comp_49=`  ret = fragColor;
+comp_50=`}

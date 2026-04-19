@@ -70,6 +70,36 @@ Set Luma Key to "Active" to make a certain color in the input source transparent
 
 "Controller" allows you to select a game controller. If "Active", it will send the commands defined in _controller-remote.json_ to the Visualizer when you press buttons. You can edit the command list in _controller-remote.json_ or use the "Config" button to open the file in a text editor.
 
+### Network Remote
+
+You can control Milwave Visualuzer or MDropDX12 instances running on remote machines over TCP. 
+
+On the client side, network targets are configured in _network-remote.json_ and appear in the Visualizer combobox alongside local instances. Each target must set `active=true` to show up, and the entry label is the value of `name`. When a network target is selected, commands are sent to the Visualizer's TCP server instead of a local named pipe.
+
+On the machine running Milkwave Remote, edit _network-remote.json_ and configure an entry with the remote machine's IP address, port, and (optional) PIN:
+
+```json
+{
+  "targets": [
+    {
+      "active": true,
+      "name": "MDropDX12 (Remote)",
+      "host": "192.168.1.100",
+      "port": 9270,
+      "pin": "",
+      "deviceId": "milkwave-remote-1",
+      "deviceName": "Milkwave Remote"
+    }
+  ]
+}
+```
+
+Only targets with `active=true` are shown in the combobox. If "Multi" is checked, commands are broadcast to all local instances and all active network targets.
+
+To configure **MDropDX12** on the server side, start MDropDX12 and enable the TCP server in **Settings (F8) → "Tools" tab → "Open Remote"**. In the **"Authorization"** tab, enable the TCP Server. Alternatively, set `TcpEnabled=1` in the `[Network]` section of _settings.ini_. The default port is **9270**. If the remote MDropDX12 has not authorized this device yet, the status bar will show "Waiting for approval" — approve the pending device in "Clients".
+
+To configure **Milkwave Visualizer** on the server side and see the server status, press Ctrl+N in the Visualizer. Alternatively, set `TcpEnabled=1` in the `[Network]` section of _settings.ini_. You may also specify a different port with `TcpPort` and a PIN (plain text) using `TcpPIN`.
+
 ## Tab "Settings"
 
 Change the internal "Time", "FPS" and "Frame" values that the Visualizer sends to the preset. This may speed up, slow down or otherwise change the behaviour of the preset, depending on how the preset is built and how (or if) it uses any of these variables.

@@ -75,7 +75,7 @@ If you have any questions, don't be afraid to [ask for support](#support)!
 
 ## History
 
-The original [MilkDrop2](https://www.geisswerks.com/milkdrop/) WinAmp plugin created by Ryan Geiss was turned into a Windows standalone application by Maxim Volskiy as [BeatDrop](https://github.com/mvsoft74/BeatDrop) and has since been improved upon eg. in the [BeatDrop-Music-Visualizer](https://github.com/OfficialIncubo/BeatDrop-Music-Visualizer) project. Milkwave originally started as a fork of BeatDrop-Music-Visualizer, and some Visualizer features and improvements are still kept in sync between our projects.
+The original [MilkDrop2](https://www.geisswerks.com/milkdrop/) WinAmp plugin created by Ryan Geiss was turned into a Windows standalone application by Maxim Volskiy as [BeatDrop](https://github.com/mvsoft74/BeatDrop). Milkwave originally started as a fork of the [BeatDrop-Music-Visualizer](https://github.com/OfficialIncubo/BeatDrop-Music-Visualizer) BeatDrop fork.
 
 For a more detailed explanation of all features, please read the [Manual](https://github.com/IkeC/Milkwave/blob/main/Manual.md). 
 

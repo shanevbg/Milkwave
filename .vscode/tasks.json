@@ -16,7 +16,7 @@
 			"type": "shell",
 			"command": "msbuild",
 			"args": [
-				"${workspaceFolder}\\Visualizer\\vis_milk2\\plugin.vcxproj",
+				"${workspaceFolder}\\Visualizer\\milkwave\\plugin.vcxproj",
 				"/p:Configuration=Debug",
 				"/p:Platform=Win32",
 				"/p:PlatformToolset=v143"
@@ -33,7 +33,7 @@
 			"type": "shell",
 			"command": "msbuild",
 			"args": [
-				"${workspaceFolder}\\Visualizer\\vis_milk2\\plugin.vcxproj",
+				"${workspaceFolder}\\Visualizer\\milkwave\\plugin.vcxproj",
 				"/p:Configuration=Release",
 				"/p:Platform=Win32",
 				"/p:PlatformToolset=v143"
@@ -100,13 +100,7 @@
 		{
 			"label": "Clean Solution",
 			"type": "shell",
-			"command": "msbuild",
-			"args": [
-				"${workspaceFolder}\\Milkwave.sln",
-				"/t:Clean",
-				"/p:Configuration=Debug",
-				"/p:Platform=Win32"
-			],
+			"command": "& { msbuild '${workspaceFolder}\\Milkwave.sln' /t:Clean /p:Configuration=Debug /p:Platform=Win32; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; msbuild '${workspaceFolder}\\Milkwave.sln' /t:Clean /p:Configuration=Release /p:Platform=Win32; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }",
 			"problemMatcher": "$msCompile"
 		},
 		{
@@ -130,6 +124,12 @@
 			"type": "shell",
 			"command": "${workspaceFolder}\\Build\\copy-MDropDX12.cmd",
 			"group": "build"
+		},
+		{
+			"label": "Format Visualizer",
+			"type": "shell",
+			"command": "Get-ChildItem -Path '${workspaceFolder}\\Visualizer\\milkwave' -Include '*.cpp','*.h' -Recurse | ForEach-Object { & 'C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\Llvm\\bin\\clang-format.exe' -i $_.FullName }; Write-Host 'Done.'",
+			"problemMatcher": []
 		}
 	]
 }
