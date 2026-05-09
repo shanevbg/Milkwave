@@ -31,13 +31,17 @@
 <img width="1235" height="1032" alt="Milkwave-3.5-Tabs" src="https://github.com/user-attachments/assets/736eaa9f-3ccf-4fde-8e89-71182234d1a9" />
 <img width="1234" height="261" alt="Milkwave-3.5-Buttons" src="https://github.com/user-attachments/assets/aac0224c-ff77-447f-b27d-c301d5a81f86" />
 
+* Remote control
+  - Run and control DX9 and DX12 Visualizer instances
+  - Control multiple Visualizer instances running locally or over the Network
+  - Send commands to multiple Visualizers at the same time
 * Preset tagging
   - Tag your presets with any number of words of your choice
   - Dynamic buttons for your most used tags
   - Load preset lists based on tags
   - Saved in human-readable json file for easy sharing or backup
 * Messaging
-  - Send text to Visualizer window
+  - Send text to Visualizer windows
   - Display multiple messages at once
   - Set color, font size, position and other parameters
   - Move text around using start and end coordinates
