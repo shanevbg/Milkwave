@@ -143,6 +143,7 @@
 
 #include "plugin.h"
 #include "pipe_server.h"
+#include "milkwave.h"
 #include "resource.h"
 #include "pluginshell.h"
 
@@ -154,6 +155,8 @@
 //#include <core/sdk/IPlaybackRemote.h>
 
 #include "..\audio\common.h"
+
+extern int SAMPLE_RATE;
 #include "milkwave.h"
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #define _SILENCE_LOCALE_EMPTY_DEPRECATION_WARNING
@@ -1142,6 +1145,183 @@ LRESULT CALLBACK StaticWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     DWORD_PTR dwData = (DWORD_PTR)wParam;
     if (message) {
       if (dwData == 1) {
+        // Handle diagnostic IPC commands before LaunchMessage
+        if (wcscmp(message, L"GET_AUDIO_DIAG") == 0) {
+          // Access raw sound data through public accessor
+          auto soundData = g_plugin.GetSoundData();
+          wchar_t buf[512];
+          swprintf_s(buf, 512,
+            L"AUDIO_DIAG|ampL=%.2f|ampR=%.2f"
+            L"|bass=%.3f|mid=%.3f|treb=%.3f"
+            L"|bass_att=%.3f|mid_att=%.3f|treb_att=%.3f"
+            L"|bass_imm=%.6f|mid_imm=%.6f|treb_imm=%.6f"
+            L"|bass_avg=%.6f|mid_avg=%.6f|treb_avg=%.6f"
+            L"|pcm_min=%d|pcm_max=%d|pcm_samples=%d,%d,%d,%d,%d",
+            milkwave_amp_left, milkwave_amp_right,
+            g_plugin.mysound.imm_rel[0], g_plugin.mysound.imm_rel[1], g_plugin.mysound.imm_rel[2],
+            soundData.avg[0][0], soundData.avg[0][1], soundData.avg[0][2],
+            soundData.imm[0][0], soundData.imm[0][1], soundData.imm[0][2],
+            soundData.avg[0][0], soundData.avg[0][1], soundData.avg[0][2],
+            (int)pcmLeftOut[0], (int)pcmLeftOut[287],
+            (int)pcmLeftOut[0], (int)pcmLeftOut[100], (int)pcmLeftOut[200],
+            (int)pcmLeftOut[300], (int)pcmLeftOut[400]);
+          g_pipeServer.Send(buf);
+          free(message);
+          return 0;
+        }
+        if (wcsncmp(message, L"SET_AUDIO_GAIN=", 15) == 0) {
+          float gain = (float)_wtof(message + 15);
+          if (gain < 0.0f) gain = 0.0f;
+          if (gain > 256.0f) gain = 256.0f;
+          milkwave_amp_left = gain;
+          milkwave_amp_right = gain;
+          wchar_t buf[128];
+          swprintf_s(buf, L"AUDIO_GAIN=%.2f", gain);
+          g_pipeServer.Send(buf);
+          free(message);
+          return 0;
+        }
+        if (wcscmp(message, L"GET_AUDIO_GAIN") == 0) {
+          wchar_t buf[128];
+          swprintf_s(buf, L"AUDIO_GAIN=%.2f", milkwave_amp_left);
+          g_pipeServer.Send(buf);
+          free(message);
+          return 0;
+        }
+        if (wcscmp(message, L"GET_RENDER_DIAG") == 0) {
+          float blur_min[3], blur_max[3];
+          g_plugin.GetSafeBlurMinMax(g_plugin.m_pState, blur_min, blur_max);
+          float fscale0 = 1.0f / (blur_max[0] - blur_min[0]);
+          float fbias0 = -blur_min[0] * fscale0;
+          float fscale1 = 0, fbias1 = 0, fscale2 = 0, fbias2 = 0;
+          if (blur_max[0] - blur_min[0] > 0.0001f) {
+            float t_min1 = (blur_min[1] - blur_min[0]) / (blur_max[0] - blur_min[0]);
+            float t_max1 = (blur_max[1] - blur_min[0]) / (blur_max[0] - blur_min[0]);
+            if (t_max1 - t_min1 > 0.0001f) {
+              fscale1 = 1.0f / (t_max1 - t_min1);
+              fbias1 = -t_min1 * fscale1;
+            }
+          }
+          if (blur_max[1] - blur_min[1] > 0.0001f) {
+            float t_min2 = (blur_min[2] - blur_min[1]) / (blur_max[1] - blur_min[1]);
+            float t_max2 = (blur_max[2] - blur_min[1]) / (blur_max[1] - blur_min[1]);
+            if (t_max2 - t_min2 > 0.0001f) {
+              fscale2 = 1.0f / (t_max2 - t_min2);
+              fbias2 = -t_min2 * fscale2;
+            }
+          }
+          auto soundData = g_plugin.GetSoundData();
+          float decay = g_plugin.m_pState->var_pf_decay ? (float)*g_plugin.m_pState->var_pf_decay : 0;
+          float gamma = g_plugin.m_pState->var_pf_gamma ? (float)*g_plugin.m_pState->var_pf_gamma : 0;
+          float echo_alpha = g_plugin.m_pState->var_pf_echo_alpha ? (float)*g_plugin.m_pState->var_pf_echo_alpha : 0;
+          float echo_zoom = g_plugin.m_pState->var_pf_echo_zoom ? (float)*g_plugin.m_pState->var_pf_echo_zoom : 0;
+          // Compute aspect ratio from texsize (GetWidth/GetHeight are protected)
+          float diag_aspect_x = 1, diag_aspect_y = 1;
+          if (g_plugin.m_nTexSizeX > g_plugin.m_nTexSizeY)
+            diag_aspect_y = g_plugin.m_nTexSizeY / (float)g_plugin.m_nTexSizeX;
+          else
+            diag_aspect_x = g_plugin.m_nTexSizeX / (float)g_plugin.m_nTexSizeY;
+          float diag_time = g_plugin.GetTime() - g_plugin.m_pState->GetPresetStartTime();
+          int nShapesVis = 0, nWavesVis = 0;
+          for (int si = 0; si < MAX_CUSTOM_SHAPES; si++)
+            if (g_plugin.m_pState->m_shape[si].enabled) nShapesVis++;
+          for (int wi = 0; wi < MAX_CUSTOM_WAVES; wi++)
+            if (g_plugin.m_pState->m_wave[wi].enabled) nWavesVis++;
+
+          // Per-frame equation outputs for warp
+          float pf_zoom = g_plugin.m_pState->var_pf_zoom ? (float)*g_plugin.m_pState->var_pf_zoom : 0;
+          float pf_rot = g_plugin.m_pState->var_pf_rot ? (float)*g_plugin.m_pState->var_pf_rot : 0;
+          float pf_warp = g_plugin.m_pState->var_pf_warp ? (float)*g_plugin.m_pState->var_pf_warp : 0;
+          float pf_cx = g_plugin.m_pState->var_pf_cx ? (float)*g_plugin.m_pState->var_pf_cx : 0;
+          float pf_cy = g_plugin.m_pState->var_pf_cy ? (float)*g_plugin.m_pState->var_pf_cy : 0;
+          float pf_dx = g_plugin.m_pState->var_pf_dx ? (float)*g_plugin.m_pState->var_pf_dx : 0;
+          float pf_dy = g_plugin.m_pState->var_pf_dy ? (float)*g_plugin.m_pState->var_pf_dy : 0;
+          float pf_sx = g_plugin.m_pState->var_pf_sx ? (float)*g_plugin.m_pState->var_pf_sx : 0;
+          float pf_sy = g_plugin.m_pState->var_pf_sy ? (float)*g_plugin.m_pState->var_pf_sy : 0;
+          float pf_zoomexp = g_plugin.m_pState->var_pf_zoomexp ? (float)*g_plugin.m_pState->var_pf_zoomexp : 0;
+
+          // Sample warp mesh UVs at corners and center
+          int gw = g_plugin.m_nGridX, gh = g_plugin.m_nGridY;
+          int ctrIdx = (gh / 2) * (gw + 1) + gw / 2;
+          int tlIdx = 0;
+          int brIdx = gh * (gw + 1) + gw;
+          float mesh_ctr_u = 0, mesh_ctr_v = 0;
+          float mesh_tl_u = 0, mesh_tl_v = 0, mesh_br_u = 0, mesh_br_v = 0;
+          if (g_plugin.m_verts) {
+            mesh_ctr_u = g_plugin.m_verts[ctrIdx].tu; mesh_ctr_v = g_plugin.m_verts[ctrIdx].tv;
+            mesh_tl_u = g_plugin.m_verts[tlIdx].tu; mesh_tl_v = g_plugin.m_verts[tlIdx].tv;
+            mesh_br_u = g_plugin.m_verts[brIdx].tu; mesh_br_v = g_plugin.m_verts[brIdx].tv;
+          }
+
+          wchar_t buf2[4096];
+          swprintf_s(buf2, 4096,
+            L"RENDER_DIAG"
+            L"|blur_min0=%.6f|blur_max0=%.6f|blur_min1=%.6f|blur_max1=%.6f|blur_min2=%.6f|blur_max2=%.6f"
+            L"|fscale0=%.4f|fbias0=%.4f|fscale1=%.4f|fbias1=%.4f|fscale2=%.4f|fbias2=%.4f"
+            L"|nHighestBlur=%d|decay=%.6f|gamma=%.4f|echo_alpha=%.4f|echo_zoom=%.4f"
+            L"|zoom=%.6f|rot=%.6f|warp=%.6f|cx=%.6f|cy=%.6f|dx=%.6f|dy=%.6f|sx=%.6f|sy=%.6f|zoomexp=%.6f"
+            L"|q1=%.6f|q2=%.6f|q3=%.6f|q4=%.6f|q5=%.6f|q6=%.6f|q7=%.6f|q8=%.6f"
+            L"|q9=%.6f|q10=%.6f|q11=%.6f|q12=%.6f|q13=%.6f|q14=%.6f|q15=%.6f|q16=%.6f"
+            L"|q17=%.6f|q18=%.6f|q19=%.6f|q20=%.6f|q21=%.6f|q22=%.6f|q23=%.6f|q24=%.6f"
+            L"|q25=%.6f|q26=%.6f|q27=%.6f|q28=%.6f|q29=%.6f|q30=%.6f|q31=%.6f|q32=%.6f"
+            L"|bass_rel=%.6f|mid_rel=%.6f|treb_rel=%.6f"
+            L"|bass_imm=%.6f|mid_imm=%.6f|treb_imm=%.6f"
+            L"|bass_avg=%.6f|mid_avg=%.6f|treb_avg=%.6f"
+            L"|bass_lavg=%.6f|mid_lavg=%.6f|treb_lavg=%.6f"
+            L"|warpPSVer=%d|compPSVer=%d"
+            L"|texW=%d|texH=%d|aspect_x=%.6f|aspect_y=%.6f|gridW=%d|gridH=%d"
+            L"|mesh_ctr=%.6f,%.6f|mesh_tl=%.6f,%.6f|mesh_br=%.6f,%.6f"
+            L"|time=%.4f|frame=%d|shapes=%d|waves=%d|srate=%d|fps=%.1f|wave_peak=%.1f",
+            blur_min[0], blur_max[0], blur_min[1], blur_max[1], blur_min[2], blur_max[2],
+            fscale0, fbias0, fscale1, fbias1, fscale2, fbias2,
+            g_plugin.m_nHighestBlurTexUsedThisFrame, decay, gamma, echo_alpha, echo_zoom,
+            pf_zoom, pf_rot, pf_warp, pf_cx, pf_cy, pf_dx, pf_dy, pf_sx, pf_sy, pf_zoomexp,
+            g_plugin.m_pState->var_pf_q[0] ? (float)*g_plugin.m_pState->var_pf_q[0] : 0.f,
+            g_plugin.m_pState->var_pf_q[1] ? (float)*g_plugin.m_pState->var_pf_q[1] : 0.f,
+            g_plugin.m_pState->var_pf_q[2] ? (float)*g_plugin.m_pState->var_pf_q[2] : 0.f,
+            g_plugin.m_pState->var_pf_q[3] ? (float)*g_plugin.m_pState->var_pf_q[3] : 0.f,
+            g_plugin.m_pState->var_pf_q[4] ? (float)*g_plugin.m_pState->var_pf_q[4] : 0.f,
+            g_plugin.m_pState->var_pf_q[5] ? (float)*g_plugin.m_pState->var_pf_q[5] : 0.f,
+            g_plugin.m_pState->var_pf_q[6] ? (float)*g_plugin.m_pState->var_pf_q[6] : 0.f,
+            g_plugin.m_pState->var_pf_q[7] ? (float)*g_plugin.m_pState->var_pf_q[7] : 0.f,
+            g_plugin.m_pState->var_pf_q[8] ? (float)*g_plugin.m_pState->var_pf_q[8] : 0.f,
+            g_plugin.m_pState->var_pf_q[9] ? (float)*g_plugin.m_pState->var_pf_q[9] : 0.f,
+            g_plugin.m_pState->var_pf_q[10] ? (float)*g_plugin.m_pState->var_pf_q[10] : 0.f,
+            g_plugin.m_pState->var_pf_q[11] ? (float)*g_plugin.m_pState->var_pf_q[11] : 0.f,
+            g_plugin.m_pState->var_pf_q[12] ? (float)*g_plugin.m_pState->var_pf_q[12] : 0.f,
+            g_plugin.m_pState->var_pf_q[13] ? (float)*g_plugin.m_pState->var_pf_q[13] : 0.f,
+            g_plugin.m_pState->var_pf_q[14] ? (float)*g_plugin.m_pState->var_pf_q[14] : 0.f,
+            g_plugin.m_pState->var_pf_q[15] ? (float)*g_plugin.m_pState->var_pf_q[15] : 0.f,
+            g_plugin.m_pState->var_pf_q[16] ? (float)*g_plugin.m_pState->var_pf_q[16] : 0.f,
+            g_plugin.m_pState->var_pf_q[17] ? (float)*g_plugin.m_pState->var_pf_q[17] : 0.f,
+            g_plugin.m_pState->var_pf_q[18] ? (float)*g_plugin.m_pState->var_pf_q[18] : 0.f,
+            g_plugin.m_pState->var_pf_q[19] ? (float)*g_plugin.m_pState->var_pf_q[19] : 0.f,
+            g_plugin.m_pState->var_pf_q[20] ? (float)*g_plugin.m_pState->var_pf_q[20] : 0.f,
+            g_plugin.m_pState->var_pf_q[21] ? (float)*g_plugin.m_pState->var_pf_q[21] : 0.f,
+            g_plugin.m_pState->var_pf_q[22] ? (float)*g_plugin.m_pState->var_pf_q[22] : 0.f,
+            g_plugin.m_pState->var_pf_q[23] ? (float)*g_plugin.m_pState->var_pf_q[23] : 0.f,
+            g_plugin.m_pState->var_pf_q[24] ? (float)*g_plugin.m_pState->var_pf_q[24] : 0.f,
+            g_plugin.m_pState->var_pf_q[25] ? (float)*g_plugin.m_pState->var_pf_q[25] : 0.f,
+            g_plugin.m_pState->var_pf_q[26] ? (float)*g_plugin.m_pState->var_pf_q[26] : 0.f,
+            g_plugin.m_pState->var_pf_q[27] ? (float)*g_plugin.m_pState->var_pf_q[27] : 0.f,
+            g_plugin.m_pState->var_pf_q[28] ? (float)*g_plugin.m_pState->var_pf_q[28] : 0.f,
+            g_plugin.m_pState->var_pf_q[29] ? (float)*g_plugin.m_pState->var_pf_q[29] : 0.f,
+            g_plugin.m_pState->var_pf_q[30] ? (float)*g_plugin.m_pState->var_pf_q[30] : 0.f,
+            g_plugin.m_pState->var_pf_q[31] ? (float)*g_plugin.m_pState->var_pf_q[31] : 0.f,
+            g_plugin.mysound.imm_rel[0], g_plugin.mysound.imm_rel[1], g_plugin.mysound.imm_rel[2],
+            g_plugin.mysound.imm[0], g_plugin.mysound.imm[1], g_plugin.mysound.imm[2],
+            g_plugin.mysound.avg[0], g_plugin.mysound.avg[1], g_plugin.mysound.avg[2],
+            g_plugin.mysound.long_avg[0], g_plugin.mysound.long_avg[1], g_plugin.mysound.long_avg[2],
+            g_plugin.m_pState->m_nWarpPSVersion, g_plugin.m_pState->m_nCompPSVersion,
+            g_plugin.m_nTexSizeX, g_plugin.m_nTexSizeY, diag_aspect_x, diag_aspect_y, gw, gh,
+            mesh_ctr_u, mesh_ctr_v, mesh_tl_u, mesh_tl_v, mesh_br_u, mesh_br_v,
+            diag_time, (int)g_plugin.GetFrame(), nShapesVis, nWavesVis,
+            SAMPLE_RATE, g_plugin.GetFps(),
+            [&]() { float peak = 0; for (int k = 0; k < 576; k++) { float v = fabsf(g_plugin.mysound.fWave[0][k]); if (v > peak) peak = v; } return peak; }());
+          g_pipeServer.Send(buf2);
+          free(message);
+          return 0;
+        }
         g_plugin.LaunchMessage(message);
       }
       else if (dwData == (WM_USER + 108)) { // WM_USER_SET_SPOUT_SENDER equivalent

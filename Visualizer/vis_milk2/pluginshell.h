@@ -83,6 +83,9 @@ public:
   void ResetBufferAndFonts();
   void UpdateBackBufferTracking(int width, int height);
 
+  // Public accessor for sound data (used by IPC diagnostics)
+  const td_soundinfo& GetSoundData() const { return m_sound; }
+
   D3DPRESENT_PARAMETERS d3dPp;
   DXContext* m_lpDX;            // pointer to DXContext object
 

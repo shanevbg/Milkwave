@@ -11314,11 +11314,27 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     SetOpacity(GetPluginWindow());
   }
   else if (wcsncmp(sMessage, L"STATE", 5) == 0) {
+    extern PipeServer g_pipeServer;
+    HWND hWnd = GetPluginWindow();
+    RECT wr = {};
+    if (hWnd) GetWindowRect(hWnd, &wr);
+
     int display = static_cast<int>(std::ceil(100 * fOpacity));
-    wchar_t buf[1024];
-    swprintf(buf, 64, L"Opacity: %d%%", display); // Use %d for integers
-    SendMessageToMilkwaveRemote((L"OPACITY=" + std::to_wstring(display)).c_str());
-    SendPresetChangedInfoToMilkwaveRemote();
+
+    wchar_t buf[2048];
+    swprintf_s(buf, _countof(buf),
+        L"PRESET=%s\n"
+        L"LOCKED=%d\n"
+        L"WINDOW=(%d,%d)-(%d,%d) %dx%d\n"
+        L"OPACITY=%d",
+        m_szCurrentPresetFile,
+        m_bPresetLockedByUser ? 1 : 0,
+        wr.left, wr.top, wr.right, wr.bottom,
+        wr.right - wr.left, wr.bottom - wr.top,
+        display);
+
+    g_pipeServer.Send(buf);
+    SendPresetWaveInfoToMilkwaveRemote();
     SendSettingsInfoToMilkwaveRemote();
     if (m_nNumericInputMode == NUMERIC_INPUT_MODE_CUST_MSG) {
       PostMessageToMilkwaveRemote(WM_USER_MESSAGE_MODE);
@@ -11326,6 +11342,7 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
     else {
       PostMessageToMilkwaveRemote(WM_USER_SPRITE_MODE);
     }
+    g_pipeServer.Send(L"END_BATCH");
   }
   else if (wcsncmp(sMessage, L"LINK=", 5) == 0) {
     std::wstring message(sMessage + 5);
@@ -11460,8 +11477,19 @@ void CPlugin::LaunchMessage(wchar_t* sMessage) {
   else if (wcsncmp(sMessage, L"CAPTURE", 7) == 0) {
     OutputDebugStringW(L"[CAPTURE] Message received\n");
     milkwave->LogInfo(L"CAPTURE message received, calling CaptureScreenshot()");
-    CaptureScreenshot();
-    OutputDebugStringW(L"[CAPTURE] CaptureScreenshot() returned\n");
+    wchar_t capFilename[MAX_PATH];
+    if (CaptureScreenshotWithFilename(capFilename, MAX_PATH)) {
+      // Build full path and respond so MCP can read the file directly
+      wchar_t capResponse[MAX_PATH + 32];
+      swprintf_s(capResponse, MAX_PATH + 32, L"CAPTURE_PATH=%scapture\\%s", m_szBaseDir, capFilename);
+      extern PipeServer g_pipeServer;
+      g_pipeServer.Send(capResponse);
+      OutputDebugStringW(L"[CAPTURE] Responded with path\n");
+    } else {
+      extern PipeServer g_pipeServer;
+      g_pipeServer.Send(L"CAPTURE_PATH=ERROR");
+      OutputDebugStringW(L"[CAPTURE] CaptureScreenshotWithFilename failed\n");
+    }
   }
   else if (wcsncmp(sMessage, L"PRECOMPILE_CACHE", 16) == 0) {
     milkwave->LogInfo(L"PRECOMPILE_CACHE message received");
@@ -12045,6 +12073,13 @@ void CPlugin::DoCustomSoundAnalysis() {
 
   // sum spectrum up into 3 bands
   //DeepSeek - Updated Beat Detection Splitting Algorithm
+  // Use effective post-downsample rate for bin mapping, not device native rate.
+  int effectiveRate = SAMPLE_RATE;
+  if (SAMPLE_RATE > TARGET_SAMPLE_RATE) {
+    int downsampleRatio = SAMPLE_RATE / TARGET_SAMPLE_RATE;
+    effectiveRate = SAMPLE_RATE / downsampleRatio;
+  }
+
   int i;
   for (i = 0; i < 3; i++) {
     // Calculate which FFT bins correspond to our frequency ranges
@@ -12052,16 +12087,16 @@ void CPlugin::DoCustomSoundAnalysis() {
 
     switch (i) {
     case 0: // Bass (0-250Hz)
-      start_bin = (int)(BASS_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      end_bin = (int)(BASS_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+      start_bin = (int)(BASS_MIN * MY_FFT_SAMPLES / (effectiveRate / 2));
+      end_bin = (int)(BASS_MAX * MY_FFT_SAMPLES / (effectiveRate / 2));
       break;
     case 1: // Mid (250-4000Hz)
-      start_bin = (int)(MID_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      end_bin = (int)(MID_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+      start_bin = (int)(MID_MIN * MY_FFT_SAMPLES / (effectiveRate / 2));
+      end_bin = (int)(MID_MAX * MY_FFT_SAMPLES / (effectiveRate / 2));
       break;
     case 2: // Treble (4000-20000Hz)
-      start_bin = (int)(TREBLE_MIN * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
-      end_bin = (int)(TREBLE_MAX * MY_FFT_SAMPLES / (SAMPLE_RATE / 2));
+      start_bin = (int)(TREBLE_MIN * MY_FFT_SAMPLES / (effectiveRate / 2));
+      end_bin = (int)(TREBLE_MAX * MY_FFT_SAMPLES / (effectiveRate / 2));
       break;
     }
 
